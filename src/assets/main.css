@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ===== Responsive Navigation: Dropdown Transitions ===== */
+
+/* Fade transition for backdrop overlay */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.25s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/* Slide-down transition for dropdown panel */
+.slide-down-enter-active {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+              opacity 0.3s ease;
+}
+.slide-down-leave-active {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 1, 1),
+              opacity 0.2s ease;
+}
+.slide-down-enter-from {
+  transform: translateY(-8px);
+  opacity: 0;
+}
+.slide-down-leave-to {
+  transform: translateY(-8px);
+  opacity: 0;
+}
+.slide-down-enter-to,
+.slide-down-leave-from {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+/* Ensure table column headers do not wrap text onto multiple lines */
+.el-table th.el-table__cell .cell {
+  white-space: nowrap !important;
+}

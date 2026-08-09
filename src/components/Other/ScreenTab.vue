@@ -1,0 +1,776 @@
+<template>
+  <div class="screen-container h-full flex flex-col">
+    <!-- Filter Bar -->
+    <div class="flex flex-wrap justify-between items-center gap-4 mb-4 shrink-0">
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Classification select -->
+        <div class="flex items-center gap-2">
+          <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Phân loại:</span>
+          <el-select
+            v-model="filterClassification"
+            placeholder="Tất cả"
+            clearable
+            class="w-56 custom-dark-input"
+            style="width: 120px"
+            @change="handleClassificationChange"
+          >
+            <el-option label="Tất cả" value="" />
+            <el-option label="Công việc" value="Công việc" />
+            <el-option label="Cá nhân" value="Cá nhân" />
+          </el-select>
+        </div>
+
+        <!-- Search query input -->
+        <div class="flex items-center gap-2">
+          <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Tìm kiếm:</span>
+          <el-input
+            v-model="searchQuery"
+            placeholder="Dòng máy, hãng, cổng, Serial..."
+            clearable
+            class="w-64 custom-dark-input"
+            style="width: 256px"
+          />
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <el-button :icon="Refresh" circle @click="fetchScreens" :loading="loading" />
+        <el-button type="primary" @click="openAddDialog">
+          <el-icon class="mr-1"><Plus /></el-icon> Thêm Màn hình
+        </el-button>
+      </div>
+    </div>
+
+    <!-- Table Container -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
+      <el-table v-loading="loading" :data="paginatedScreens" style="width: 100%" class="flex-1" height="100%">
+        <!-- STT Column -->
+        <el-table-column label="STT" width="60" align="center" fixed>
+          <template #default="{ $index }">
+            <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Mã máy (ID) -->
+        <el-table-column prop="id" label="Mã máy (ID)" width="140" fixed show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.id }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Hãng sản xuất -->
+        <el-table-column prop="brand" label="Hãng" width="130" fixed show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="font-bold text-gray-800 dark:text-gray-200">{{ row.brand || '—' }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Dòng máy -->
+        <el-table-column prop="model_name" label="Dòng máy" min-width="180" fixed show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="font-bold text-gray-850 dark:text-gray-100">{{ row.model_name }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Phân loại -->
+        <el-table-column prop="classification" label="Phân loại" width="130" align="center">
+          <template #default="{ row }">
+            <el-tag v-if="row.classification" size="small" :type="row.classification === 'Công việc' ? 'primary' : 'success'" effect="plain">
+              {{ row.classification }}
+            </el-tag>
+            <span v-else class="text-gray-400">—</span>
+          </template>
+        </el-table-column>
+
+        <!-- Kích thước -->
+        <el-table-column prop="screen_size" label="Kích thước" width="125" align="center">
+          <template #default="{ row }">
+            <span class="text-xs text-gray-700 dark:text-gray-300 font-semibold">{{ row.screen_size || '—' }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Độ phân giải -->
+        <el-table-column prop="resolution" label="Độ phân giải" width="135" align="center">
+          <template #default="{ row }">
+            <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.resolution || '—' }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Tấm nền -->
+        <el-table-column prop="panel_type" label="Tấm nền" width="120" align="center">
+          <template #default="{ row }">
+            <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.panel_type || '—' }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Tần số quét -->
+        <el-table-column prop="refresh_rate" label="Tần số quét" width="120" align="center">
+          <template #default="{ row }">
+            <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.refresh_rate || '—' }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Cổng kết nối -->
+        <el-table-column prop="ports" label="Cổng kết nối" width="160" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="text-xs text-gray-650 dark:text-gray-350">{{ row.ports || '—' }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Số Serial -->
+        <el-table-column prop="serial_number" label="Số Serial" width="150" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="font-mono text-xs text-gray-750 dark:text-gray-250">{{ row.serial_number || '—' }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Hạn bảo hành -->
+        <el-table-column prop="warranty_expiry" label="Hạn bảo hành" width="140" align="center">
+          <template #default="{ row }">
+            <span class="font-mono text-xs">{{ formatDate(row.warranty_expiry) }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Trạng thái -->
+        <el-table-column prop="status" label="Trạng thái" width="150" align="center">
+          <template #default="{ row }">
+            <el-tag size="small" :type="getStatusTagType(row.status)" effect="dark" class="font-bold">
+              {{ getStatusLabel(row.status) }}
+            </el-tag>
+          </template>
+        </el-table-column>
+
+        <!-- Phụ kiện đi kèm -->
+        <el-table-column prop="accessories" label="Phụ kiện" width="170" show-overflow-tooltip />
+
+        <!-- Ngày mua -->
+        <el-table-column prop="purchase_date" label="Ngày mua" width="120" align="center">
+          <template #default="{ row }">
+            <span class="font-mono text-xs">{{ formatDate(row.purchase_date) }}</span>
+          </template>
+        </el-table-column>
+
+        <!-- Ghi chú -->
+        <el-table-column prop="notes" label="Ghi chú" min-width="180" show-overflow-tooltip />
+
+        <!-- Actions -->
+        <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+          <template #default="{ row }">
+            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+              <el-button link type="info" class="p-1">
+                <el-icon class="text-xl"><MoreFilled /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                  <el-dropdown-item command="handover">Bàn giao</el-dropdown-item>
+                  <el-dropdown-item command="return">Thu hồi</el-dropdown-item>
+                  <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
+                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </template>
+        </el-table-column>
+      </el-table>
+
+      <!-- Pagination -->
+      <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <el-pagination
+          v-model:current-page="currentPage"
+          v-model:page-size="pageSize"
+          :page-sizes="[10, 20, 50]"
+          :background="true"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="filteredScreens.length"
+        />
+      </div>
+    </div>
+
+    <!-- Dialog: Add / Edit Screen -->
+    <el-dialog
+      v-model="dialogVisible"
+      :title="isEdit ? 'CHỈNH SỬA THÔNG TIN MÀN HÌNH' : 'THÊM MÀN HÌNH MỚI'"
+      width="900px"
+      destroy-on-close
+      align-center
+      class="custom-dark-dialog"
+    >
+      <div class="max-h-[65vh] overflow-y-auto overflow-x-hidden px-2">
+        <el-form :model="form" :rules="rules" ref="formRef" label-width="170px" class="mt-2 compact-form">
+          <!-- PHẦN 1: THÔNG TIN CƠ BẢN -->
+          <div class="mb-4">
+            <h4 class="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-4 bg-blue-500 rounded-full"></span>
+              Thông tin nhận diện màn hình
+            </h4>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Mã thiết bị (ID)" prop="id">
+                  <el-input v-model="form.id" :disabled="isEdit" placeholder="VD: SC0001..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Hãng sản xuất" prop="brand">
+                  <el-input v-model="form.brand" placeholder="VD: Dell, LG, Asus, Samsung..." />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="Dòng máy" prop="model_name">
+                  <el-input v-model="form.model_name" placeholder="VD: UltraSharp U2723QE..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Số Serial (S/N)" prop="serial_number">
+                  <el-input v-model="form.serial_number" placeholder="Nhập số Serial..." />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="Phân loại" prop="classification">
+                  <el-select v-model="form.classification" placeholder="Chọn phân loại..." class="w-full">
+                    <el-option label="Công việc" value="Công việc" />
+                    <el-option label="Cá nhân" value="Cá nhân" />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
+
+          <!-- PHẦN 2: THÔNG SỐ HIỂN THỊ -->
+          <div class="mb-4">
+            <h4 class="text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-4 bg-emerald-500 rounded-full"></span>
+              Thông số hiển thị &amp; Cổng kết nối
+            </h4>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Kích thước màn hình" prop="screen_size">
+                  <el-input v-model="form.screen_size" placeholder="VD: 24 inch, 27 inch..." />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="Độ phân giải" prop="resolution">
+                  <el-input v-model="form.resolution" placeholder="VD: 1920x1080, 4K..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Loại tấm nền" prop="panel_type">
+                  <el-input v-model="form.panel_type" placeholder="VD: IPS, VA, OLED..." />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="Tần số quét" prop="refresh_rate">
+                  <el-input v-model="form.refresh_rate" placeholder="VD: 60Hz, 144Hz..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Cổng kết nối" prop="ports">
+                  <el-input v-model="form.ports" placeholder="VD: HDMI, DisplayPort, Type-C..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
+
+          <!-- PHẦN 3: BẢO HÀNH & TRẠNG THÁI -->
+          <div class="mb-4">
+            <h4 class="text-sm font-bold text-violet-650 dark:text-violet-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-4 bg-violet-500 rounded-full"></span>
+              Bảo hành &amp; Trạng thái vận hành
+            </h4>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Hạn bảo hành" prop="warranty_expiry">
+                  <el-date-picker v-model="form.warranty_expiry" type="date" value-format="YYYY-MM-DD" placeholder="Chọn hạn bảo hành..." class="!w-full" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="Trạng thái máy" prop="status">
+                  <el-select v-model="form.status" placeholder="Chọn trạng thái..." class="w-full">
+                    <el-option
+                      v-for="opt in DEVICE_STATUS_OPTIONS"
+                      :key="opt.value"
+                      :label="opt.label"
+                      :value="opt.value"
+                    />
+                  </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Ngày mua sắm" prop="purchase_date">
+                  <el-date-picker v-model="form.purchase_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày mua..." class="!w-full" />
+                </el-form-item>
+              </el-col>
+              <el-col :span="12">
+                <el-form-item label="Phụ kiện đi kèm" prop="accessories">
+                  <el-input v-model="form.accessories" placeholder="VD: Cáp HDMI, Củ nguồn, Chân đế..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item label="Ghi chú thêm" prop="notes">
+                  <el-input v-model="form.notes" type="textarea" :rows="2" placeholder="Ghi chú thêm về thiết bị..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
+          </div>
+        </el-form>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">Hủy</el-button>
+          <el-button type="primary" @click="submitForm">Xác nhận</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- Dialog: Detail Screen -->
+    <el-dialog
+      v-model="detailDialogVisible"
+      title="CHI TIẾT THÔNG TIN MÀN HÌNH"
+      width="750px"
+      destroy-on-close
+      align-center
+      class="custom-dark-dialog"
+    >
+      <div v-if="selectedScreen" class="px-2 space-y-6 max-h-[60vh] overflow-y-auto text-left">
+        <!-- Visual Profile Header -->
+        <div class="flex items-center gap-5 pb-4 border-b border-gray-100 dark:border-gray-700">
+          <div class="p-3.5 rounded-2xl bg-blue-500 dark:bg-blue-600 text-white shadow-md flex items-center justify-center">
+            <el-icon :size="32"><Monitor /></el-icon>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Màn hình hiển thị</div>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-100 mt-0.5">
+              {{ selectedScreen.model_name }}
+              <span class="text-gray-400 dark:text-gray-500 font-mono font-medium" v-if="selectedScreen.brand">({{ selectedScreen.brand }})</span>
+            </h3>
+            <div class="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs">
+              <span class="text-gray-500 dark:text-gray-400">Phân loại: <strong class="text-gray-750 dark:text-gray-250">{{ selectedScreen.classification || '—' }}</strong></span>
+              <span class="text-gray-300 dark:text-gray-600">|</span>
+              <span class="text-gray-500 dark:text-gray-400">Kích thước: <strong>{{ selectedScreen.screen_size || '—' }}</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Mã máy (ID)</div>
+            <div class="text-sm font-bold text-blue-600 dark:text-blue-400 font-mono">{{ selectedScreen.id }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Số Serial (S/N)</div>
+            <div class="text-sm font-bold text-gray-800 dark:text-gray-200 font-mono">{{ selectedScreen.serial_number || '—' }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Độ phân giải</div>
+            <div class="text-sm font-bold text-gray-800 dark:text-gray-200">{{ selectedScreen.resolution || '—' }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Loại tấm nền</div>
+            <div class="text-sm font-bold text-gray-800 dark:text-gray-200">{{ selectedScreen.panel_type || '—' }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Tần số quét</div>
+            <div class="text-sm text-gray-700 dark:text-gray-300">{{ selectedScreen.refresh_rate || '—' }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Cổng kết nối</div>
+            <div class="text-sm text-gray-700 dark:text-gray-300">{{ selectedScreen.ports || '—' }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Ngày mua sắm</div>
+            <div class="text-sm font-mono text-gray-750 dark:text-gray-300">{{ formatDate(selectedScreen.purchase_date) }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Hạn bảo hành</div>
+            <div class="text-sm font-mono text-gray-750 dark:text-gray-300">{{ formatDate(selectedScreen.warranty_expiry) }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Phụ kiện đi kèm</div>
+            <div class="text-sm text-gray-700 dark:text-gray-300">{{ selectedScreen.accessories || 'Không có' }}</div>
+          </div>
+          <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Trạng thái</div>
+            <div>
+              <el-tag size="small" :type="getStatusTagType(selectedScreen.status)" effect="dark" class="font-bold">
+                {{ getStatusLabel(selectedScreen.status) }}
+              </el-tag>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-150 dark:border-gray-700 pt-4" v-if="selectedScreen.notes">
+          <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Ghi chú chi tiết</div>
+          <p class="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{{ selectedScreen.notes }}</p>
+        </div>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button type="primary" @click="detailDialogVisible = false">Đóng</el-button>
+        </span>
+      </template>
+    </el-dialog>
+
+    <!-- Modal: Bàn giao Màn hình -->
+    <DeviceHandoverModal
+      v-model="handoverModalVisible"
+      :device-info="handoverDeviceInfo"
+      @success="handleHandoverSuccess"
+    />
+
+    <!-- Modal: Thu hồi Màn hình -->
+    <DeviceReturnModal
+      v-model="returnModalVisible"
+      :device-info="returnDeviceInfo"
+      @success="handleReturnSuccess"
+    />
+  </div>
+</template>
+
+<script setup lang="ts">
+import { ref, reactive, computed, onMounted } from 'vue'
+import { Monitor, Refresh, Plus, MoreFilled } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { otherService } from '@/api/otherService'
+import DeviceHandoverModal from './DeviceHandoverModal.vue'
+import DeviceReturnModal from './DeviceReturnModal.vue'
+import { DEVICE_STATUS_OPTIONS, getDeviceStatusLabel, getDeviceStatusTagType, isReadyForHandover, isHandedOverOrInUse, DeviceStatus } from '@/constants/deviceStatus'
+
+// Search, Classification filters
+const searchQuery = ref('')
+const filterClassification = ref('')
+const loading = ref(false)
+
+const screens = ref<any[]>([])
+
+// Pagination
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+// Fetch screens list from GET API
+const fetchScreens = async () => {
+  loading.value = true
+  currentPage.value = 1
+  try {
+    const data = await otherService.getScreens({
+      classification: filterClassification.value || undefined
+    })
+    screens.value = data
+  } catch (error: any) {
+    console.error('API get-screens failed:', error)
+    ElMessage.error(error.message || 'Lỗi khi tải danh sách màn hình từ API')
+    screens.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleClassificationChange = () => {
+  fetchScreens()
+}
+
+// Search Computed
+const filteredScreens = computed(() => {
+  return screens.value.filter(item => {
+    const q = searchQuery.value.toLowerCase()
+    
+    const matchesSearch = !q ||
+      item.model_name.toLowerCase().includes(q) ||
+      (item.brand && item.brand.toLowerCase().includes(q)) ||
+      (item.ports && item.ports.toLowerCase().includes(q)) ||
+      (item.serial_number && item.serial_number.toLowerCase().includes(q)) ||
+      (item.notes && item.notes.toLowerCase().includes(q))
+
+    const matchesClassification = !filterClassification.value || 
+      item.classification === filterClassification.value
+
+    return matchesSearch && matchesClassification
+  })
+})
+
+const paginatedScreens = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value
+  const end = start + pageSize.value
+  return filteredScreens.value.slice(start, end)
+})
+
+// Dialog States
+const dialogVisible = ref(false)
+const isEdit = ref(false)
+const detailDialogVisible = ref(false)
+const selectedScreen = ref<any | null>(null)
+const formRef = ref<any>(null)
+
+// Handover Modal State
+const handoverModalVisible = ref(false)
+const handoverDeviceInfo = ref<any | null>(null)
+
+// Return Modal State
+const returnModalVisible = ref(false)
+const returnDeviceInfo = ref<any | null>(null)
+
+const form = reactive({
+  id: '',
+  model_name: '',
+  brand: '',
+  screen_size: '',
+  resolution: '',
+  panel_type: '',
+  refresh_rate: '',
+  ports: '',
+  serial_number: '',
+  purchase_date: '',
+  warranty_expiry: '',
+  status: 'available',
+  accessories: '',
+  notes: '',
+  classification: 'Công việc'
+})
+
+const rules = reactive({
+  id: [{ required: true, message: 'Vui lòng nhập mã thiết bị (ID)', trigger: 'blur' }],
+  model_name: [{ required: true, message: 'Vui lòng nhập tên dòng máy', trigger: 'blur' }],
+  status: [{ required: true, message: 'Vui lòng chọn trạng thái', trigger: 'change' }]
+})
+
+// Action Handlers
+const handleCommand = (cmd: string, row: any) => {
+  if (cmd === 'detail') {
+    selectedScreen.value = row
+    detailDialogVisible.value = true
+  } else if (cmd === 'handover') {
+    if (!isReadyForHandover(row.status)) {
+      ElMessage.warning('Chỉ thiết bị ở trạng thái "Sẵn sàng bàn giao" mới có thể thực hiện bàn giao!')
+      return
+    }
+    handoverDeviceInfo.value = {
+      id: row.id,
+      type: 'monitor',
+      status: row.status,
+      model_name: row.model_name,
+      brand: row.brand
+    }
+    handoverModalVisible.value = true
+  } else if (cmd === 'return') {
+    if (!isHandedOverOrInUse(row.status)) {
+      ElMessage.warning('Chỉ thiết bị đang ở trạng thái "Đã bàn giao" hoặc "Đang sử dụng" mới có thể thực hiện thu hồi!')
+      return
+    }
+    returnDeviceInfo.value = {
+      id: row.id,
+      type: 'monitor',
+      status: row.status,
+      model_name: row.model_name,
+      brand: row.brand
+    }
+    returnModalVisible.value = true
+  } else if (cmd === 'edit') {
+    openEditDialog(row)
+  } else if (cmd === 'delete') {
+    handleDelete(row)
+  }
+}
+
+const handleHandoverSuccess = () => {
+  fetchScreens()
+}
+
+const handleReturnSuccess = () => {
+  fetchScreens()
+}
+
+const openAddDialog = () => {
+  isEdit.value = false
+  form.id = ''
+  form.brand = ''
+  form.model_name = ''
+  form.screen_size = ''
+  form.resolution = ''
+  form.panel_type = ''
+  form.refresh_rate = ''
+  form.ports = ''
+  form.serial_number = ''
+  form.purchase_date = ''
+  form.warranty_expiry = ''
+  form.status = 'available'
+  form.accessories = ''
+  form.notes = ''
+  form.classification = 'Công việc'
+  dialogVisible.value = true
+}
+
+const openEditDialog = (row: any) => {
+  isEdit.value = true
+  form.id = row.id
+  form.brand = row.brand || ''
+  form.model_name = row.model_name
+  form.screen_size = row.screen_size || ''
+  form.resolution = row.resolution || ''
+  form.panel_type = row.panel_type || ''
+  form.refresh_rate = row.refresh_rate || ''
+  form.ports = row.ports || ''
+  form.serial_number = row.serial_number || ''
+  form.purchase_date = row.purchase_date || ''
+  form.warranty_expiry = row.warranty_expiry || ''
+  form.status = row.status
+  form.accessories = row.accessories || ''
+  form.notes = row.notes || ''
+  form.classification = row.classification || 'Công việc'
+  dialogVisible.value = true
+}
+
+const submitForm = async () => {
+  if (!formRef.value) return
+  await formRef.value.validate(async (valid: boolean) => {
+    if (valid) {
+      loading.value = true
+      const payload = {
+        id: form.id,
+        brand: form.brand || null,
+        model_name: form.model_name,
+        screen_size: form.screen_size || null,
+        resolution: form.resolution || null,
+        panel_type: form.panel_type || null,
+        refresh_rate: form.refresh_rate || null,
+        ports: form.ports || null,
+        serial_number: form.serial_number || null,
+        purchase_date: form.purchase_date || null,
+        warranty_expiry: form.warranty_expiry || null,
+        status: form.status,
+        accessories: form.accessories || null,
+        notes: form.notes || null,
+        classification: form.classification || null
+      }
+
+      try {
+        if (isEdit.value) {
+          const editPayload = { ...payload }
+          await otherService.updateScreens([editPayload])
+
+          const idx = screens.value.findIndex(s => s.id === form.id)
+          if (idx !== -1) {
+            screens.value[idx] = { ...screens.value[idx], ...editPayload }
+          }
+          ElMessage.success('Cập nhật thông tin màn hình thành công!')
+        } else {
+          const res = await otherService.addScreens([payload])
+          if (res && res.length > 0) {
+            screens.value.unshift(res[0])
+          } else {
+            screens.value.unshift({ ...payload })
+          }
+          ElMessage.success('Thêm mới màn hình thành công!')
+        }
+        dialogVisible.value = false
+      } catch (error: any) {
+        ElMessage.error(error.message || 'Lỗi khi lưu thông tin màn hình')
+      } finally {
+        loading.value = false
+      }
+    }
+  })
+}
+
+const handleDelete = async (row: any) => {
+  try {
+    await ElMessageBox.confirm(
+      `Bạn có chắc chắn muốn xóa màn hình "${row.model_name}" (${row.id}) khỏi cơ sở dữ liệu?`,
+      'Xác nhận xóa thiết bị',
+      {
+        confirmButtonText: 'Xóa bỏ',
+        cancelButtonText: 'Hủy',
+        type: 'warning'
+      }
+    )
+    loading.value = true
+    await otherService.deleteScreens([row.id])
+
+    screens.value = screens.value.filter(s => s.id !== row.id)
+    ElMessage.success('Xóa màn hình thành công!')
+  } catch (err: any) {
+    if (err !== 'cancel') {
+      ElMessage.error(err.message || 'Lỗi khi xóa màn hình')
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+// Helpers
+const formatDate = (val: string) => {
+  if (!val) return '—'
+  const parts = val.split('-')
+  if (parts.length === 3) {
+    const [y, m, d] = parts
+    return `${d}/${m}/${y}`
+  }
+  return val
+}
+
+const getStatusLabel = (status: string) => {
+  return getDeviceStatusLabel(status)
+}
+
+const getStatusTagType = (status: string) => {
+  return getDeviceStatusTagType(status)
+}
+
+onMounted(() => {
+  fetchScreens()
+})
+</script>
+
+<style scoped>
+html.dark .screen-container :deep(.el-table) {
+  background-color: transparent;
+  --el-table-bg-color: transparent;
+  --el-table-tr-bg-color: transparent;
+  --el-table-header-bg-color: #111827;
+  --el-table-row-hover-bg-color: #374151;
+  --el-table-border-color: #374151;
+  --el-table-border: 1px solid #374151;
+}
+
+html.dark .screen-container :deep(.el-table th.el-table__cell) {
+  background-color: #111827 !important;
+}
+
+html.dark .screen-container :deep(.el-table td.el-table__cell) {
+  border-bottom: 1px solid #374151;
+}
+
+html.dark .screen-container :deep(.el-table .el-table-fixed-column--left),
+html.dark .screen-container :deep(.el-table .el-table-fixed-column--right) {
+  background-color: #1f2937 !important;
+}
+
+html.dark .custom-dark-input {
+  --el-input-text-color: #f3f4f6 !important;
+  --el-text-color-regular: #f3f4f6 !important;
+  --el-text-color-placeholder: #9ca3af !important;
+}
+
+html.dark .custom-dark-input :deep(.el-input__wrapper),
+html.dark .custom-dark-input :deep(.el-select__wrapper) {
+  background-color: #1f2937 !important;
+  box-shadow: 0 0 0 1px #374151 inset !important;
+}
+
+html.dark .custom-dark-input :deep(.el-input__inner),
+html.dark .custom-dark-input :deep(.el-select__placeholder) {
+  color: #f3f4f6 !important;
+  -webkit-text-fill-color: #f3f4f6 !important;
+  opacity: 1 !important;
+}
+</style>
