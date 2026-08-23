@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "hdg-group-2026",
+  "name": "hdggroup",
   "compatibility_date": "2026-07-08",
   "observability": {
     "enabled": true
