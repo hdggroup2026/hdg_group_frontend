@@ -13,6 +13,39 @@
             
             <FormInput v-model="form.password" type="password" placeholder="Mật khẩu" />
 
+            <!-- MỤC 260 — báo lý do bị đá ra. -->
+            <div v-if="doHetHan && !loiKhoa"
+                 class="text-left bg-blue-50 border border-blue-200 rounded-2xl px-4 py-3 mb-2">
+                <div class="text-xs text-blue-700 leading-relaxed">
+                    ⏱ Bạn đã được đăng xuất vì máy để không quá 8 tiếng.
+                    Vui lòng đăng nhập lại.
+                </div>
+            </div>
+
+            <!-- MỤC 259 — hộp báo tài khoản bị khoá. KHÔNG tự tắt. -->
+            <div v-if="loiKhoa"
+                 class="text-left bg-red-50 border border-red-200 rounded-2xl px-4 py-3 mb-2">
+                <div class="text-sm font-semibold text-red-700 mb-1">
+                    🔒 Tài khoản đã bị khoá
+                </div>
+                <div class="text-xs text-red-600 leading-relaxed">
+                    {{ loiKhoa }}
+                </div>
+            </div>
+
+            <!-- MỤC 278 — hộp đếm số lần sai. Màu VÀNG, khác hẳn hộp đỏ
+                 bên trên: tài khoản vẫn dùng được, chỉ là cảnh báo. Cũng
+                 KHÔNG tự tắt vì người dùng cần đọc còn mấy lần. -->
+            <div v-if="loiSaiMatKhau"
+                 class="text-left bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 mb-2">
+                <div class="text-sm font-semibold text-amber-700 mb-1">
+                    ⚠️ Sai mật khẩu
+                </div>
+                <div class="text-xs text-amber-700 leading-relaxed">
+                    {{ loiSaiMatKhau }}
+                </div>
+            </div>
+
             <div class="flex flex-col space-y-4 text-center mt-2 mb-8">
                 <span @click="$emit('switch', 'forgot')" class="text-[#004274] text-sm opacity-80 hover:opacity-100 cursor-pointer hover:underline transition-all">
                     Quên mật khẩu?
@@ -50,7 +83,22 @@ const form = reactive({
   password: ''
 })
 
+// MỤC 259 — câu báo tài khoản bị khoá. Để riêng chứ không dùng ElMessage
+// vì thông báo nổi tự tắt sau vài giây, mà câu này người dùng cần đọc kỹ.
+const loiKhoa = ref('')
+
+// MỤC 278 — câu đếm số lần gõ sai. Tách khỏi loiKhoa vì hai chuyện khác
+// nhau: cái này tài khoản VẪN DÙNG ĐƯỢC, chỉ nhắc còn mấy lần.
+const loiSaiMatKhau = ref('')
+
+// MỤC 260 — bị đá ra vì để không quá 8 tiếng thì NÓI RÕ LÝ DO.
+// Không nói thì người dùng tưởng hệ thống lỗi, hoặc tưởng bị ai đó
+// đăng xuất hộ.
+const doHetHan = ref(route.query.hethan === '1')
+
 const handleLogin = async () => {
+  loiKhoa.value = ''
+  loiSaiMatKhau.value = ''
   if (!form.username || !form.password) {
     ElMessage.warning('Vui lòng nhập tên đăng nhập và mật khẩu')
     return
@@ -60,10 +108,41 @@ const handleLogin = async () => {
   try {
     await authService.login(form.username, form.password)
     ElMessage.success('Đăng nhập thành công!')
+
+    // MỤC 259 (23/08/2026) — tài khoản chưa đổi thông tin lần đầu thì đi
+    // thẳng màn đổi, KHÔNG về trang đã yêu cầu trước đó.
+    if (authService.phaiDoiDangNhap()) {
+      router.push('/doi-dang-nhap')
+      return
+    }
+
     const redirectPath = route.query.redirect || '/overview'
     router.push(redirectPath)
   } catch (error) {
-    ElMessage.error(error.message || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.')
+    // MỤC 259 — TÁCH RIÊNG TRƯỜNG HỢP BỊ KHOÁ.
+    //
+    // Máy chủ trả câu tiếng Việt đầy đủ cho trường hợp khoá (sai 5 lần).
+    // Nhét nó vào một ô báo lỗi nhỏ xíu tự tắt sau 3 giây thì người dùng
+    // đọc không kịp, gõ lại lần nữa, và tưởng mình gõ sai mật khẩu.
+    //
+    // Nên hiện thành một hộp ĐỎ, KHÔNG TỰ TẮT, ngay trên nút đăng nhập.
+    const cau = error?.message || ''
+
+    // MỤC 278 — NHẬN BIẾT BẰNG MÃ HTTP, KHÔNG DÒ CHỮ NỮA.
+    //
+    // Cách cũ dò chữ "khoá" trong câu. Máy chủ đổi câu là hỏng: câu đếm
+    // "còn 4 lần trước khi tài khoản bị khoá" có chữ khoá, nên lần sai
+    // ĐẦU TIÊN đã hiện "Tài khoản đã bị khoá" — sai sự thật.
+    //
+    //   423 = tài khoản bị khoá thật  -> hộp ĐỎ
+    //   401 = sai mật khẩu            -> hộp VÀNG, còn dùng được
+    if (error?.status === 423) {
+      loiKhoa.value = cau
+    } else if (error?.status === 401) {
+      loiSaiMatKhau.value = cau
+    } else {
+      ElMessage.error(cau || 'Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.')
+    }
   } finally {
     loading.value = false
   }

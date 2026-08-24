@@ -142,12 +142,28 @@ import { useRouter } from 'vue-router'
 import { useDark } from '@vueuse/core'
 import { Moon, Sunny, User, SwitchButton } from '@element-plus/icons-vue'
 import { authService } from '@/api/auth'
+// MỤC 255 (23/08/2026) — bảng dự án dùng chung, xem src/constants/duAn.ts
+import { layQuyen, danhSachDuocVao, xoaBoNhoQuyen } from '@/constants/duAn'
 
 const router = useRouter()
-const selectedProject = defineModel('project', { type: String, default: 'Tiến Nga' })
+const selectedProject = defineModel('project', { type: String, default: 'Trang Chủ' })
 
-// Menu items list (single source of truth)
-const menuItems = ref<string[]>(['Tiến Nga', 'Ggomoosin', 'Rental', 'Credit', 'Thu hoạch', 'Dự án Telegram', 'Hụi', 'Other'])
+/**
+ * MỤC 255 — MENU DỰNG TỪ QUYỀN, KHÔNG VIẾT CỨNG NỮA.
+ *
+ * Trước đây dòng này là một danh sách 8 dự án gõ tay, ai đăng nhập cũng
+ * thấy đủ 8 — kế toán chỉ làm Tiến Nga vẫn nhìn thấy Credit, Hụi, Other.
+ *
+ * ⚠️ Ẩn menu KHÔNG PHẢI là chặn. Chốt chặn thật nằm ở router
+ * (src/router/index.ts). Ở đây chỉ để mắt đỡ rối. Hai chỗ đó đọc CÙNG
+ * một bảng nên không bao giờ lệch nhau: menu hiện gì thì vào được đúng
+ * cái đó, không hơn không kém.
+ *
+ * Bắt đầu bằng mảng RỖNG chứ không phải danh sách đầy đủ: nếu đọc quyền
+ * hỏng thì thà không thấy gì còn hơn thấy dự án không có quyền rồi bấm
+ * vào bị đá ra.
+ */
+const menuItems = ref<string[]>([])
 
 // Trạng thái Darkmode
 const isDark = useDark({
@@ -164,6 +180,11 @@ const handleToggle = () => {
 
 // Xử lý khi nhấn Đăng xuất
 const handleLogout = () => {
+  // MỤC 255 — PHẢI xoá bộ nhớ quyền khi đăng xuất.
+  // Không xoá thì người đăng nhập sau trên cùng máy sẽ thấy menu của
+  // người trước, cho tới khi trình duyệt tự dọn. Kế toán và owner dùng
+  // chung một máy là lộ ngay.
+  xoaBoNhoQuyen()
   authService.logout()
   router.push('/login')
 }
@@ -193,10 +214,16 @@ const handleResize = () => {
 
 onMounted(async () => {
   window.addEventListener('resize', handleResize)
-  const isAdmin = await authService.checkIsAdmin()
-  if (isAdmin && !menuItems.value.includes('Phân quyền')) {
-    menuItems.value.push('Phân quyền')
+
+  // MỤC 255 — dựng menu từ quyền thật.
+  // Mục "Phân quyền" và "Dự án Telegram" nằm sẵn trong bảng DU_AN với cờ
+  // chiAdmin, nên không phải push tay ở đây nữa.
+  const kq = await layQuyen()
+  if (kq.trangThai === 'xong') {
+    menuItems.value = danhSachDuocVao(kq.quyen).map((d) => d.ten)
   }
+  // Đọc lỗi thì để menu rỗng. Router sẽ đưa người dùng sang trang báo lỗi
+  // có nút Thử lại — không cần Navigation tự xử lý.
 })
 
 onUnmounted(() => {

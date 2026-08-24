@@ -75,6 +75,10 @@
         <el-table-column prop="telegramGroup" label="Nhóm Telegram" min-width="230" />
         <el-table-column prop="bankName" label="Ngân hàng" min-width="220" show-overflow-tooltip />
         <el-table-column prop="bankAccount" label="Số tài khoản" width="160" />
+        <el-table-column prop="maSoThue" label="Mã số thuế" width="160" />
+        <el-table-column prop="diaChi" label="Địa chỉ" width="220" />
+        <el-table-column prop="soDienThoai" label="Số điện thoại" width="160" />
+        <el-table-column prop="zalo" label="Zalo" width="160" />
         <el-table-column prop="status" label="Trạng thái" width="140" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.status === 'Hoạt động' ? 'success' : 'danger'" effect="light" round>
@@ -169,6 +173,18 @@
               <el-col :span="12">
                 <el-form-item label="Số tài khoản">
                   <el-input v-model="partnerForm.bankAccount" placeholder="Nhập số tài khoản..." />
+                </el-form-item>
+                <el-form-item label="Mã số thuế">
+                  <el-input v-model="partnerForm.maSoThue" placeholder="Nhập mã số thuế..." />
+                </el-form-item>
+                <el-form-item label="Địa chỉ">
+                  <el-input v-model="partnerForm.diaChi" placeholder="Nhập địa chỉ..." />
+                </el-form-item>
+                <el-form-item label="Số điện thoại">
+                  <el-input v-model="partnerForm.soDienThoai" placeholder="Nhập số điện thoại..." />
+                </el-form-item>
+                <el-form-item label="Zalo">
+                  <el-input v-model="partnerForm.zalo" placeholder="Nhập zalo..." />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -286,6 +302,18 @@
               <el-col :span="12">
                 <el-form-item label="Số tài khoản">
                   <el-input v-model="editForm.bankAccount" placeholder="Nhập số tài khoản..." />
+                </el-form-item>
+                <el-form-item label="Mã số thuế">
+                  <el-input v-model="editForm.maSoThue" placeholder="Nhập mã số thuế..." />
+                </el-form-item>
+                <el-form-item label="Địa chỉ">
+                  <el-input v-model="editForm.diaChi" placeholder="Nhập địa chỉ..." />
+                </el-form-item>
+                <el-form-item label="Số điện thoại">
+                  <el-input v-model="editForm.soDienThoai" placeholder="Nhập số điện thoại..." />
+                </el-form-item>
+                <el-form-item label="Zalo">
+                  <el-input v-model="editForm.zalo" placeholder="Nhập zalo..." />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -450,6 +478,22 @@
             <div>
               <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Số tài khoản</div>
               <div class="text-sm font-bold text-gray-700 dark:text-gray-300">{{ detailData.bankAccount || '—' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Mã số thuế</div>
+              <div class="text-sm font-bold text-gray-700 dark:text-gray-300">{{ detailData.maSoThue || 'Chưa có' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Địa chỉ</div>
+              <div class="text-sm font-bold text-gray-700 dark:text-gray-300">{{ detailData.diaChi || 'Chưa có' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Số điện thoại</div>
+              <div class="text-sm font-bold text-gray-700 dark:text-gray-300">{{ detailData.soDienThoai || 'Chưa có' }}</div>
+            </div>
+            <div>
+              <div class="text-xs text-gray-500 dark:text-gray-400">Zalo</div>
+              <div class="text-sm font-bold text-gray-700 dark:text-gray-300">{{ detailData.zalo || 'Chưa có' }}</div>
             </div>
             <div>
               <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Công nợ</div>
@@ -765,6 +809,10 @@ const partnerForm = reactive({
   telegramGroup: '',
   bankName: '',
   bankAccount: '',
+  maSoThue: '',
+  diaChi: '',
+  soDienThoai: '',
+  zalo: '',
   status: 'Hoạt động'
 })
 
@@ -783,6 +831,10 @@ const fetchPartners = async () => {
       telegramGroup: item.telegram_group || 'Chưa có',
       bankName: item.bank_name || 'Chưa có',
       bankAccount: item.bank_account || 'Chưa có',
+      maSoThue: item.ma_so_thue || 'Chưa có',
+      diaChi: item.dia_chi || 'Chưa có',
+      soDienThoai: item.so_dien_thoai || 'Chưa có',
+      zalo: item.zalo || 'Chưa có',
       status: item.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'
     }))
   } catch (error: any) {
@@ -805,6 +857,10 @@ const resetForm = () => {
   partnerForm.telegramGroup = ''
   partnerForm.bankName = ''
   partnerForm.bankAccount = ''
+  partnerForm.maSoThue = ''
+  partnerForm.diaChi = ''
+  partnerForm.soDienThoai = ''
+  partnerForm.zalo = ''
   partnerForm.status = 'Hoạt động'
 }
 
@@ -828,6 +884,10 @@ const submitForm = async () => {
       telegram_group: partnerForm.telegramGroup || null,
       bank_name: partnerForm.bankName || null,
       bank_account: partnerForm.bankAccount || null,
+      ma_so_thue: partnerForm.maSoThue || null,
+      dia_chi: partnerForm.diaChi || null,
+      so_dien_thoai: partnerForm.soDienThoai || null,
+      zalo: partnerForm.zalo || null,
       status: partnerForm.status === 'Hoạt động' ? 'ACTIVE' : 'INACTIVE'
     }
 
@@ -844,6 +904,10 @@ const submitForm = async () => {
         telegramGroup: newPartner.telegram_group || 'Chưa có',
         bankName: newPartner.bank_name || 'Chưa có',
         bankAccount: newPartner.bank_account || 'Chưa có',
+        maSoThue: newPartner.ma_so_thue || 'Chưa có',
+        diaChi: newPartner.dia_chi || 'Chưa có',
+        soDienThoai: newPartner.so_dien_thoai || 'Chưa có',
+        zalo: newPartner.zalo || 'Chưa có',
         status: newPartner.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'
       })
 
@@ -883,6 +947,10 @@ const editForm = reactive({
   telegramGroup: '',
   bankName: '',
   bankAccount: '',
+  maSoThue: '',
+  diaChi: '',
+  soDienThoai: '',
+  zalo: '',
   status: ''
 })
 
@@ -896,6 +964,10 @@ const handleCommand = (command: string, row: any) => {
     editForm.telegramGroup = row.telegramGroup
     editForm.bankName = row.bankName
     editForm.bankAccount = row.bankAccount
+    editForm.maSoThue = row.maSoThue === 'Chưa có' ? '' : (row.maSoThue || '')
+    editForm.diaChi = row.diaChi === 'Chưa có' ? '' : (row.diaChi || '')
+    editForm.soDienThoai = row.soDienThoai === 'Chưa có' ? '' : (row.soDienThoai || '')
+    editForm.zalo = row.zalo === 'Chưa có' ? '' : (row.zalo || '')
     editForm.status = row.status
     editDialogVisible.value = true
   } else if (command === 'detail') {
@@ -953,6 +1025,10 @@ const submitEditForm = async () => {
       telegram_group: editForm.telegramGroup || null,
       bank_name: editForm.bankName || null,
       bank_account: editForm.bankAccount || null,
+      ma_so_thue: editForm.maSoThue || null,
+      dia_chi: editForm.diaChi || null,
+      so_dien_thoai: editForm.soDienThoai || null,
+      zalo: editForm.zalo || null,
       status: editForm.status === 'Hoạt động' ? 'ACTIVE' : 'INACTIVE'
     }
 
@@ -967,6 +1043,10 @@ const submitEditForm = async () => {
       row.telegramGroup = updatedPartner.telegram_group || 'Chưa có'
       row.bankName = updatedPartner.bank_name || 'Chưa có'
       row.bankAccount = updatedPartner.bank_account || 'Chưa có'
+      row.maSoThue = updatedPartner.ma_so_thue || 'Chưa có'
+      row.diaChi = updatedPartner.dia_chi || 'Chưa có'
+      row.soDienThoai = updatedPartner.so_dien_thoai || 'Chưa có'
+      row.zalo = updatedPartner.zalo || 'Chưa có'
       row.status = updatedPartner.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động'
 
       // Sync changes back to allData array for reactivity

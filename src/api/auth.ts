@@ -15,7 +15,18 @@ export const authService = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Login failed');
+      // MỤC 278 (24/08/2026) — GIỮ LẠI MÃ HTTP, KHÔNG CHỈ GIỮ CÂU CHỮ.
+      //
+      // Trước: chỉ ném câu chữ, nên màn đăng nhập phải ĐOÁN xem lỗi gì
+      // bằng cách dò chữ "khoá" trong câu. Máy chủ thêm chữ "khoá" vào
+      // câu đếm số lần sai là màn hình hiện nhầm "Tài khoản đã bị khoá"
+      // ngay lần sai đầu tiên.
+      //
+      // Nay: kèm mã. 401 = sai mật khẩu, 423 = tài khoản bị khoá.
+      // Máy chủ đổi câu chữ thế nào cũng không ảnh hưởng.
+      const loi: any = new Error(errorData.detail || 'Đăng nhập thất bại');
+      loi.status = response.status;
+      throw loi;
     }
 
     const data = await response.json();
@@ -26,6 +37,14 @@ export const authService = {
     if (data.employee_id) {
       localStorage.setItem('employee_id', data.employee_id);
     }
+    // MỤC 259 (23/08/2026) — máy chủ trả cờ này khi tài khoản chưa đổi
+    // thông tin đăng nhập lần đầu. Router đọc nó để chặn ở màn đổi.
+    //
+    // ⚠️ Máy chủ CŨ không trả trường này. Dùng `=== true` chứ không dùng
+    // giá trị thô: thiếu trường thì undefined, và undefined phải hiểu là
+    // "không phải đổi" chứ không được chặn cả công ty ở màn đổi.
+    localStorage.setItem('phai_doi_dang_nhap',
+      data.phai_doi_dang_nhap === true ? '1' : '0');
     return data;
   },
 
@@ -69,8 +88,19 @@ export const authService = {
   logout(): void {
     localStorage.removeItem('access_token');
     localStorage.removeItem('token_type');
+    // MỤC 259 — không xoá thì người đăng nhập sau trên cùng máy thừa
+    // hưởng cờ của người trước.
+    localStorage.removeItem('phai_doi_dang_nhap');
     localStorage.removeItem('employee_id');
     localStorage.removeItem('user_permissions');
+    // MỤC 260 — xoá dấu thời gian dùng cuối. Không xoá thì người đăng
+    // nhập sau thừa hưởng đồng hồ của người trước, và có thể bị đá ra
+    // ngay sau khi vừa vào.
+    try {
+      localStorage.removeItem('lan_dung_cuoi');
+    } catch {
+      // không xoá được thì thôi
+    }
   },
 
   handle401(): void {
@@ -195,6 +225,47 @@ export const authService = {
       throw new Error(errorData.detail || 'Failed to delete credential');
     }
     return await response.json();
+  },
+
+  /** MỤC 259 — tài khoản này có đang bị bắt đổi thông tin đăng nhập không. */
+  phaiDoiDangNhap(): boolean {
+    return localStorage.getItem('phai_doi_dang_nhap') === '1';
+  },
+
+  /**
+   * MỤC 259 — đổi login name + mật khẩu ở lần đăng nhập đầu.
+   *
+   * Máy chủ đổi xong thì THẺ PHIÊN CŨ HẾT DÙNG ĐƯỢC, vì thẻ mang tên
+   * đăng nhập cũ. Nên hàm này tự dọn sạch phiên và người dùng phải đăng
+   * nhập lại — chứ không để họ bấm loạn rồi bị văng ra mà không hiểu.
+   */
+  async doiDangNhapLanDau(loginNameMoi: string, matKhauMoi: string): Promise<any> {
+    const baseUrl = await getApiUrl();
+    const token = this.getToken();
+    const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+    const response = await fetch(`${baseUrl}/auth/doi-dang-nhap-lan-dau`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${tokenType} ${token}`,
+        'ngrok-skip-browser-warning': 'true',
+      },
+      body: JSON.stringify({
+        login_name_moi: loginNameMoi,
+        mat_khau_moi: matKhauMoi,
+      }),
+    });
+
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      // Máy chủ trả câu tiếng Việt cụ thể (trùng tên, mật khẩu thiếu gì).
+      // Ném nguyên câu đó ra chứ không thay bằng câu chung chung.
+      throw new Error(data.detail || 'Không đổi được thông tin đăng nhập.');
+    }
+
+    this.logout();
+    return data;
   },
 
   async checkIsAdmin(): Promise<boolean> {

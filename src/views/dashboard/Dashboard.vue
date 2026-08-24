@@ -10,8 +10,14 @@
     <main class="flex-1 overflow-hidden">
        <div class="h-full shadow-[0_0_10px_var(--el-border-color-light)]">
 
+         <!-- === MỤC 255 — Trang Chủ. Đặt ĐẦU TIÊN vì đây là màn mặc định === -->
+         <HomeView v-if="currentProject === 'Trang Chủ'" />
+
+         <!-- MỤC 263 — Nhật ký -->
+         <NhatKyView v-else-if="currentProject === 'Nhật ký'" />
+
          <!-- === Tiến Nga: có sidebar riêng (responsive bên trong) === -->
-         <TienNgaDashboard v-if="currentProject === 'Tiến Nga'" />
+         <TienNgaDashboard v-else-if="currentProject === 'Tiến Nga'" />
 
          <!-- === Ggomoosin: có sidebar riêng (responsive bên trong) === -->
          <GgomoosinDashboard v-else-if="currentProject === 'Ggomoosin'" />
@@ -86,56 +92,40 @@ import OtherDashboard from '@/components/Other/Index.vue'
 import TelegramProjects from '@/components/TienNga/TelegramProjects/Index.vue'
 import RoscaDashboard from '@/components/Rosca/Index.vue'
 import AuthorizationDashboard from '@/components/Authorization/Index.vue'
+// MỤC 255 (23/08/2026) — Trang Chủ + bảng dự án dùng chung
+import HomeView from '@/views/home/HomeView.vue'
+// MỤC 263 (23/08/2026) — màn Nhật ký
+import NhatKyView from '@/views/nhat_ky/NhatKyView.vue'
+import { timTheoDuong, timTheoTen } from '@/constants/duAn'
 
 const route = useRoute()
 const router = useRouter()
-const currentProject = ref('Tiến Nga')
+const currentProject = ref('Trang Chủ')
 
+/**
+ * MỤC 255 — ĐƯỜNG DẪN -> TÊN DỰ ÁN, đọc từ bảng DU_AN.
+ *
+ * Trước đây đoạn này là 9 nhánh if/else gõ tay, và ngay bên dưới là 9
+ * nhánh nữa cho chiều ngược lại. Thêm một dự án phải sửa cả hai, quên
+ * một chỗ thì menu không sáng lên hoặc bấm không đi đâu — không có lỗi
+ * nào báo, chỉ là nút bấm vào thấy trơ ra.
+ */
 watch(
   () => route.path,
   (path) => {
-    if (path.startsWith('/tien-nga')) {
-      currentProject.value = 'Tiến Nga'
-    } else if (path.startsWith('/ggomoosin')) {
-      currentProject.value = 'Ggomoosin'
-    } else if (path.startsWith('/rental')) {
-      currentProject.value = 'Rental'
-    } else if (path.startsWith('/credit')) {
-      currentProject.value = 'Credit'
-    } else if (path.startsWith('/harvest')) {
-      currentProject.value = 'Thu hoạch'
-    } else if (path.startsWith('/telegram-projects')) {
-      currentProject.value = 'Dự án Telegram'
-    } else if (path.startsWith('/rosca')) {
-      currentProject.value = 'Hụi'
-    } else if (path.startsWith('/other')) {
-      currentProject.value = 'Other'
-    } else if (path.startsWith('/authorization')) {
-      currentProject.value = 'Phân quyền'
-    }
+    const d = timTheoDuong(path)
+    if (d) currentProject.value = d.ten
   },
   { immediate: true }
 )
 
+// MỤC 255 — TÊN DỰ ÁN -> ĐƯỜNG DẪN, cũng đọc từ bảng DU_AN.
+// Điều kiện `!startsWith` giữ nguyên như cũ: tránh đá người dùng về màn
+// mặc định khi họ đang đứng ở một màn con của chính dự án đó.
 watch(currentProject, (newVal) => {
-  if (newVal === 'Tiến Nga' && !route.path.startsWith('/tien-nga')) {
-    router.push('/tien-nga/overall')
-  } else if (newVal === 'Ggomoosin' && !route.path.startsWith('/ggomoosin')) {
-    router.push('/ggomoosin/hr')
-  } else if (newVal === 'Rental' && !route.path.startsWith('/rental')) {
-    router.push('/rental/real-estate')
-  } else if (newVal === 'Credit' && !route.path.startsWith('/credit')) {
-    router.push('/credit/contract-management')
-  } else if (newVal === 'Thu hoạch' && !route.path.startsWith('/harvest')) {
-    router.push('/harvest/rubber')
-  } else if (newVal === 'Dự án Telegram' && !route.path.startsWith('/telegram-projects')) {
-    router.push('/telegram-projects/telegram-groups-list')
-  } else if (newVal === 'Hụi' && !route.path.startsWith('/rosca')) {
-    router.push('/rosca/players')
-  } else if (newVal === 'Other' && !route.path.startsWith('/other')) {
-    router.push('/other/devices')
-  } else if (newVal === 'Phân quyền' && !route.path.startsWith('/authorization')) {
-    router.push('/authorization')
+  const d = timTheoTen(newVal)
+  if (d && !route.path.startsWith(d.duong)) {
+    router.push(d.duongMacDinh)
   }
 })
 
