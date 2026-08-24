@@ -15,7 +15,18 @@ export const authService = {
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || 'Login failed');
+      // MỤC 278 (24/08/2026) — GIỮ LẠI MÃ HTTP, KHÔNG CHỈ GIỮ CÂU CHỮ.
+      //
+      // Trước: chỉ ném câu chữ, nên màn đăng nhập phải ĐOÁN xem lỗi gì
+      // bằng cách dò chữ "khoá" trong câu. Máy chủ thêm chữ "khoá" vào
+      // câu đếm số lần sai là màn hình hiện nhầm "Tài khoản đã bị khoá"
+      // ngay lần sai đầu tiên.
+      //
+      // Nay: kèm mã. 401 = sai mật khẩu, 423 = tài khoản bị khoá.
+      // Máy chủ đổi câu chữ thế nào cũng không ảnh hưởng.
+      const loi: any = new Error(errorData.detail || 'Đăng nhập thất bại');
+      loi.status = response.status;
+      throw loi;
     }
 
     const data = await response.json();
