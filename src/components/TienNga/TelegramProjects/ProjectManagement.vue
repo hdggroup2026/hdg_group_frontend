@@ -22,11 +22,11 @@
       </div>
 
       <!-- Single Row Project Cards Container with Horizontal Scroll -->
-      <div v-if="projects.length > 0" class="flex flex-nowrap overflow-x-auto gap-5 p-1 pb-4 scrollbar-thin">
+      <div v-if="projects.length > 0" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 p-1 pb-4">
         <div
           v-for="(proj, idx) in projects"
           :key="proj.id"
-          class="group relative rounded-2xl border bg-white dark:bg-gray-800 p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-w-[280px] sm:min-w-[320px] max-w-[350px] shrink-0 flex flex-col justify-between"
+          class="group relative rounded-2xl border bg-white dark:bg-gray-800 p-3 sm:p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between"
           :class="selectedProject?.id === proj.id ? 'border-2 border-blue-500 shadow-lg ring-2 ring-blue-500/20 bg-blue-50/10 dark:bg-blue-900/10' : 'border-gray-100 dark:border-gray-700/80'"
         >
           <div>
@@ -103,11 +103,11 @@
       </div>
 
       <!-- Single Row Main Group Cards Container with Horizontal Scroll -->
-      <div v-if="mainGroups.length > 0" class="flex flex-nowrap overflow-x-auto gap-5 p-1 pb-4 scrollbar-thin">
+      <div v-if="mainGroups.length > 0" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 p-1 pb-4">
         <div
           v-for="(group, idx) in mainGroups"
           :key="group.chat_id"
-          class="group relative rounded-2xl border bg-white dark:bg-gray-800 p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 min-w-[280px] sm:min-w-[320px] max-w-[350px] shrink-0 flex flex-col justify-between"
+          class="group relative rounded-2xl border bg-white dark:bg-gray-800 p-3 sm:p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between"
           :class="selectedMainGroup?.chat_id === group.chat_id ? 'border-2 border-emerald-500 shadow-lg ring-2 ring-emerald-500/20 bg-emerald-50/10 dark:bg-emerald-900/10' : 'border-gray-100 dark:border-gray-700/80'"
           @click="goToGroupMessages(group)"
         >
@@ -188,11 +188,11 @@
       </div>
 
       <!-- Single Row Member Group Cards Container with Horizontal Scroll -->
-      <div v-if="memberGroups.length > 0" class="flex flex-nowrap overflow-x-auto gap-5 p-1 pb-4 scrollbar-thin">
+      <div v-if="memberGroups.length > 0" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 p-1 pb-4">
         <div
           v-for="(group, idx) in memberGroups"
           :key="group.chat_id"
-          class="relative rounded-2xl border border-gray-100 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-5 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 min-w-[280px] sm:min-w-[320px] max-w-[350px] shrink-0 flex flex-col justify-between"
+          class="relative rounded-2xl border border-gray-100 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-3 sm:p-5 cursor-pointer transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 flex flex-col justify-between"
           @click="goToGroupMessages(group)"
         >
           <div>

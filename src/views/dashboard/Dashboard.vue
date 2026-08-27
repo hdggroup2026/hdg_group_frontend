@@ -16,6 +16,9 @@
          <!-- MỤC 263 — Nhật ký -->
          <NhatKyView v-else-if="currentProject === 'Nhật ký'" />
 
+         <!-- MỤC 339 — Hồ sơ người dùng (vào từ menu ảnh đại diện) -->
+         <HoSoView v-else-if="currentProject === 'Hồ sơ'" />
+
          <!-- === Tiến Nga: có sidebar riêng (responsive bên trong) === -->
          <TienNgaDashboard v-else-if="currentProject === 'Tiến Nga'" />
 
@@ -96,6 +99,8 @@ import AuthorizationDashboard from '@/components/Authorization/Index.vue'
 import HomeView from '@/views/home/HomeView.vue'
 // MỤC 263 (23/08/2026) — màn Nhật ký
 import NhatKyView from '@/views/nhat_ky/NhatKyView.vue'
+// MỤC 339 (27/08/2026) — màn Hồ sơ người dùng
+import HoSoView from '@/views/ho_so/HoSoView.vue'
 import { timTheoDuong, timTheoTen } from '@/constants/duAn'
 
 const route = useRoute()
