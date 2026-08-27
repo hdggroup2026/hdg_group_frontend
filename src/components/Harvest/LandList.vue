@@ -394,6 +394,7 @@
 </template>
 
 <script setup lang="ts">
+import { dinhDangSo } from '@/utils/dinhDangSo'
 import { ref, computed, reactive, watch, onMounted } from 'vue'
 import { Search, MoreFilled, Location, Plus, Refresh } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -539,12 +540,15 @@ watch(() => props.cropType, () => {
   fetchLands()
 })
 
-const formatNumber = (val: number) => {
-  return new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 1, maximumFractionDigits: 2 }).format(val)
+const formatNumber = (value: any, _decimals?: number) => {
+  // MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
+  // Tham số `_decimals` giữ lại để 105 chỗ gọi cũ không phải sửa; nay
+  // không dùng tới vì mọi số đều hiện phần nguyên.
+  return dinhDangSo(value)
 }
 
 const formatInt = (val: number) => {
-  return new Intl.NumberFormat('vi-VN').format(val)
+  return dinhDangSo(val)
 }
 
 // Dialog management

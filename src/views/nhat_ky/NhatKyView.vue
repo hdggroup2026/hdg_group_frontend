@@ -63,68 +63,120 @@
         {{ loi }}
       </div>
 
+      <!-- ═══════════════════════════════════════════════════════════
+           MỤC 352 (27/08/2026) — THAY `el-table` BẰNG BẢNG HTML THƯỜNG.
+
+           s68 chụp iPad dựng đứng ngày 27/08: các cột "Ai làm", "Kiểu",
+           "Chức năng" TRỐNG TRƠN ở mấy dòng đầu, xoay ngang lại bình
+           thường.
+
+           🔴 NGUYÊN NHÂN: `el-table` dựng bảng bằng JavaScript và tự đo
+           bề rộng lúc gắn vào trang. Tổng bề rộng cột cố định ở đây là
+           150+140+80+230+90 = 690 điểm ảnh, cộng hai cột `min-width` nữa.
+           iPad dựng đứng rộng ~820, trừ lề còn ~760 — Element Plus co cột
+           lại rồi KHÔNG vẽ lại đúng sau khi xoay màn hình. Ô trống ra đời
+           từ đó, và không có lỗi nào báo.
+
+           ➜ Bảng HTML thường bọc trong khung cuộn ngang: trình duyệt tự
+           dựng, không cần JavaScript đo đạc, xoay màn hình bao nhiêu lần
+           cũng đúng. Đây đúng cách bảng cân đối ở MỤC 341 đang dùng, và
+           bảng đó chạy đúng trên cả ba thiết bị.
+
+           ⚠️ CUỘN NGANG LÀ CÓ CHỦ Ý. Bảng này có 6 cột, cắt bớt cột nào
+           cũng mất thông tin cần để truy. `min-w-[900px]` giữ cột thẳng
+           hàng; người xem vuốt ngang khi màn hẹp.
+           ═══════════════════════════════════════════════════════════ -->
+
       <!-- Bảng ĐĂNG NHẬP -->
-      <el-table v-if="the === 'dangnhap' && !loi" :data="dong"
-                v-loading="dangTai" size="small" stripe
-                empty-text="Chưa có dòng nào">
-        <el-table-column label="Lúc" width="150">
-          <template #default="{ row }">{{ gio(row.luc) }}</template>
-        </el-table-column>
-        <el-table-column prop="ten_go_vao" label="Tên gõ vào" width="150" />
-        <el-table-column label="Kết quả" width="180">
-          <template #default="{ row }">
-            <span :class="row.ket_qua === 'THANH_CONG'
-                            ? 'text-green-600' : 'text-red-500'">
-              {{ row.ket_qua === 'THANH_CONG' ? '✓' : '✕' }}
-              {{ row.ket_qua_chu }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="IP kết nối" width="130">
-          <template #default="{ row }">
-            <code class="text-xs">{{ row.ip_ket_noi || '—' }}</code>
-          </template>
-        </el-table-column>
-        <el-table-column label="IP khai báo" width="130">
-          <template #default="{ row }">
-            <code class="text-xs">{{ row.ip_khai_bao || '—' }}</code>
-          </template>
-        </el-table-column>
-        <el-table-column label="Trình duyệt" min-width="200">
-          <template #default="{ row }">
-            <span class="text-xs text-gray-500" :title="row.trinh_duyet">
-              {{ (row.trinh_duyet || '—').slice(0, 60) }}
-            </span>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div v-if="the === 'dangnhap' && !loi" v-loading="dangTai"
+           class="rounded-xl border border-gray-200 dark:border-gray-700
+                  bg-white dark:bg-gray-800 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm min-w-[900px]">
+            <thead>
+              <tr class="text-xs text-gray-500 dark:text-gray-400
+                         border-b border-gray-200 dark:border-gray-700">
+                <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Lúc</th>
+                <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Tên gõ vào</th>
+                <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Kết quả</th>
+                <th class="text-left font-medium px-3 py-2 whitespace-nowrap">IP kết nối</th>
+                <th class="text-left font-medium px-3 py-2 whitespace-nowrap">IP khai báo</th>
+                <th class="text-left font-medium px-3 py-2">Trình duyệt</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="dong.length === 0">
+                <td colspan="6" class="px-3 py-6 text-center text-gray-400">
+                  Chưa có dòng nào
+                </td>
+              </tr>
+              <tr v-for="(row, i) in dong" :key="i"
+                  class="border-b border-gray-100 dark:border-gray-700/50">
+                <td class="px-3 py-2 whitespace-nowrap tabular-nums">{{ gio(row.luc) }}</td>
+                <td class="px-3 py-2 break-all">{{ row.ten_go_vao || '—' }}</td>
+                <td class="px-3 py-2 whitespace-nowrap"
+                    :class="row.ket_qua === 'THANH_CONG'
+                              ? 'text-green-600' : 'text-red-500'">
+                  {{ row.ket_qua === 'THANH_CONG' ? '✓' : '✕' }}
+                  {{ row.ket_qua_chu }}
+                </td>
+                <td class="px-3 py-2 whitespace-nowrap tabular-nums text-xs">
+                  {{ row.ip_ket_noi || '—' }}
+                </td>
+                <td class="px-3 py-2 whitespace-nowrap tabular-nums text-xs">
+                  {{ row.ip_khai_bao || '—' }}
+                </td>
+                <td class="px-3 py-2 text-xs text-gray-500" :title="row.trinh_duyet">
+                  {{ (row.trinh_duyet || '—').slice(0, 60) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <!-- Bảng THAY ĐỔI -->
-      <el-table v-if="the === 'thaydoi' && !loi" :data="dong"
-                v-loading="dangTai" size="small" stripe
-                empty-text="Chưa có dòng nào">
-        <el-table-column label="Lúc" width="150">
-          <template #default="{ row }">{{ gio(row.luc) }}</template>
-        </el-table-column>
-        <el-table-column prop="ten_dang_nhap" label="Ai làm" width="140" />
-        <el-table-column prop="cach" label="Kiểu" width="80" />
-        <el-table-column prop="duong" label="Chức năng" min-width="230" />
-        <el-table-column label="Kết quả" width="90">
-          <template #default="{ row }">
-            <span :class="row.ma_tra_ve && row.ma_tra_ve < 400
-                            ? 'text-green-600' : 'text-red-500'">
-              {{ row.ma_tra_ve }}
-            </span>
-          </template>
-        </el-table-column>
-        <el-table-column label="Dữ liệu gửi lên" min-width="240">
-          <template #default="{ row }">
-            <span class="text-xs text-gray-500" :title="row.du_lieu">
-              {{ (row.du_lieu || '—').slice(0, 80) }}
-            </span>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div v-if="the === 'thaydoi' && !loi" v-loading="dangTai"
+           class="rounded-xl border border-gray-200 dark:border-gray-700
+                  bg-white dark:bg-gray-800 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm min-w-[900px]">
+            <thead>
+              <tr class="text-xs text-gray-500 dark:text-gray-400
+                         border-b border-gray-200 dark:border-gray-700">
+                <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Lúc</th>
+                <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Ai làm</th>
+                <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Kiểu</th>
+                <th class="text-left font-medium px-3 py-2">Chức năng</th>
+                <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Kết quả</th>
+                <th class="text-left font-medium px-3 py-2">Dữ liệu gửi lên</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-if="dong.length === 0">
+                <td colspan="6" class="px-3 py-6 text-center text-gray-400">
+                  Chưa có dòng nào
+                </td>
+              </tr>
+              <tr v-for="(row, i) in dong" :key="i"
+                  class="border-b border-gray-100 dark:border-gray-700/50">
+                <td class="px-3 py-2 whitespace-nowrap tabular-nums">{{ gio(row.luc) }}</td>
+                <td class="px-3 py-2 break-all">{{ row.ten_dang_nhap || '—' }}</td>
+                <td class="px-3 py-2 whitespace-nowrap">{{ row.cach || '—' }}</td>
+                <td class="px-3 py-2 break-all text-xs">{{ row.duong || '—' }}</td>
+                <td class="px-3 py-2 whitespace-nowrap tabular-nums"
+                    :class="row.ma_tra_ve && row.ma_tra_ve < 400
+                              ? 'text-green-600' : 'text-red-500'">
+                  {{ row.ma_tra_ve }}
+                </td>
+                <td class="px-3 py-2 text-xs text-gray-500" :title="row.du_lieu">
+                  {{ (row.du_lieu || '—').slice(0, 80) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
 
       <p v-if="the === 'thaydoi'"
          class="mt-4 text-xs text-gray-400 dark:text-gray-500 leading-relaxed">

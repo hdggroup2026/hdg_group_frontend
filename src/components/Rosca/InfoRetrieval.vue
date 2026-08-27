@@ -49,7 +49,7 @@
       <!-- Time range filter -->
       <div class="flex items-center gap-2">
         <span class="whitespace-nowrap text-sm font-semibold text-gray-700 dark:text-gray-300">Thời gian:</span>
-        <el-date-picker
+        <el-date-picker :editable="false"
           v-model="dateRange"
           type="daterange"
           range-separator="~"

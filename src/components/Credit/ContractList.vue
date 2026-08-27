@@ -22,7 +22,7 @@
         <!-- Date range filter (default: 3 years ago to now) -->
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="dateRange"
             type="daterange"
             range-separator="đến"
@@ -86,7 +86,21 @@
           />
         </div>
       </div>
-      <div class="flex items-center gap-2">
+      <!--
+        MỤC 357 (27/08/2026) — HAI NÚT DỜI SANG PHẢI.
+
+        s68 khoanh đỏ ảnh iPad 27/08: hai nút "Tìm kiếm" và "Thêm hợp đồng"
+        nằm ở đầu dòng thứ hai, còn cả nửa phải của dòng đó bỏ trống — trong
+        khi ngay trên nó ô "Trạng thái" lại chạy ra tận mép phải.
+
+        `ml-auto` đẩy cụm nút về mép phải, thẳng cột với ô "Trạng thái" ở
+        dòng trên. Khoảng trống giữa biến mất mà không phải đổi bố cục.
+
+        ⚠️ `ml-auto` chỉ ăn khi thẻ cha là flex — ở đây đúng vậy. Trên màn
+        hẹp (điện thoại) thẻ cha xuống dòng, `ml-auto` tự vô hiệu và hai nút
+        vẫn nằm bên trái như cũ. Không cần thêm điểm ngắt riêng.
+      -->
+      <div class="flex items-center gap-2 ml-auto">
         <el-button type="success" :icon="Search" @click="fetchCredits">Tìm kiếm</el-button>
         <el-button type="primary" @click="openAddDialog">Thêm hợp đồng</el-button>
       </div>
@@ -340,24 +354,24 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày bắt đầu" prop="start_date">
-                  <el-date-picker v-model="form.start_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.start_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày đáo hạn" prop="due_date">
-                  <el-date-picker v-model="form.due_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.due_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Bắt đầu tính lãi" prop="interest_start_date">
-                  <el-date-picker v-model="form.interest_start_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.interest_start_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày tính lãi gần nhất">
-                  <el-date-picker v-model="form.last_interest_charged_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.last_interest_charged_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>

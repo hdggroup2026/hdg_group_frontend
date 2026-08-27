@@ -17,7 +17,7 @@
         <!-- Date range filter -->
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="dateRange"
             type="daterange"
             range-separator="đến"
@@ -199,12 +199,12 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày thanh toán lãi" prop="interest_payment_date">
-                  <el-date-picker v-model="addForm.interest_payment_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="addForm.interest_payment_date" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Thời gian thanh toán" prop="payment_time">
-                  <el-date-picker v-model="addForm.payment_time" type="datetime" placeholder="Chọn thời gian" format="DD/MM/YYYY HH:mm" value-format="YYYY-MM-DDTHH:mm:ss" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="addForm.payment_time" type="datetime" placeholder="Chọn thời gian" format="DD/MM/YYYY HH:mm" value-format="YYYY-MM-DDTHH:mm:ss" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>

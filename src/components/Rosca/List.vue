@@ -443,7 +443,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày bắt đầu" prop="start_date">
-                  <el-date-picker v-model="form.start_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày mở..." class="w-full" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.start_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày mở..." class="w-full" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -451,7 +451,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày kết thúc" prop="end_date">
-                  <el-date-picker v-model="form.end_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày đóng..." class="w-full" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.end_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày đóng..." class="w-full" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>

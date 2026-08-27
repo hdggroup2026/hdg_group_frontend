@@ -8,7 +8,7 @@
       </div>
       <div class="flex items-center gap-2">
         <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-        <el-date-picker
+        <el-date-picker :editable="false"
           v-model="overallDateRange"
           type="daterange"
           range-separator="~"
@@ -36,7 +36,16 @@
           </div>
         </template>
         <div class="space-y-2" v-loading="loadingYearlySummary" element-loading-text="Đang tải">
-          <div class="grid grid-cols-2 gap-4">
+          <!--
+            MỤC 354 (27/08/2026) — VẠCH NGĂN GIỮA HAI SỐ.
+            s68 chụp iPad 27/08: "1.623.155,9" và "384.556,19" dính liền
+            nhau thành một chuỗi số, đọc ra thành một con số duy nhất.
+            Gốc là `gap-4` (16px) — với cỡ chữ 2xl thì khe đó quá hẹp.
+            `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
+            `pl-4` để chữ không dính vạch.
+          -->
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
+                      dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
               <div class="text-sm text-gray-500 dark:text-gray-400">Mủ nước</div>
               <div class="text-2xl font-bold text-gray-800 dark:text-gray-100 leading-tight">{{ formatNumber(totalMuNuoc) }} <span class="text-sm font-normal text-gray-400">Kg</span></div>
@@ -64,7 +73,16 @@
           </div>
         </template>
         <div class="space-y-2" v-loading="loadingProductSummary" element-loading-text="Đang tải">
-          <div class="grid grid-cols-2 gap-4">
+          <!--
+            MỤC 354 (27/08/2026) — VẠCH NGĂN GIỮA HAI SỐ.
+            s68 chụp iPad 27/08: "1.623.155,9" và "384.556,19" dính liền
+            nhau thành một chuỗi số, đọc ra thành một con số duy nhất.
+            Gốc là `gap-4` (16px) — với cỡ chữ 2xl thì khe đó quá hẹp.
+            `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
+            `pl-4` để chữ không dính vạch.
+          -->
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
+                      dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
               <div class="text-sm text-gray-500 dark:text-gray-400">Tổng nhập kho</div>
               <div class="text-2xl font-bold text-gray-800 dark:text-gray-100 leading-tight">{{ formatNumber(totalImportQty) }} <span class="text-sm font-normal text-gray-400">Kg</span></div>
@@ -101,7 +119,16 @@
           <!-- Mủ nước -->
           <div>
             <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Mủ nước</div>
-            <div class="grid grid-cols-2 gap-4">
+            <!--
+            MỤC 354 (27/08/2026) — VẠCH NGĂN GIỮA HAI SỐ.
+            s68 chụp iPad 27/08: "1.623.155,9" và "384.556,19" dính liền
+            nhau thành một chuỗi số, đọc ra thành một con số duy nhất.
+            Gốc là `gap-4` (16px) — với cỡ chữ 2xl thì khe đó quá hẹp.
+            `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
+            `pl-4` để chữ không dính vạch.
+          -->
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
+                      dark:divide-gray-600 [&>*+*]:pl-4">
               <div>
                 <div class="text-xs text-gray-400 dark:text-gray-500">Nhập</div>
                 <div class="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">{{ formatNumber(partnerMuNuocImport) }} <span class="text-xs font-normal text-gray-400">Kg</span></div>
@@ -115,7 +142,16 @@
           <!-- Mủ thành phẩm -->
           <div class="pt-2 border-t border-gray-100 dark:border-gray-700 mt-1">
             <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Mủ thành phẩm</div>
-            <div class="grid grid-cols-2 gap-4">
+            <!--
+            MỤC 354 (27/08/2026) — VẠCH NGĂN GIỮA HAI SỐ.
+            s68 chụp iPad 27/08: "1.623.155,9" và "384.556,19" dính liền
+            nhau thành một chuỗi số, đọc ra thành một con số duy nhất.
+            Gốc là `gap-4` (16px) — với cỡ chữ 2xl thì khe đó quá hẹp.
+            `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
+            `pl-4` để chữ không dính vạch.
+          -->
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
+                      dark:divide-gray-600 [&>*+*]:pl-4">
               <div>
                 <div class="text-xs text-gray-400 dark:text-gray-500">Nhập</div>
                 <div class="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">{{ formatNumber(partnerProductImport) }} <span class="text-xs font-normal text-gray-400">Kg</span></div>
@@ -141,7 +177,16 @@
           </div>
         </template>
         <div class="space-y-2">
-          <div class="grid grid-cols-2 gap-4">
+          <!--
+            MỤC 354 (27/08/2026) — VẠCH NGĂN GIỮA HAI SỐ.
+            s68 chụp iPad 27/08: "1.623.155,9" và "384.556,19" dính liền
+            nhau thành một chuỗi số, đọc ra thành một con số duy nhất.
+            Gốc là `gap-4` (16px) — với cỡ chữ 2xl thì khe đó quá hẹp.
+            `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
+            `pl-4` để chữ không dính vạch.
+          -->
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
+                      dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
               <div class="text-sm text-gray-500 dark:text-gray-400">Tổng thu</div>
               <div class="text-xl font-bold text-green-500 leading-tight">850,000,000 <span class="text-sm font-normal text-green-500/70">VNĐ</span></div>
@@ -177,7 +222,16 @@
           </div>
         </template>
         <div class="space-y-2">
-          <div class="grid grid-cols-2 gap-4">
+          <!--
+            MỤC 354 (27/08/2026) — VẠCH NGĂN GIỮA HAI SỐ.
+            s68 chụp iPad 27/08: "1.623.155,9" và "384.556,19" dính liền
+            nhau thành một chuỗi số, đọc ra thành một con số duy nhất.
+            Gốc là `gap-4` (16px) — với cỡ chữ 2xl thì khe đó quá hẹp.
+            `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
+            `pl-4` để chữ không dính vạch.
+          -->
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
+                      dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
               <div class="text-sm text-gray-500 dark:text-gray-400">Mủ nước</div>
               <div class="text-2xl font-bold text-gray-800 dark:text-gray-100 leading-tight">18,300 <span class="text-sm font-normal text-gray-400">Kg</span></div>
@@ -248,7 +302,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-            <el-date-picker
+            <el-date-picker :editable="false"
               v-model="purchaseDateRange"
               type="daterange"
               range-separator="~"
@@ -320,7 +374,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-            <el-date-picker
+            <el-date-picker :editable="false"
               v-model="lossDateRange"
               type="daterange"
               range-separator="~"
@@ -419,6 +473,7 @@
 </template>
 
 <script setup lang="ts">
+import { dinhDangSo } from '@/utils/dinhDangSo'
 import { ref, computed, onMounted, watch } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import { useDark } from '@vueuse/core'
@@ -699,12 +754,15 @@ const partnerProductImport = ref(0)
 const partnerProductExport = ref(0)
 const loadingPartnerSummary = ref(false)
 
-const formatNumber = (val: number, decimals: number = 2) => {
-  return val.toLocaleString('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: decimals })
+const formatNumber = (value: any, _decimals?: number) => {
+  // MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
+  // Tham số `_decimals` giữ lại để 105 chỗ gọi cũ không phải sửa; nay
+  // không dùng tới vì mọi số đều hiện phần nguyên.
+  return dinhDangSo(value)
 }
 
 const formatCurrency = (val: number) => {
-  return val.toLocaleString('vi-VN')
+  return dinhDangSo(val)
 }
 
 const fetchYearlySummary = async () => {
@@ -887,7 +945,7 @@ const purchaseYAxisOptions = computed(() => {
         style: { colors: isDark.value ? '#9ca3af' : '#6b7280', fontSize: '11px' },
         formatter: (val: number) => {
           if (val >= 1000) return (val / 1000).toFixed(1) + 'k'
-          return val.toLocaleString()
+          return dinhDangSo(val)
         }
       }
     },
@@ -948,7 +1006,7 @@ const purchaseMainChartOptions = computed(() => {
       theme: isDark.value ? 'dark' as const : 'light' as const,
       y: {
         formatter: function (val: number) {
-          return val.toLocaleString() + " Kg"
+          return dinhDangSo(val) + " Kg"
         }
       }
     }
@@ -1000,7 +1058,7 @@ const chartOptions = computed(() => {
       labels: {
         style: { colors: isDark.value ? '#9ca3af' : '#6b7280' },
         formatter: (val: number) => {
-          return val.toLocaleString() + ' Kg'
+          return dinhDangSo(val) + ' Kg'
         }
       }
     },
@@ -1020,7 +1078,7 @@ const chartOptions = computed(() => {
       theme: isDark.value ? 'dark' as const : 'light' as const,
       y: {
         formatter: function (val: number) {
-          return val.toLocaleString() + " Kg"
+          return dinhDangSo(val) + " Kg"
         }
       }
     }
@@ -1293,7 +1351,7 @@ const fundOptions = computed(() => {
       theme: isDark.value ? 'dark' as const : 'light' as const,
       y: {
         formatter: function (val: number) {
-          return val.toLocaleString() + " Triệu VNĐ"
+          return dinhDangSo(val) + " Triệu VNĐ"
         }
       }
     }
@@ -1372,7 +1430,7 @@ const revenueFundOptions = computed(() => {
       theme: isDark.value ? 'dark' as const : 'light' as const,
       y: {
         formatter: function (val: number) {
-          return val.toLocaleString() + " Triệu VNĐ"
+          return dinhDangSo(val) + " Triệu VNĐ"
         }
       }
     }

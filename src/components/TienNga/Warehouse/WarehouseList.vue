@@ -113,6 +113,7 @@
 </template>
 
 <script setup lang="ts">
+import { dinhDangSo } from '@/utils/dinhDangSo'
 import { Box, Location, ArrowRight, Plus, MoreFilled } from '@element-plus/icons-vue'
 
 interface Warehouse {
@@ -145,8 +146,11 @@ const handleCommand = (command: string, wh: Warehouse) => {
   }
 }
 
-const formatNumber = (value: number) => {
-  return new Intl.NumberFormat('vi-VN').format(value)
+const formatNumber = (value: any, _decimals?: number) => {
+  // MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
+  // Tham số `_decimals` giữ lại để 105 chỗ gọi cũ không phải sửa; nay
+  // không dùng tới vì mọi số đều hiện phần nguyên.
+  return dinhDangSo(value)
 }
 
 const getCapacityPercent = (wh: Warehouse) => {

@@ -41,4 +41,32 @@ export const trangChuService = {
 
     return await response.json()
   },
+  /**
+   * MỤC 353 (27/08/2026) — Hỏi trợ lý AI nội bộ.
+   *
+   * 🔴 CHỈ ADMIN. Máy chủ trả 403 cho tài khoản thường — không phải
+   * frontend tự ẩn nút rồi coi là xong. Ẩn bằng giao diện thì ai mở
+   * công cụ trình duyệt vẫn gọi được.
+   *
+   * ⚠️ Có thể mất vài giây: trợ lý gọi ra mạng Google. Nơi gọi phải
+   * hiện trạng thái "đang hỏi", nếu không người dùng tưởng nút hỏng
+   * rồi bấm liên tục.
+   */
+  async hoiAI(cauHoi: string): Promise<{ thanh_cong: boolean; tra_loi: string }> {
+    const baseUrl = await getApiUrl()
+    const response = await fetch(`${baseUrl}/home/hoi-ai`, {
+      method: 'POST',
+      headers: getApiHeaders(),
+      body: JSON.stringify({ cau_hoi: cauHoi }),
+    })
+
+    if (!response.ok) {
+      const chiTiet = await response.json().catch(() => ({}))
+      const loi: any = new Error(chiTiet?.detail || 'Không hỏi được trợ lý AI.')
+      loi.status = response.status
+      throw loi
+    }
+
+    return await response.json()
+  },
 }

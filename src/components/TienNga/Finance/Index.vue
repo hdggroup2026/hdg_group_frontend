@@ -130,7 +130,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày bắt đầu" prop="startDate">
-                  <el-date-picker 
+                  <el-date-picker :editable="false" 
                     v-model="fundFormModel.startDate" 
                     type="date" 
                     placeholder="Chọn ngày" 
@@ -142,7 +142,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày kết thúc" prop="endDate">
-                  <el-date-picker 
+                  <el-date-picker :editable="false" 
                     v-model="fundFormModel.endDate" 
                     type="date" 
                     placeholder="Chọn ngày (nếu có)" 

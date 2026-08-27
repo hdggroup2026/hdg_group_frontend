@@ -34,7 +34,7 @@
         <!-- Filter Assigned At -->
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian nhận:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="filterAssignedAt"
             type="date"
             placeholder="Chọn ngày nhận..."
@@ -49,7 +49,7 @@
         <!-- Filter Returned At -->
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian trả:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="filterReturnedAt"
             type="date"
             placeholder="Chọn ngày trả..."
@@ -229,12 +229,12 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày bàn giao" prop="assigned_at">
-                  <el-date-picker v-model="form.assigned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày bàn giao..." class="!w-full" />
+                  <el-date-picker :editable="false" v-model="form.assigned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày bàn giao..." class="!w-full" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày thu hồi" prop="returned_at">
-                  <el-date-picker v-model="form.returned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày thu hồi (nếu có)..." class="!w-full" clearable />
+                  <el-date-picker :editable="false" v-model="form.returned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày thu hồi (nếu có)..." class="!w-full" clearable />
                 </el-form-item>
               </el-col>
             </el-row>

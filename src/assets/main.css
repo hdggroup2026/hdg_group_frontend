@@ -2,6 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ══════════════════════════════════════════════════════════════════════
+   MỤC 349 (27/08/2026) — FONT CHỮ TOÀN HỆ THỐNG
+
+   s68 chốt 27/08/2026: đổi sang Times New Roman, chữ đậm và lớn hơn.
+
+   🔴 ĐẶT Ở ĐÂY, KHÔNG RẢI VÀO TỪNG MÀN
+
+   Có hơn 60 file .vue. Sửa font trong từng file thì lần sau đổi ý phải
+   mở lại cả 60 file, và chắc chắn sót vài chỗ. Đặt một khối ở đây là
+   đổi một lần cho cả web — kể cả những màn chưa ai làm tới.
+
+   ⚠️ ÁP CHO CẢ BA CỠ MÀN HÌNH. Không có `@media` nào trong khối này —
+   điện thoại, máy tính bảng và máy tính đều nhận cùng font và cùng cỡ.
+   Đây là quy tắc s68 chốt 27/08: đổi frontend là đổi cho mọi thiết bị.
+
+   ⚠️ MUỐN TRẢ VỀ NHƯ CŨ thì xoá đúng khối này, không phải đi tìm khắp
+   nơi. Đó là lý do nó nằm gọn một chỗ và có mốc MỤC rõ ràng.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* `html` chứ không phải `body`: `rem` tính theo `html`, đặt ở đây thì
+   mọi cỡ chữ Tailwind (text-sm, text-xs…) đều to lên theo cùng tỷ lệ. */
+html {
+  /* 16px mặc định -> 17px. Tăng vừa đủ để dễ đọc, không vỡ bố cục.
+     Nhảy thẳng lên 18-20px là bảng cân đối tràn ngang trên điện thoại. */
+  font-size: 17px;
+}
+
+body,
+/* Element Plus dựng nút, bảng, hộp thoại bằng lớp riêng và KHÔNG kế thừa
+   font từ body ở một số chỗ. Liệt kê thẳng ra, nếu không thì nửa giao
+   diện đổi font còn nửa kia giữ nguyên — nhìn như lỗi. */
+.el-button,
+.el-input__inner,
+.el-table,
+.el-dropdown-menu,
+.el-message-box,
+.el-dialog,
+.el-tabs__item,
+.el-select,
+.el-form-item__label {
+  font-family: "Times New Roman", Times, "Nimbus Roman", serif;
+}
+
+body {
+  /* 500 chứ không phải 700: Times New Roman ở 700 trên màn hình bị dày
+     và dấu tiếng Việt dính vào nhau. 500 đã rõ hơn hẳn mặc định 400. */
+  font-weight: 500;
+}
+
+/* Tiêu đề đậm hẳn để phân tầng còn nhìn ra được sau khi chữ thường đã
+   nặng lên. Không có dòng này thì tiêu đề và chữ thường trông như nhau. */
+h1, h2, h3, h4, th, .font-medium, .font-semibold, .font-bold {
+  font-weight: 700;
+}
+
+/* 🔴 SỐ TIỀN GIỮ FONT KHÔNG CHÂN.
+   Times New Roman có chữ số kiểu cũ, độ cao không đều (3, 4, 7, 9 thò
+   xuống dưới dòng). Cột tiền xếp thẳng hàng sẽ nhìn như so le, và đọc
+   nhầm số là chuyện của tiền. Mọi chỗ đã đánh dấu `tabular-nums` đều
+   là cột số — giữ font hệ thống cho chúng. */
+.tabular-nums {
+  font-family: ui-monospace, "SF Mono", "Cascadia Mono", Consolas,
+               "Liberation Mono", monospace;
+  font-weight: 600;
+}
+
 /* ===== Responsive Navigation: Dropdown Transitions ===== */
 
 /* Fade transition for backdrop overlay */
@@ -40,4 +106,76 @@
 /* Ensure table column headers do not wrap text onto multiple lines */
 .el-table th.el-table__cell .cell {
   white-space: nowrap !important;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   MỤC 358 (27/08/2026) — THU GỌN KHOẢNG TRỐNG TOÀN HỆ THỐNG
+
+   s68 chốt 27/08/2026, nhìn màn Other > Thiết bị trên iPad:
+     *"bố cục khoảng trống còn nhiều, nội dung xa nhau, dẫn đến chiếm
+     nhiều diện tích. Dồn nội dung rút ngắn khoảng cách lại. Đủ để hiện
+     thông tin đủ, không bị đè chữ hay ... là được."*
+     *"Tương tự các trường thông tin khác cũng xử lý thu gọn lại luôn"*
+
+   🔴 ĐẶT MỘT KHỐI Ở ĐÂY, KHÔNG SỬA TỪNG MÀN
+
+   Có hơn 60 màn dùng `el-table`, `el-form`, `el-card`. Sửa từng màn thì
+   sót là chắc, và lần sau đổi ý phải mở lại cả 60 file. Một khối ở đây
+   là mọi màn gọn theo cùng một mức — kể cả màn chưa ai làm tới.
+
+   ⚠️ CHỈ THU GỌN KHOẢNG TRỐNG, KHÔNG ĐỘNG VÀO CỠ CHỮ.
+   MỤC 349 vừa tăng cỡ chữ theo yêu cầu của s68. Thu gọn bằng cách bóp
+   chữ nhỏ lại là đi ngược yêu cầu đó — và chữ nhỏ trên iPad thì đọc
+   không nổi.
+
+   ⚠️ KHÔNG ÉP XUỐNG DƯỚI MỨC CHỮ CÒN THỞ ĐƯỢC.
+   s68 nêu rõ điều kiện: "không bị đè chữ hay ...". Nên các số dưới đây
+   là mức đã chừa lề, không phải mức nhỏ nhất có thể.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* Bảng — chỗ tốn diện tích nhất. Mặc định Element Plus là 12px trên
+   dưới cho mỗi ô; 10 dòng là tốn 240px chỉ cho khoảng trắng. */
+.el-table th.el-table__cell,
+.el-table td.el-table__cell {
+  padding: 6px 0;
+}
+.el-table .cell {
+  padding-left: 8px;
+  padding-right: 8px;
+  /* `line-height` mặc định 23px. Hạ xuống 1.4 lần cỡ chữ để dòng sát
+     nhau hơn mà dấu tiếng Việt (ắ, ệ, ỗ) vẫn không bị cắt ngọn. */
+  line-height: 1.4;
+}
+
+/* Form — nhãn và ô nhập */
+.el-form-item {
+  margin-bottom: 12px;
+}
+.el-form-item__label {
+  padding-right: 8px;
+}
+
+/* Thẻ và hộp thoại */
+.el-card__body {
+  padding: 12px;
+}
+.el-dialog__body {
+  padding: 12px 16px;
+}
+.el-dialog__header {
+  padding: 12px 16px;
+  margin-right: 0;
+}
+
+/* Thanh thẻ (tab) và thanh phân trang */
+.el-tabs__header {
+  margin-bottom: 10px;
+}
+.el-pagination {
+  padding: 6px 0;
+}
+
+/* Mô tả dạng nhãn–giá trị (dùng ở các màn chi tiết) */
+.el-descriptions__cell {
+  padding-bottom: 8px !important;
 }

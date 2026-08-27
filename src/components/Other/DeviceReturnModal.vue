@@ -45,7 +45,7 @@
           <el-row :gutter="20">
             <el-col :span="24">
               <el-form-item label="Ngày thu hồi" prop="returned_at">
-                <el-date-picker v-model="form.returned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày thu hồi..." class="!w-full" />
+                <el-date-picker :editable="false" v-model="form.returned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày thu hồi..." class="!w-full" />
               </el-form-item>
             </el-col>
           </el-row>

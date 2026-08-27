@@ -278,7 +278,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Thời hạn bảo hành" prop="warranty_expiry">
-                  <el-date-picker v-model="form.warranty_expiry" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày hết hạn..." class="!w-full" />
+                  <el-date-picker :editable="false" v-model="form.warranty_expiry" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày hết hạn..." class="!w-full" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">

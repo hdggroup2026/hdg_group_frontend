@@ -237,7 +237,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày sinh">
-                  <el-date-picker v-model="form.dob" type="date" placeholder="Chọn" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.dob" type="date" placeholder="Chọn" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>

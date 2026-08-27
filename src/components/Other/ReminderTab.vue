@@ -224,7 +224,7 @@
                   <el-input-number v-model="form.reminder_days_before" :min="1" :max="365" class="!w-full" />
                 </el-form-item>
                 <el-form-item v-else label="Ngày nhắc" prop="reminder_date">
-                  <el-date-picker v-model="form.reminder_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày gửi tin..." class="!w-full" />
+                  <el-date-picker :editable="false" v-model="form.reminder_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày gửi tin..." class="!w-full" />
                 </el-form-item>
               </el-col>
             </el-row>

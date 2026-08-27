@@ -92,12 +92,12 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày bắt đầu mua" prop="start_buy">
-                  <el-date-picker v-model="form.start_buy" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.start_buy" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày kết thúc mua" prop="end_buy">
-                  <el-date-picker v-model="form.end_buy" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.end_buy" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -176,12 +176,12 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày bắt đầu bán" prop="start_sale">
-                  <el-date-picker v-model="form.start_sale" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.start_sale" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày kết thúc bán" prop="end_sale">
-                  <el-date-picker v-model="form.end_sale" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
+                  <el-date-picker :editable="false" v-model="form.end_sale" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>

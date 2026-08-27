@@ -198,7 +198,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày tham gia" prop="start_date">
-                  <el-date-picker 
+                  <el-date-picker :editable="false" 
                     v-model="form.start_date" 
                     type="date" 
                     placeholder="Chọn ngày tham gia..." 

@@ -100,7 +100,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="txFilters.dateRange"
                     type="daterange"
                     range-separator="~"
@@ -259,7 +259,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                   <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="lookupFilters.dateRange"
                     type="daterange"
                     range-separator="~"
@@ -417,7 +417,7 @@
               <el-row :gutter="20">
                 <el-col :span="12">
                   <el-form-item label="Ngày giao dịch" prop="date">
-                    <el-date-picker 
+                    <el-date-picker :editable="false" 
                       v-model="txForm.date" 
                       type="date" 
                       placeholder="Chọn ngày" 
@@ -675,6 +675,7 @@
 </template>
 
 <script setup lang="ts">
+import { dinhDangSo } from '@/utils/dinhDangSo'
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -1297,8 +1298,10 @@ const lookupStats = computed(() => ({
 }))
 
 // ========== HELPERS ==========
-const formatCurrency = (value: number) => new Intl.NumberFormat('vi-VN').format(value)
-const formatNumber = (value: number) => new Intl.NumberFormat('vi-VN', { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value)
+// MỤC 355 — hàm hiển thị, bỏ phần lẻ.
+const formatCurrency = (value: any) => dinhDangSo(value)
+// MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
+const formatNumber = (value: any) => dinhDangSo(value)
 const formatDate = (dateString: string) => {
   const [year, month, day] = dateString.split('-')
   return `${day}/${month}/${year}`

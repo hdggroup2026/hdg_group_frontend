@@ -175,7 +175,7 @@
               <el-row :gutter="20">
                 <el-col :span="12">
                   <el-form-item label="Ngày giao dịch" prop="date">
-                    <el-date-picker
+                    <el-date-picker :editable="false"
                       v-model="transactionForm.date"
                       type="date"
                       placeholder="Chọn ngày"
@@ -341,7 +341,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày giao dịch">
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="editForm.date"
                     type="date"
                     placeholder="Chọn ngày"
@@ -628,6 +628,7 @@
 </template>
 
 <script setup lang="ts">
+import { dinhDangSo } from '@/utils/dinhDangSo'
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { MoreFilled, Search } from '@element-plus/icons-vue'
 import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
@@ -1050,14 +1051,14 @@ const parseInputCurrency = (value: string) => {
 }
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('vi-VN').format(value)
+  return dinhDangSo(value)
 }
 
-const formatNumber = (value: number, decimals: number = 0) => {
-  return new Intl.NumberFormat('vi-VN', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  }).format(value)
+const formatNumber = (value: any, _decimals?: number) => {
+  // MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
+  // Tham số `_decimals` giữ lại để 105 chỗ gọi cũ không phải sửa; nay
+  // không dùng tới vì mọi số đều hiện phần nguyên.
+  return dinhDangSo(value)
 }
 
 const generateMockData = () => {
