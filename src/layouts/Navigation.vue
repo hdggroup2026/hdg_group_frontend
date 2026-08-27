@@ -41,7 +41,14 @@
           </span>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item :icon="User">Hồ sơ người dùng</el-dropdown-item>
+              <!--
+                MỤC 339 (27/08/2026) — GẮN HÀNH ĐỘNG CHO DÒNG NÀY.
+
+                Trước đó dòng này KHÔNG có @click. Bấm vào không đi đâu,
+                không báo lỗi — người dùng tưởng màn hồ sơ bị hỏng, trong
+                khi thật ra nó chưa từng tồn tại.
+              -->
+              <el-dropdown-item :icon="User" @click="handleXemHoSo">Hồ sơ người dùng</el-dropdown-item>
               <el-dropdown-item :icon="SwitchButton" divided @click="handleLogout">Đăng xuất</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -179,6 +186,11 @@ const handleToggle = () => {
 }
 
 // Xử lý khi nhấn Đăng xuất
+// MỤC 339 (27/08/2026) — mở màn Hồ sơ người dùng.
+const handleXemHoSo = () => {
+  router.push('/ho-so')
+}
+
 const handleLogout = () => {
   // MỤC 255 — PHẢI xoá bộ nhớ quyền khi đăng xuất.
   // Không xoá thì người đăng nhập sau trên cùng máy sẽ thấy menu của

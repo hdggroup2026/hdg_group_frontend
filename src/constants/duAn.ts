@@ -29,6 +29,20 @@ export interface DuAn {
   duongMacDinh: string
   /** true = chỉ người có quyền 'admin' mới thấy */
   chiAdmin?: boolean
+  /**
+   * MỤC 339 (27/08/2026) — true = KHÔNG hiện trên thanh menu và không
+   * hiện trong lưới dự án ở Trang Chủ.
+   *
+   * VÌ SAO CẦN CỜ NÀY: màn Hồ sơ người dùng nằm trong menu thả xuống của
+   * ảnh đại diện, không phải một dự án. Nhưng Dashboard.vue vẫn phải tra
+   * được nó qua `timTheoDuong` để biết hiện màn nào — nếu không thêm vào
+   * bảng thì bấm vào đường /ho-so sẽ ra màn trống, không có lỗi nào báo.
+   *
+   * ⚠️ Đừng thay bằng cách bỏ nó khỏi bảng rồi viết if riêng trong
+   * Dashboard.vue. Đó đúng là cái bẫy MỤC 255 đã dọn: danh sách nằm ở
+   * bốn chỗ, quên một chỗ là hỏng im lặng.
+   */
+  anTrenMenu?: boolean
 }
 
 /**
@@ -81,6 +95,20 @@ export const DU_AN: DuAn[] = [
     chiAdmin: true,
     duong: '/authorization',
     duongMacDinh: '/authorization',
+  },
+  {
+    // MỤC 339 (27/08/2026) — Hồ sơ người dùng.
+    //
+    // Ai đăng nhập được thì xem được hồ sơ CỦA CHÍNH MÌNH, nên không
+    // khoá quyền. Đường API phía sau chỉ trả về dòng của người gọi,
+    // không có tham số nào hỏi được về người khác.
+    //
+    // `anTrenMenu` vì lối vào là menu thả xuống của ảnh đại diện.
+    ten: 'Hồ sơ',
+    khoaQuyen: null,
+    anTrenMenu: true,
+    duong: '/ho-so',
+    duongMacDinh: '/ho-so',
   },
 ]
 
@@ -161,9 +189,15 @@ export function duocVao(duAn: DuAn, quyen: string[]): boolean {
   return quyen.includes(duAn.khoaQuyen)
 }
 
-/** Các dự án người này được vào, giữ nguyên thứ tự trong bảng. */
+/**
+ * Các dự án người này được vào, giữ nguyên thứ tự trong bảng.
+ *
+ * MỤC 339 — loại bỏ mục có `anTrenMenu`. Hàm này là nguồn cho CẢ HAI chỗ
+ * hiển thị: thanh menu (Navigation.vue) và lưới dự án ở Trang Chủ
+ * (HomeView.vue). Lọc ở đây là lọc một lần cho cả hai.
+ */
 export function danhSachDuocVao(quyen: string[]): DuAn[] {
-  return DU_AN.filter((d) => duocVao(d, quyen))
+  return DU_AN.filter((d) => !d.anTrenMenu && duocVao(d, quyen))
 }
 
 /** Tìm dự án theo đường dẫn hiện tại. Không khớp thì trả null. */

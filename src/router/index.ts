@@ -115,6 +115,17 @@ const routes: RouteRecordRaw[] = [
         component: Dashboard,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
+    // MỤC 339 (27/08/2026) — Hồ sơ người dùng.
+    // Dùng Dashboard vì màn này cần thanh menu ở trên: xem xong hồ sơ
+    // phải quay lại việc được ngay, không phải bấm nút Back.
+    // KHÔNG có requiresAdmin: ai đăng nhập được cũng xem được hồ sơ của
+    // chính mình.
+    {
+        path: '/ho-so',
+        name: 'ho-so',
+        component: Dashboard,
+        meta: { requiresAuth: true }
+    },
     // MỤC 255 — trang gốc và /overview nay về TRANG CHỦ.
     //
     // Trước đây cả hai chuyển thẳng vào /tien-nga/overall. Người không có
