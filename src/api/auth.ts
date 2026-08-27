@@ -1,4 +1,4 @@
-import { getApiUrl } from './apiConfig';
+import { getApiUrl, getApiHeaders } from './apiConfig';
 
 
 export const authService = {
@@ -50,12 +50,21 @@ export const authService = {
 
   async register(params: { username: string; password?: string; employee_id: string; role?: string }): Promise<any> {
     const baseUrl = await getApiUrl();
+    // ══ MỤC 337 (26/08/2026) — GỬI KÈM TOKEN ══
+    //
+    // 🔴 MÀN TẠO TÀI KHOẢN HỎNG TỪ 24/08.
+    // MỤC 285 bắt `/auth/register` phải có quyền admin — trước đó đường này
+    // mở cho cả thế giới: ai biết địa chỉ web đều tạo được tài khoản và
+    // nhận luôn token.
+    //
+    // Nhưng hàm này vẫn gửi header trần, không có `Authorization`. Máy chủ
+    // trả 401 và không ai tạo được tài khoản nữa.
+    //
+    // ⚠️ Dùng `getApiHeaders()` chứ KHÔNG tự viết lại chuỗi Bearer: hàm đó
+    // là một nguồn duy nhất, đọc cả `token_type` đã lưu.
     const response = await fetch(`${baseUrl}/auth/register`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'ngrok-skip-browser-warning': 'true',
-      },
+      headers: getApiHeaders(),
       body: JSON.stringify({
         username: params.username,
         password: params.password,

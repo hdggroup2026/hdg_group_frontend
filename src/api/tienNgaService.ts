@@ -2652,7 +2652,23 @@ export const tienNgaService = {
     } else {
       baseUrl = baseUrl.replace(/^http:/, 'ws:').replace(/^https:/, 'wss:');
     }
-    return `${baseUrl}/telegram/chat/ws`;
+    // ══ MỤC 337 (26/08/2026) — GẮN TOKEN VÀO ĐỊA CHỈ ══
+    //
+    // 🔴 TRANG CHAT CHẾT TỪ 24/08.
+    // MỤC 324 vá lỗ hổng: đường WebSocket này trước đó ai gọi cũng được.
+    // Nay máy chủ tự kiểm token và đóng bằng mã 1008 nếu thiếu.
+    //
+    // ⚠️ Token phải đi trong ĐỊA CHỈ, không đi trong header — trình duyệt
+    // KHÔNG cho đặt header Authorization cho WebSocket. Đó là giới hạn của
+    // trình duyệt, không phải lựa chọn.
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      // Không có token thì trả địa chỉ trần và để máy chủ từ chối. KHÔNG
+      // ném lỗi ở đây: chỗ gọi đã có nhánh xử lý mất kết nối, còn ném lỗi
+      // là làm chết cả màn chat vì một chuyện đăng nhập.
+      return `${baseUrl}/telegram/chat/ws`;
+    }
+    return `${baseUrl}/telegram/chat/ws?token=${encodeURIComponent(token)}`;
   },
 
   async getTelegramMediaUrl(downloadUrlOrId: string): Promise<string> {
