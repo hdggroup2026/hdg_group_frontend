@@ -3,6 +3,7 @@
   MỤC 342 (27/08/2026) — thêm nội dung ô Tiến Nga và ô Hụi.
   MỤC 343 (27/08/2026) — hiện hai số tài sản/công nợ Hụi để đối chiếu.
   MỤC 344 (27/08/2026) — ô Tiến Nga hiện thêm phần Tài sản (ứng + kho mủ tồn).
+  MỤC 347 (27/08/2026) — ô Thu hoạch đọc đúng bảng, khớp báo cáo bot gửi.
 
   Thay khối "Nội dung trang chủ đang được thiết kế" của MỤC 255 bằng số
   liệu thật. s68 chốt 27/08: bảng cân đối lên đầu, các ô dự án đẩy xuống
@@ -220,38 +221,68 @@
               </div>
             </div>
 
-            <!-- ── Thu hoạch ── -->
+            <!-- ── Thu hoạch (MỤC 347: đọc cùng nguồn với bot) ── -->
             <div v-else-if="d.ten === 'Thu hoạch' && bang?.thu_hoach" class="mt-3 pt-3
                  border-t border-gray-100 dark:border-gray-700">
               <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 Tháng {{ bang.thu_hoach.thang }}
+                · {{ bang.thu_hoach.so_ray }} rẫy · {{ bang.thu_hoach.so_ho }} hộ
               </div>
               <div v-if="bang.thu_hoach.so_dong === 0"
                    class="text-xs text-gray-500">{{ bang.thu_hoach.chu_khi_rong }}</div>
               <template v-else>
+                <!--
+                  Bảy dòng này khớp đúng bảng bot gửi vào nhóm Telegram
+                  mỗi ngày 17:30. Đối chiếu được ngay: luỹ kế tháng trong
+                  tin bot phải bằng dòng "Thành tiền" ở đây.
+                -->
                 <div class="flex justify-between text-xs mb-1">
-                  <span class="text-gray-500 dark:text-gray-400">Tổng khối lượng</span>
+                  <span class="text-gray-500 dark:text-gray-400">Mủ nước</span>
                   <span class="tabular-nums font-medium text-gray-800 dark:text-gray-100">
-                    {{ soLe(bang.thu_hoach.tong_kg) }} kg
+                    {{ soLe(bang.thu_hoach.mu_nuoc_kg) }} kg
+                  </span>
+                </div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-gray-500 dark:text-gray-400">Mủ khô</span>
+                  <span class="tabular-nums font-medium text-gray-800 dark:text-gray-100">
+                    {{ soLe(bang.thu_hoach.mu_kho_kg) }} kg
+                  </span>
+                </div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-gray-500 dark:text-gray-400">Số độ TB</span>
+                  <span class="tabular-nums text-gray-800 dark:text-gray-100">
+                    {{ soLe(bang.thu_hoach.do_trung_binh) }}%
+                  </span>
+                </div>
+                <div class="flex justify-between text-xs mb-1">
+                  <span class="text-gray-500 dark:text-gray-400">Đơn giá TB</span>
+                  <span class="tabular-nums text-gray-800 dark:text-gray-100">
+                    {{ tien(bang.thu_hoach.don_gia_trung_binh) }}/kg
                   </span>
                 </div>
                 <div class="flex justify-between text-xs mb-2">
                   <span class="text-gray-500 dark:text-gray-400">Thành tiền</span>
                   <span class="tabular-nums font-medium text-gray-800 dark:text-gray-100">
-                    {{ tien(bang.thu_hoach.tong_thanh_tien) }}
+                    {{ tien(bang.thu_hoach.thanh_tien) }}
                   </span>
                 </div>
-                <div v-for="l in bang.thu_hoach.theo_loai" :key="l.loai"
-                     class="flex justify-between text-[11px] text-gray-500 dark:text-gray-400">
-                  <span>{{ l.loai }}</span>
-                  <span class="tabular-nums">{{ soLe(l.so_kg) }} kg</span>
+                <div class="flex justify-between text-[11px] text-gray-500 dark:text-gray-400">
+                  <span>Cây cạo</span>
+                  <span class="tabular-nums">{{ bang.thu_hoach.so_cay_cao }}</span>
+                </div>
+                <div class="flex justify-between text-[11px] text-gray-500 dark:text-gray-400">
+                  <span>Tiền cạo</span>
+                  <span class="tabular-nums">{{ tien(bang.thu_hoach.tien_cao) }}</span>
+                </div>
+                <div class="text-[11px] text-gray-400 dark:text-gray-500 mt-1">
+                  {{ bang.thu_hoach.so_dong }} phiếu thu mua
                 </div>
                 <!-- Dấu hiệu THIẾU DỮ LIỆU, không phải chỉ số năng suất -->
                 <div v-if="bang.thu_hoach.so_ngay_thieu_so_lieu > 0"
                      class="mt-2 rounded bg-amber-50 dark:bg-amber-900/20 px-2 py-1
                             text-[11px] text-amber-700 dark:text-amber-300">
                   {{ bang.thu_hoach.so_ngay_thieu_so_lieu }} ngày trong tháng
-                  chưa có dòng thu hoạch nào
+                  chưa có phiếu thu mua nào
                 </div>
               </template>
             </div>
@@ -323,6 +354,15 @@
                 </div>
                 <div class="flex justify-between text-[11px] text-gray-500 dark:text-gray-400">
                   <span>{{ bang.tien_nga.mua_mu.so_ho }} hộ · {{ bang.tien_nga.mua_mu.so_dong }} dòng</span>
+                </div>
+                <!--
+                  MỤC 347 — Tiến Nga và Thu hoạch dùng chung bảng mua mủ.
+                  Nói rõ phần trùng để không ai cộng hai ô lại với nhau.
+                -->
+                <div v-if="bang.tien_nga.so_dong_thuoc_thu_hoach > 0"
+                     class="text-[11px] text-amber-700 dark:text-amber-300 mt-1">
+                  ⚠️ Trong đó {{ bang.tien_nga.so_dong_thuoc_thu_hoach }} dòng
+                  thuộc mảng Thu hoạch — hai ô đếm chung phần này
                 </div>
               </template>
 
