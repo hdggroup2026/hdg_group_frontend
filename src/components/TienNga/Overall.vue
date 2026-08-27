@@ -177,14 +177,14 @@
           </div>
         </template>
         <div class="space-y-2">
-          <!--
+          [GHI CHU
             MỤC 354 (27/08/2026) — VẠCH NGĂN GIỮA HAI SỐ.
             s68 chụp iPad 27/08: "1.623.155,9" và "384.556,19" dính liền
             nhau thành một chuỗi số, đọc ra thành một con số duy nhất.
             Gốc là `gap-4` (16px) — với cỡ chữ 2xl thì khe đó quá hẹp.
             `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
             `pl-4` để chữ không dính vạch.
-          -->
+          het ghi chu]
           <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
                       dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
@@ -222,14 +222,14 @@
           </div>
         </template>
         <div class="space-y-2">
-          <!--
+          [GHI CHU
             MỤC 354 (27/08/2026) — VẠCH NGĂN GIỮA HAI SỐ.
             s68 chụp iPad 27/08: "1.623.155,9" và "384.556,19" dính liền
             nhau thành một chuỗi số, đọc ra thành một con số duy nhất.
             Gốc là `gap-4` (16px) — với cỡ chữ 2xl thì khe đó quá hẹp.
             `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
             `pl-4` để chữ không dính vạch.
-          -->
+          het ghi chu]
           <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
                       dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
