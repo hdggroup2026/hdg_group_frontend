@@ -4,6 +4,10 @@
   MỤC 343 (27/08/2026) — hiện hai số tài sản/công nợ Hụi để đối chiếu.
   MỤC 344 (27/08/2026) — ô Tiến Nga hiện thêm phần Tài sản (ứng + kho mủ tồn).
   MỤC 347 (27/08/2026) — ô Thu hoạch đọc đúng bảng, khớp báo cáo bot gửi.
+  MỤC 348 (27/08/2026) — ô Other hiện 10 mục đến hạn gần nhất toàn hệ thống.
+  MỤC 350 (27/08/2026) — ô Telegram: số đứng sát nhãn, không dàn ra hai mép.
+  MỤC 351 (27/08/2026) — ô Nhật ký: 10 lần đăng nhập thất bại gần nhất (chỉ admin).
+  MỤC 353 (27/08/2026) — hộp hỏi trợ lý AI ngay trên Trang Chủ (chỉ admin).
 
   Thay khối "Nội dung trang chủ đang được thiết kế" của MỤC 255 bằng số
   liệu thật. s68 chốt 27/08: bảng cân đối lên đầu, các ô dự án đẩy xuống
@@ -540,20 +544,164 @@
               </template>
             </div>
 
+            <!-- ── Other: 10 mục đến hạn gần nhất (MỤC 348) ── -->
+            <div v-else-if="d.ten === 'Other' && bang?.sap_den_han" class="mt-3 pt-3
+                 border-t border-gray-100 dark:border-gray-700">
+              <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                Đến hạn gần nhất — toàn hệ thống
+                <span v-if="bang.sap_den_han.tong_tim_thay > bang.sap_den_han.so_dong">
+                  (10 trên {{ bang.sap_den_han.tong_tim_thay }})
+                </span>
+              </div>
+
+              <!--
+                🔴 Quá hạn cấp bách hơn sắp hạn. Đếm riêng và in đỏ ở đầu,
+                đừng để nó lẫn vào danh sách rồi trôi mất.
+              -->
+              <div v-if="bang.sap_den_han.so_qua_han > 0"
+                   class="mb-2 rounded bg-red-50 dark:bg-red-900/20 px-2 py-1
+                          text-[11px] text-red-700 dark:text-red-300 font-medium">
+                {{ bang.sap_den_han.so_qua_han }} mục ĐÃ QUÁ HẠN
+              </div>
+
+              <div v-if="bang.sap_den_han.so_dong === 0"
+                   class="text-xs text-gray-500">{{ bang.sap_den_han.chu_khi_rong }}</div>
+
+              <ul v-else class="space-y-2">
+                <li v-for="(m, i) in bang.sap_den_han.danh_sach" :key="i"
+                    class="text-xs">
+                  <div class="flex justify-between gap-2">
+                    <span class="text-gray-700 dark:text-gray-200 break-all">
+                      {{ m.ten || m.ma || m.loai }}
+                    </span>
+                    <span class="shrink-0 tabular-nums font-medium"
+                          :class="m.con_lai_ngay < 0
+                            ? 'text-red-600 dark:text-red-400'
+                            : (m.con_lai_ngay <= 7
+                                ? 'text-amber-600 dark:text-amber-400'
+                                : 'text-gray-600 dark:text-gray-300')">
+                      {{ m.ngay }}
+                    </span>
+                  </div>
+                  <div class="text-[11px] text-gray-400 dark:text-gray-500">
+                    {{ m.mang }} · {{ m.loai }}
+                    <span v-if="m.ma"> · {{ m.ma }}</span>
+                    <span v-if="m.con_lai_ngay < 0"
+                          class="text-red-600 dark:text-red-400 font-medium">
+                      · quá hạn {{ m.qua_han }} ngày
+                    </span>
+                    <span v-else-if="m.con_lai_ngay === 0"
+                          class="text-red-600 dark:text-red-400 font-medium">
+                      · hết hạn HÔM NAY
+                    </span>
+                    <span v-else> · còn {{ m.con_lai_ngay }} ngày</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- ── Nhật ký: 10 lần đăng nhập hỏng (MỤC 351) ── -->
+            <div v-else-if="d.ten === 'Nhật ký' && bang?.dang_nhap_hong"
+                 class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+              <!--
+                🔴 Người thường KHÔNG thấy nội dung — máy chủ trả rỗng kèm
+                `duoc_xem: false`. Hiện câu giải thích thay vì ô trống, để
+                không ai tưởng màn hỏng.
+              -->
+              <div v-if="!bang.dang_nhap_hong.duoc_xem"
+                   class="text-xs text-gray-500 dark:text-gray-400">
+                {{ bang.dang_nhap_hong.chu_khi_rong }}
+              </div>
+              <template v-else>
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  10 lần đăng nhập thất bại gần nhất
+                </div>
+
+                <!--
+                  Một tên chiếm quá nửa danh sách = dấu hiệu bị dò mật khẩu,
+                  khác hẳn nhiều người cùng quên mật khẩu. Nổi lên đầu, in đỏ.
+                -->
+                <div v-if="bang.dang_nhap_hong.co_dau_hieu_do_mat_khau"
+                     class="mb-2 rounded bg-red-50 dark:bg-red-900/20 px-2 py-1
+                            text-[11px] text-red-700 dark:text-red-300 font-medium">
+                  ⚠️ Một tên đăng nhập chiếm quá nửa số lần sai — có thể đang
+                  bị dò mật khẩu
+                </div>
+
+                <div v-if="bang.dang_nhap_hong.so_dong === 0"
+                     class="text-xs text-gray-500">
+                  {{ bang.dang_nhap_hong.chu_khi_rong }}
+                </div>
+
+                <ul v-else class="space-y-1.5">
+                  <li v-for="(n, i) in bang.dang_nhap_hong.danh_sach" :key="i"
+                      class="text-xs">
+                    <div class="flex items-baseline gap-2">
+                      <span class="w-[7rem] shrink-0 text-gray-700 dark:text-gray-200 break-all">
+                        {{ n.ten_go_vao }}
+                      </span>
+                      <span class="tabular-nums text-gray-500 dark:text-gray-400">
+                        {{ n.luc }}
+                      </span>
+                    </div>
+                    <div class="text-[11px] text-amber-700 dark:text-amber-300">
+                      {{ n.ket_qua_chu }}
+                      <span v-if="n.ip" class="text-gray-400 dark:text-gray-500">
+                        · IP {{ n.ip }}
+                      </span>
+                    </div>
+                  </li>
+                </ul>
+
+                <div v-if="bang.dang_nhap_hong.theo_ten.length > 1"
+                     class="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                  <div class="text-[11px] font-medium text-gray-600 dark:text-gray-400 mb-1">
+                    Gom theo tên gõ vào
+                  </div>
+                  <div v-for="t in bang.dang_nhap_hong.theo_ten" :key="t.ten"
+                       class="flex items-baseline gap-2 text-[11px]">
+                    <span class="w-[7rem] shrink-0 text-gray-600 dark:text-gray-300 break-all">
+                      {{ t.ten }}
+                    </span>
+                    <span class="tabular-nums text-gray-500">{{ t.so_lan }} lần</span>
+                  </div>
+                </div>
+              </template>
+            </div>
+
             <!-- ── Dự án Telegram ── -->
             <div v-else-if="d.ten === 'Dự án Telegram' && bang?.telegram"
                  class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
-              <div class="flex justify-between text-xs mb-2">
-                <span class="text-gray-500 dark:text-gray-400">Tổng số nhóm</span>
+              <!--
+                MỤC 350 (27/08/2026) — SỐ ĐỨNG SÁT NHÃN, KHÔNG DÀN RA HAI MÉP.
+
+                Trước đó dùng `justify-between`: nhãn dính mép trái, số dính
+                mép phải. Trên iPad ngang thẻ rộng gần 500 điểm ảnh nên giữa
+                hai bên là một khoảng trắng dài — mắt phải rê hết chiều ngang
+                mới nối được "Tiến Nga" với "496", và rất dễ đọc lệch dòng.
+
+                Nay nhãn có bề rộng cố định, số đứng ngay sau. Cả cụm nằm
+                bên trái, sát tiêu đề ô.
+
+                ⚠️ Bề rộng nhãn đặt bằng `rem` chứ không phải `px`: MỤC 349
+                đã tăng cỡ chữ gốc, dùng px thì nhãn không giãn theo và tên
+                dự án dài sẽ bị cắt.
+              -->
+              <div class="flex items-baseline gap-2 text-xs mb-2">
+                <span class="w-[9rem] shrink-0 text-gray-500 dark:text-gray-400">
+                  Tổng số nhóm
+                </span>
                 <span class="tabular-nums font-medium text-gray-800 dark:text-gray-100">
                   {{ bang.telegram.tong_so_nhom }}
                 </span>
               </div>
               <ul class="space-y-1">
                 <li v-for="t in bang.telegram.theo_du_an" :key="t.du_an_id"
-                    class="flex justify-between gap-2 text-xs">
-                  <span class="text-gray-700 dark:text-gray-200 break-all">{{ t.du_an }}</span>
-                  <span class="shrink-0 tabular-nums text-gray-600 dark:text-gray-300">
+                    class="flex items-baseline gap-2 text-xs">
+                  <span class="w-[9rem] shrink-0 text-gray-700 dark:text-gray-200 break-words">
+                    {{ t.du_an }}
+                  </span>
+                  <span class="tabular-nums text-gray-600 dark:text-gray-300">
                     {{ t.so_nhom }}
                   </span>
                 </li>
@@ -566,6 +714,69 @@
           </div>
         </div>
 
+
+        <!-- ═══════════════════════════════════════════════════════════
+             KHỐI 3 — HỎI TRỢ LÝ AI (MỤC 353)
+
+             s68 chốt: hỏi gì về hệ thống thì hỏi ngay trên Trang Chủ,
+             không phải mở Telegram.
+
+             🔴 Chỉ hiện khi tài khoản là admin. Nhưng đó chỉ là để đỡ
+             rối mắt — máy chủ mới là chỗ chặn thật (trả 403).
+             ═══════════════════════════════════════════════════════════ -->
+        <section v-if="laAdmin" class="mt-8">
+          <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
+            Hỏi trợ lý AI về hệ thống
+          </h2>
+
+          <div class="rounded-xl border border-gray-200 dark:border-gray-700
+                      bg-white dark:bg-gray-800 p-4">
+            <textarea
+              v-model="cauHoiAI"
+              rows="3"
+              :disabled="dangHoiAI"
+              placeholder="Ví dụ: công thức tính lương tăng ca là gì?"
+              class="w-full rounded-lg border border-gray-300 dark:border-gray-600
+                     bg-white dark:bg-gray-900 px-3 py-2 text-sm
+                     text-gray-800 dark:text-gray-100
+                     focus:outline-none focus:border-blue-400"
+            ></textarea>
+
+            <div class="mt-2 flex items-center gap-3">
+              <button
+                :disabled="dangHoiAI || !cauHoiAI.trim()"
+                class="rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300
+                       dark:disabled:bg-gray-700 text-white text-sm font-medium
+                       px-4 py-2 transition"
+                @click="hoiAI"
+              >
+                {{ dangHoiAI ? 'Đang hỏi…' : 'Hỏi' }}
+              </button>
+              <!--
+                ⚠️ Trợ lý gọi ra mạng Google, có thể mất vài giây. Không có
+                dòng này thì người dùng tưởng nút hỏng rồi bấm liên tục.
+              -->
+              <span v-if="dangHoiAI" class="text-xs text-gray-500 dark:text-gray-400">
+                Có thể mất vài giây…
+              </span>
+            </div>
+
+            <!--
+              🔴 Hỏng thì in NGUYÊN VĂN câu trợ lý trả về, không thay bằng
+              "có lỗi xảy ra". Hàm `hoi_ai` đã viết sẵn câu nói rõ hỏng ở
+              đâu (thiếu khoá, thiếu file tài khoản…) — nuốt nó đi là người
+              đọc không biết nên chờ hay nên đi sửa cấu hình.
+            -->
+            <div v-if="traLoiAI"
+                 class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700
+                        text-sm whitespace-pre-wrap"
+                 :class="loiAI
+                   ? 'text-amber-800 dark:text-amber-200'
+                   : 'text-gray-800 dark:text-gray-100'">
+              {{ traLoiAI }}
+            </div>
+          </div>
+        </section>
       </template>
     </div>
   </div>
@@ -584,6 +795,13 @@ const loi = ref('')
 const duAnCuaToi = ref<DuAn[]>([])
 const bang = ref<any>(null)
 const canDoi = ref<any>(null)
+
+// MỤC 353 — hộp hỏi trợ lý AI
+const laAdmin = ref(false)
+const cauHoiAI = ref('')
+const traLoiAI = ref('')
+const loiAI = ref(false)
+const dangHoiAI = ref(false)
 
 const loiChao = new Date().getHours() < 12
   ? 'Chào buổi sáng.'
@@ -637,6 +855,9 @@ onMounted(async () => {
   duAnCuaToi.value = danhSachDuocVao(kq.quyen).filter(
     (d) => d.duong !== '/trang-chu'
   )
+  // MỤC 353 — chỉ admin thấy hộp hỏi AI. Đây là ẩn cho đỡ rối mắt;
+  // chặn thật nằm ở máy chủ (trả 403), xem lời ghi ở `trangChu.ts`.
+  laAdmin.value = kq.quyen.includes('admin')
 
   // ⚠️ Số liệu hỏng KHÔNG được làm mất lưới dự án. Lưới dự án mới là thứ
   // giúp người dùng đi tiếp — đó là lý do Trang Chủ tồn tại (MỤC 255).
@@ -651,4 +872,31 @@ onMounted(async () => {
 
   dangTai.value = false
 })
+
+/**
+ * MỤC 353 — gửi câu hỏi cho trợ lý AI.
+ *
+ * ⚠️ Chặn bấm hai lần bằng `dangHoiAI`. Mỗi lần hỏi là một lượt gọi ra
+ * mạng Google — bấm liên tục vừa chậm vừa tốn.
+ */
+const hoiAI = async () => {
+  const cau = cauHoiAI.value.trim()
+  if (!cau || dangHoiAI.value) return
+
+  dangHoiAI.value = true
+  traLoiAI.value = ''
+  loiAI.value = false
+  try {
+    const kq = await trangChuService.hoiAI(cau)
+    traLoiAI.value = kq.tra_loi
+    loiAI.value = !kq.thanh_cong
+  } catch (e: any) {
+    loiAI.value = true
+    traLoiAI.value = e?.status === 403
+      ? 'Chỉ quản trị viên mới hỏi được trợ lý AI.'
+      : (e?.message || 'Không hỏi được trợ lý AI.')
+  } finally {
+    dangHoiAI.value = false
+  }
+}
 </script>

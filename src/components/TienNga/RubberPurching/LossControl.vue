@@ -26,7 +26,7 @@
         <!-- Time Filter -->
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="dateRange"
             type="daterange"
             range-separator="~"
@@ -208,7 +208,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày thu mua" required>
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="lossForm.day"
                     type="date"
                     placeholder="Chọn ngày"
@@ -227,7 +227,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Dự kiến hoàn thành">
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="lossForm.estimated_completion"
                     type="date"
                     placeholder="Chọn ngày"
@@ -367,7 +367,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày thu mua" required>
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="editForm.day"
                     type="date"
                     placeholder="Chọn ngày"
@@ -386,7 +386,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Dự kiến hoàn thành">
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="editForm.estimated_completion"
                     type="date"
                     placeholder="Chọn ngày"
@@ -582,6 +582,7 @@
 </template>
 
 <script setup lang="ts">
+import { dinhDangSo } from '@/utils/dinhDangSo'
 import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { MoreFilled, Search, Refresh } from '@element-plus/icons-vue'
 import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
@@ -714,16 +715,14 @@ watch(
 
 // Formatting utilities
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('vi-VN').format(value)
+  return dinhDangSo(value)
 }
 
-const formatNumber = (value: number, decimals?: number) => {
-  const minDec = decimals !== undefined ? decimals : 0
-  const maxDec = decimals !== undefined ? decimals : 2
-  return new Intl.NumberFormat('vi-VN', {
-    minimumFractionDigits: minDec,
-    maximumFractionDigits: maxDec
-  }).format(value)
+const formatNumber = (value: any, _decimals?: number) => {
+  // MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
+  // Tham số `_decimals` giữ lại để 105 chỗ gọi cũ không phải sửa; nay
+  // không dùng tới vì mọi số đều hiện phần nguyên.
+  return dinhDangSo(value)
 }
 
 const formatInputCurrency = (value: string | number) => {

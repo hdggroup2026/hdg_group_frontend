@@ -212,7 +212,7 @@
                 <!-- Thời gian Picker -->
                 <div class="flex items-center gap-2">
                   <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="cashflowFilters.dateRange"
                     type="daterange"
                     range-separator="~"
@@ -394,7 +394,7 @@
 
                 <div class="flex items-center gap-2">
                   <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="queryFilters.dateRange"
                     type="daterange"
                     range-separator="~"
@@ -584,7 +584,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Thời gian" prop="date">
-                  <el-date-picker 
+                  <el-date-picker :editable="false" 
                     v-model="formModel.date" 
                     type="date" 
                     placeholder="Chọn ngày giao dịch" 

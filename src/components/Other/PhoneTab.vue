@@ -304,7 +304,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày mua sắm" prop="purchase_date">
-                  <el-date-picker v-model="form.purchase_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày mua..." class="!w-full" />
+                  <el-date-picker :editable="false" v-model="form.purchase_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày mua..." class="!w-full" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">

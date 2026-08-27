@@ -301,7 +301,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày đóng thực tế" prop="actual_payment_date">
-                  <el-date-picker 
+                  <el-date-picker :editable="false" 
                     v-model="form.actual_payment_date" 
                     type="datetime" 
                     placeholder="Chọn ngày giờ đóng..." 
@@ -436,7 +436,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày hốt thực tế" prop="actual_payment_date">
-                  <el-date-picker 
+                  <el-date-picker :editable="false" 
                     v-model="withdrawForm.actual_payment_date" 
                     type="datetime" 
                     placeholder="Chọn ngày giờ hốt..." 

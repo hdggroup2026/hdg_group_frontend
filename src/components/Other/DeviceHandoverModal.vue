@@ -73,12 +73,12 @@
           <el-row :gutter="20">
             <el-col :span="12">
               <el-form-item label="Ngày bàn giao" prop="assigned_at">
-                <el-date-picker v-model="form.assigned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày bàn giao..." class="!w-full" />
+                <el-date-picker :editable="false" v-model="form.assigned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày bàn giao..." class="!w-full" />
               </el-form-item>
             </el-col>
             <el-col :span="12">
               <el-form-item label="Ngày thu hồi" prop="returned_at">
-                <el-date-picker v-model="form.returned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày thu hồi (nếu có)..." class="!w-full" clearable />
+                <el-date-picker :editable="false" v-model="form.returned_at" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày thu hồi (nếu có)..." class="!w-full" clearable />
               </el-form-item>
             </el-col>
           </el-row>

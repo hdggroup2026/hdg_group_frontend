@@ -264,12 +264,12 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày cấp" prop="issue_date">
-                  <el-date-picker v-model="form.issue_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày cấp..." class="!w-full" />
+                  <el-date-picker :editable="false" v-model="form.issue_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày cấp..." class="!w-full" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày hết hạn" prop="expiry_date">
-                  <el-date-picker v-model="form.expiry_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày hết hạn..." class="!w-full" />
+                  <el-date-picker :editable="false" v-model="form.expiry_date" type="date" value-format="YYYY-MM-DD" placeholder="Chọn ngày hết hạn..." class="!w-full" />
                 </el-form-item>
               </el-col>
             </el-row>

@@ -51,7 +51,7 @@
 
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="dateRange"
             :disabled="selectedCategory === 'household'"
             type="daterange"
@@ -313,6 +313,7 @@
 </template>
 
 <script setup lang="ts">
+import { dinhDangSo } from '@/utils/dinhDangSo'
 import { ref, computed, onMounted, watch } from 'vue'
 import { Search, Download } from '@element-plus/icons-vue'
 import { tienNgaService } from '@/api/tienNgaService'
@@ -1022,16 +1023,14 @@ const handleCurrentChange = (val: number) => {
 
 // --- Formatters ---
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('vi-VN').format(value)
+  return dinhDangSo(value)
 }
 
-const formatNumber = (value: number, decimals?: number) => {
-  const minDec = decimals !== undefined ? decimals : 0
-  const maxDec = decimals !== undefined ? decimals : 2
-  return new Intl.NumberFormat('vi-VN', {
-    minimumFractionDigits: minDec,
-    maximumFractionDigits: maxDec
-  }).format(value)
+const formatNumber = (value: any, _decimals?: number) => {
+  // MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
+  // Tham số `_decimals` giữ lại để 105 chỗ gọi cũ không phải sửa; nay
+  // không dùng tới vì mọi số đều hiện phần nguyên.
+  return dinhDangSo(value)
 }
 
 // --- Stats ---

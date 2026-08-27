@@ -5,7 +5,7 @@
       <div class="flex items-center gap-4 flex-wrap">
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="filters.month"
             type="month"
             placeholder="Chọn tháng"
@@ -18,7 +18,7 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Khoảng thời gian:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="filters.dateRange"
             type="daterange"
             range-separator="đến"

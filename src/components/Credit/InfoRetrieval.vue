@@ -114,7 +114,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-            <el-date-picker
+            <el-date-picker :editable="false"
               v-model="contractDateRange"
               type="daterange"
               range-separator="~"
@@ -142,7 +142,7 @@
           </div>
           <div class="flex items-center gap-2">
             <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-            <el-date-picker
+            <el-date-picker :editable="false"
               v-model="payDateRange"
               type="daterange"
               range-separator="~"

@@ -15,7 +15,7 @@
         </div>
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="filters.month"
             type="month"
             placeholder="Chọn tháng"
@@ -159,7 +159,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày bổ sung" prop="date">
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="form.date"
                     type="date"
                     placeholder="Chọn ngày bổ sung công"

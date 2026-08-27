@@ -287,7 +287,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày bắt đầu" prop="start_rental">
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="form.start_rental"
                     type="date"
                     placeholder="Chọn ngày"
@@ -298,7 +298,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Ngày kết thúc" prop="end_rental">
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="form.end_rental"
                     type="date"
                     placeholder="Chọn ngày"

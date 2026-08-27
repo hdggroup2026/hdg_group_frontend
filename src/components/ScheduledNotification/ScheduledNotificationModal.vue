@@ -127,7 +127,7 @@
             </el-col>
             <el-col :span="12" v-if="form.schedule_type === 'specific_date'">
               <el-form-item label="Ngày cụ thể" prop="schedule_specific_date">
-                <el-date-picker
+                <el-date-picker :editable="false"
                   v-model="form.schedule_specific_date"
                   type="date"
                   placeholder="Chọn ngày"

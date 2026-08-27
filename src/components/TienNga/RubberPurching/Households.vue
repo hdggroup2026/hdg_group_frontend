@@ -899,7 +899,7 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="Thời gian" prop="date">
-                    <el-date-picker 
+                    <el-date-picker :editable="false" 
                       v-model="advanceForm.date" 
                       type="date" 
                       placeholder="Chọn ngày giao dịch" 
@@ -1196,7 +1196,7 @@
                 </el-col>
                 <el-col :span="12">
                   <el-form-item label="Thời gian" prop="date">
-                    <el-date-picker 
+                    <el-date-picker :editable="false" 
                       v-model="deductionForm.date" 
                       type="date" 
                       placeholder="Chọn ngày giao dịch" 

@@ -6,7 +6,7 @@
         <!-- Month range filter -->
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="monthRange"
             type="monthrange"
             range-separator="đến"
@@ -140,7 +140,7 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Ngày thu hoạch" prop="day">
-                  <el-date-picker
+                  <el-date-picker :editable="false"
                     v-model="form.day"
                     type="date"
                     placeholder="Chọn ngày"

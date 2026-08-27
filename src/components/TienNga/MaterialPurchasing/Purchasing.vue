@@ -42,7 +42,7 @@
 
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
-          <el-date-picker
+          <el-date-picker :editable="false"
             v-model="dateRange"
             type="daterange"
             range-separator="~"
@@ -151,6 +151,7 @@
 
 
 <script setup lang="ts">
+import { dinhDangSo } from '@/utils/dinhDangSo'
 import { ref, computed, onMounted } from 'vue'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
@@ -219,14 +220,14 @@ onMounted(() => {
 })
 
 const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('vi-VN').format(value)
+  return dinhDangSo(value)
 }
 
-const formatNumber = (value: number, decimals: number = 0) => {
-  return new Intl.NumberFormat('vi-VN', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals
-  }).format(value)
+const formatNumber = (value: any, _decimals?: number) => {
+  // MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
+  // Tham số `_decimals` giữ lại để 105 chỗ gọi cũ không phải sửa; nay
+  // không dùng tới vì mọi số đều hiện phần nguyên.
+  return dinhDangSo(value)
 }
 
 const getMaterialTagType = (material: string): 'primary' | 'success' | 'warning' | 'info' | 'danger' | undefined => {
