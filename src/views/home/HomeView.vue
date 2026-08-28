@@ -55,7 +55,77 @@
       <template v-else>
 
         <!-- ═══════════════════════════════════════════════════════════
-             KHỐI 1 — BẢNG CÂN ĐỐI. s68 chốt: đặt LÊN ĐẦU.
+             KHỐI 0 — HỎI TRỢ LÝ AI (MỤC 353, chuyển lên đầu ở MỤC 382)
+
+             s68 chốt: hỏi gì về hệ thống thì hỏi ngay trên Trang Chủ,
+             không phải mở Telegram.
+
+             🔴 MỤC 382 (28/08/2026) — CHUYỂN TỪ CUỐI TRANG LÊN ĐẦU.
+
+             s68 chỉ thẳng chỗ đặt: ngay dưới dòng chào, TRÊN bảng cân
+             đối. Ở cuối trang thì phải cuộn qua ba bảng số mới tới —
+             mà đây là thứ dùng thường xuyên nhất, không phải thứ đọc
+             sau cùng.
+
+             🔴 Chỉ hiện khi tài khoản là admin. Nhưng đó chỉ là để đỡ
+             rối mắt — máy chủ mới là chỗ chặn thật (trả 403).
+             ═══════════════════════════════════════════════════════════ -->
+        <section v-if="laAdmin" class="mb-8">
+          <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
+            Hỏi trợ lý AI về hệ thống
+          </h2>
+
+          <div class="rounded-xl border border-gray-200 dark:border-gray-700
+                      bg-white dark:bg-gray-800 p-4">
+            <textarea
+              v-model="cauHoiAI"
+              rows="3"
+              :disabled="dangHoiAI"
+              placeholder="Ví dụ: công thức tính lương tăng ca là gì?"
+              class="w-full rounded-lg border border-gray-300 dark:border-gray-600
+                     bg-white dark:bg-gray-900 px-3 py-2 text-sm
+                     text-gray-800 dark:text-gray-100
+                     focus:outline-none focus:border-blue-400"
+            ></textarea>
+
+            <div class="mt-2 flex items-center gap-3">
+              <button
+                :disabled="dangHoiAI || !cauHoiAI.trim()"
+                class="rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300
+                       dark:disabled:bg-gray-700 text-white text-sm font-medium
+                       px-4 py-2 transition"
+                @click="hoiAI"
+              >
+                {{ dangHoiAI ? 'Đang hỏi…' : 'Hỏi' }}
+              </button>
+              <!--
+                ⚠️ Trợ lý gọi ra mạng Google, có thể mất vài giây. Không có
+                dòng này thì người dùng tưởng nút hỏng rồi bấm liên tục.
+              -->
+              <span v-if="dangHoiAI" class="text-xs text-gray-500 dark:text-gray-400">
+                Có thể mất vài giây…
+              </span>
+            </div>
+
+            <!--
+              🔴 Hỏng thì in NGUYÊN VĂN câu trợ lý trả về, không thay bằng
+              "có lỗi xảy ra". Hàm `hoi_ai` đã viết sẵn câu nói rõ hỏng ở
+              đâu (thiếu khoá, thiếu file tài khoản…) — nuốt nó đi là người
+              đọc không biết nên chờ hay nên đi sửa cấu hình.
+            -->
+            <div v-if="traLoiAI"
+                 class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700
+                        text-sm whitespace-pre-wrap"
+                 :class="loiAI
+                   ? 'text-amber-800 dark:text-amber-200'
+                   : 'text-gray-800 dark:text-gray-100'">
+              {{ traLoiAI }}
+            </div>
+          </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
+             KHỐI 1 — BẢNG CÂN ĐỐI. s68 chốt: đặt LÊN ĐẦU (dưới ô trợ lý).
              ═══════════════════════════════════════════════════════════ -->
         <section v-if="canDoi" class="mb-8">
           <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
@@ -850,69 +920,6 @@
           </div>
         </div>
 
-
-        <!-- ═══════════════════════════════════════════════════════════
-             KHỐI 3 — HỎI TRỢ LÝ AI (MỤC 353)
-
-             s68 chốt: hỏi gì về hệ thống thì hỏi ngay trên Trang Chủ,
-             không phải mở Telegram.
-
-             🔴 Chỉ hiện khi tài khoản là admin. Nhưng đó chỉ là để đỡ
-             rối mắt — máy chủ mới là chỗ chặn thật (trả 403).
-             ═══════════════════════════════════════════════════════════ -->
-        <section v-if="laAdmin" class="mt-8">
-          <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
-            Hỏi trợ lý AI về hệ thống
-          </h2>
-
-          <div class="rounded-xl border border-gray-200 dark:border-gray-700
-                      bg-white dark:bg-gray-800 p-4">
-            <textarea
-              v-model="cauHoiAI"
-              rows="3"
-              :disabled="dangHoiAI"
-              placeholder="Ví dụ: công thức tính lương tăng ca là gì?"
-              class="w-full rounded-lg border border-gray-300 dark:border-gray-600
-                     bg-white dark:bg-gray-900 px-3 py-2 text-sm
-                     text-gray-800 dark:text-gray-100
-                     focus:outline-none focus:border-blue-400"
-            ></textarea>
-
-            <div class="mt-2 flex items-center gap-3">
-              <button
-                :disabled="dangHoiAI || !cauHoiAI.trim()"
-                class="rounded-lg bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300
-                       dark:disabled:bg-gray-700 text-white text-sm font-medium
-                       px-4 py-2 transition"
-                @click="hoiAI"
-              >
-                {{ dangHoiAI ? 'Đang hỏi…' : 'Hỏi' }}
-              </button>
-              <!--
-                ⚠️ Trợ lý gọi ra mạng Google, có thể mất vài giây. Không có
-                dòng này thì người dùng tưởng nút hỏng rồi bấm liên tục.
-              -->
-              <span v-if="dangHoiAI" class="text-xs text-gray-500 dark:text-gray-400">
-                Có thể mất vài giây…
-              </span>
-            </div>
-
-            <!--
-              🔴 Hỏng thì in NGUYÊN VĂN câu trợ lý trả về, không thay bằng
-              "có lỗi xảy ra". Hàm `hoi_ai` đã viết sẵn câu nói rõ hỏng ở
-              đâu (thiếu khoá, thiếu file tài khoản…) — nuốt nó đi là người
-              đọc không biết nên chờ hay nên đi sửa cấu hình.
-            -->
-            <div v-if="traLoiAI"
-                 class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700
-                        text-sm whitespace-pre-wrap"
-                 :class="loiAI
-                   ? 'text-amber-800 dark:text-amber-200'
-                   : 'text-gray-800 dark:text-gray-100'">
-              {{ traLoiAI }}
-            </div>
-          </div>
-        </section>
       </template>
     </div>
   </div>
@@ -920,6 +927,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { mauSo } from '@/utils/mauSo'
 import { useRouter } from 'vue-router'
 import { layQuyen, danhSachDuocVao, type DuAn } from '@/constants/duAn'
 import { trangChuService } from '@/api/trangChu'
@@ -965,17 +973,16 @@ const soLe = (x: number | null | undefined): string => {
 }
 
 /** Ô trống thì làm mờ, để mắt lướt qua nhận ra ngay chỗ còn thiếu. */
-const o = (x: number | null | undefined): string =>
-  (x === null || x === undefined)
-    ? 'text-gray-300 dark:text-gray-600'
-    : 'text-gray-800 dark:text-gray-100'
+// MỤC 380 — `o` cũng theo quy tắc màu chung. Trước đây nó chỉ phân biệt
+// "có số" (đen) với "không có số" (xám nhạt); nay số còn mang màu theo
+// dấu, còn việc in dấu gạch cho ô trống là việc của `tien()`.
+const o = (x: number | null | undefined): string => mauSo(x)
 
-const mauChenh = (x: number | null | undefined): string => {
-  if (x === null || x === undefined) return 'text-gray-300 dark:text-gray-600'
-  return x < 0
-    ? 'text-red-600 dark:text-red-400'
-    : 'text-gray-800 dark:text-gray-100'
-}
+// ══ MỤC 380 (28/08/2026) — DÙNG QUY TẮC MÀU CHUNG ══
+// s68 chốt: toàn bộ số trên web — âm đỏ tươi, dương xanh biển, 0 xám.
+// Bản cũ chỉ tô đỏ số âm, số dương để đen — nên nhìn bảng không phân
+// biệt được ô có số với ô bằng 0.
+const mauChenh = (x: number | null | undefined): string => mauSo(x)
 
 const moDuAn = (d: DuAn) => {
   if (d.duong === '/trang-chu') return

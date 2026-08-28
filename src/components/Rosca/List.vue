@@ -45,7 +45,12 @@
                   <el-option label="Tất cả" value="" />
                   <el-option label="Đang hoạt động (Active)" value="Active" />
                   <el-option label="Hụi chết (Dead)" value="Dead" />
-                  <el-option label="Đã đóng (Closed)" value="Closed" />
+                  <!-- MỤC 381 — "Đã đóng"/"Ngưng hoạt động" -> "Đã hoàn
+                       thành"; thêm "Tai nạn" cho dây dừng giữa chừng. Giá trị
+                       lưu vẫn `Closed`, KHÔNG đổi — đổi giá trị là phải dọn
+                       dữ liệu cũ, mà chỉ cần đổi chữ hiện ra. -->
+                  <el-option label="Đã hoàn thành (Closed)" value="Closed" />
+                  <el-option label="Tai nạn (Accident)" value="Accident" />
                 </el-select>
               </div>
 
@@ -98,69 +103,89 @@
                    phần giữa không còn chỗ để cuộn.
                    Bảng chỉ hiện từ `md` (768px) trở lên; điện thoại dùng
                    thẻ dọc, không có bảng nào để mà kẹt. -->
-              <el-table-column label="STT" width="70" align="center">
+              <el-table-column label="STT" width="52" align="center">
                 <template #default="{ $index }">
                   {{ (currentPage - 1) * pageSize + $index + 1 }}
                 </template>
               </el-table-column>
-              <el-table-column prop="code" label="Mã dây hụi" min-width="140" sortable="custom">
+              <el-table-column prop="code" label="Mã dây" min-width="105" sortable="custom">
                 <template #default="{ row }">
                   <span class="font-mono font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline" @click="openMembersModal(row)">
                     {{ row.code }}
                   </span>
                 </template>
               </el-table-column>
-              <el-table-column prop="owner_name" label="Chủ hụi" min-width="160" sortable="custom" show-overflow-tooltip>
+              <el-table-column prop="owner_name" label="Chủ hụi" min-width="120" sortable="custom" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.owner_name || 'N/A' }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="base_amount" label="Số tiền gốc" min-width="160" align="right" sortable="custom">
+              <!-- ══ MỤC 383 (28/08/2026) — GỘP HAI CỘT LÀM MỘT Ô HAI DÒNG ══
+                   s68 chốt: bảng 13 cột, tổng ~1.700 điểm ảnh nên iPad phải
+                   vuốt ngang mấy lần. Chọn hướng ② + ③: gộp cột và giảm bề
+                   rộng, GIỮ ĐỦ 13 thông tin — không bỏ cột nào.
+
+                   🔴 Dòng trên là SỐ TIỀN GỐC (đậm, xanh), dòng dưới là
+                   TIỀN THẢO (nhỏ, xám, có nhãn "thảo"). Nhãn ở dòng dưới là
+                   bắt buộc: hai con số tiền chồng nhau mà không ghi cái nào
+                   là cái gì thì người đọc phải đoán. -->
+              <el-table-column prop="base_amount" label="Tiền gốc / Thảo" min-width="130" align="right" sortable="custom">
                 <template #default="{ row }">
-                  <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ formatCurrency(row.base_amount) }}</span>
+                  <div class="font-mono font-bold text-blue-600 dark:text-blue-400 leading-tight">
+                    {{ formatCurrency(row.base_amount) }}
+                  </div>
+                  <div class="font-mono text-xs text-gray-500 dark:text-gray-400 leading-tight">
+                    thảo {{ formatCurrency(row.commission_fee) }}
+                  </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="commission_fee" label="Tiền thảo" min-width="140" align="right">
-                <template #default="{ row }">
-                  <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatCurrency(row.commission_fee) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="total_parts" label="Số chân" min-width="100" align="center" sortable="custom">
+              <el-table-column prop="total_parts" label="Chân" min-width="72" align="center" sortable="custom">
                 <template #default="{ row }">
                   <span class="font-bold text-gray-800 dark:text-gray-200">{{ row.total_parts || 0 }} chân</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="period_type" label="Kỳ hạn" min-width="120" align="center">
+              <el-table-column prop="period_type" label="Kỳ hạn" min-width="92" align="center">
                 <template #default="{ row }">
                   <el-tag size="small" type="info" class="font-semibold">{{ row.period_type || 'Hụi Tháng' }}</el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="Thời gian khui" min-width="160" align="center">
+              <el-table-column label="Khui" min-width="98" align="center">
                 <template #default="{ row }">
-                  <span class="text-gray-600 dark:text-gray-300 text-xs font-semibold">
-                    Ngày {{ row.payment_day || '—' }} | {{ row.bidding_time ? row.bidding_time.substring(0, 5) : '—' }}
-                  </span>
+                  <!-- MỤC 383 — bỏ chữ "Ngày", xuống hai dòng. Chữ "Ngày"
+                       lặp ở mọi dòng mà không thêm nghĩa gì. -->
+                  <div class="text-gray-700 dark:text-gray-200 text-xs font-semibold leading-tight">
+                    {{ row.payment_day ? 'N' + row.payment_day : '—' }}
+                  </div>
+                  <div class="text-gray-500 dark:text-gray-400 text-xs leading-tight">
+                    {{ row.bidding_time ? row.bidding_time.substring(0, 5) : '—' }}
+                  </div>
                 </template>
               </el-table-column>
-              <el-table-column label="Kêu giá (Min / Max)" min-width="180" align="center">
+              <el-table-column label="Kêu giá" min-width="130" align="center">
                 <template #default="{ row }">
-                  <span class="font-mono text-xs text-gray-600 dark:text-gray-300">
-                    {{ formatCurrency(row.min_bid_amount) }} / {{ formatCurrency(row.max_bid_amount) }}
-                  </span>
+                  <!-- MỤC 383 — hai số xuống hai dòng. Để một dòng thì cột
+                       phải rộng 180px chỉ vì hai số hiếm khi nhìn tới. -->
+                  <div class="font-mono text-xs text-gray-600 dark:text-gray-300 leading-tight">
+                    {{ formatCurrency(row.min_bid_amount) }}
+                  </div>
+                  <div class="font-mono text-xs text-gray-500 dark:text-gray-400 leading-tight">
+                    / {{ formatCurrency(row.max_bid_amount) }}
+                  </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="start_date" label="Ngày mở" min-width="120" align="center" sortable="custom">
+              <!-- MỤC 383 — gộp Ngày mở / Ngày đóng.
+                   Mũi tên `→` thay cho hai nhãn chữ: ai cũng đọc ra ngay là
+                   "từ ngày này tới ngày kia", mà tốn có một ký tự. -->
+              <el-table-column prop="start_date" label="Mở → Đóng" min-width="110" align="center" sortable="custom">
                 <template #default="{ row }">
-                  <span>{{ formatDate(row.start_date) }}</span>
-                </template>
-              </el-table-column>
-              <el-table-column prop="end_date" label="Ngày đóng" min-width="120" align="center" sortable="custom">
-                <template #default="{ row }">
-                  <span>{{ formatDate(row.end_date) }}</span>
+                  <div class="text-xs leading-tight">{{ formatDate(row.start_date) }}</div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 leading-tight">
+                    → {{ formatDate(row.end_date) }}
+                  </div>
                 </template>
               </el-table-column>
               <!-- ══ MỤC 365 — BỐN CỘT SỐ MỚI (MỤC 364 tính ở backend) ══ -->
-              <el-table-column label="Kỳ đã khui" min-width="120" align="center">
+              <el-table-column label="Kỳ" min-width="88" align="center">
                 <template #default="{ row }">
                   <span class="font-mono font-semibold text-gray-700 dark:text-gray-300">
                     {{ row.so_ky_da_khui ?? 0 }}/{{ row.tong_so_ky ?? 0 }}
@@ -170,17 +195,17 @@
                   </div>
                 </template>
               </el-table-column>
-              <el-table-column prop="tong_da_dong" label="Đã đóng" min-width="150" align="right" sortable="custom">
+              <el-table-column prop="tong_da_dong" label="Đã đóng" min-width="112" align="right" sortable="custom">
                 <template #default="{ row }">
-                  <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatCurrency(row.tong_da_dong) }}</span>
+                  <span class="font-mono" :class="mauSo(row.tong_da_dong)">{{ formatCurrency(row.tong_da_dong) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="tong_da_hot" label="Đã hốt" min-width="150" align="right" sortable="custom">
+              <el-table-column prop="tong_da_hot" label="Đã hốt" min-width="112" align="right" sortable="custom">
                 <template #default="{ row }">
-                  <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatCurrency(row.tong_da_hot) }}</span>
+                  <span class="font-mono" :class="mauSo(row.tong_da_hot)">{{ formatCurrency(row.tong_da_hot) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="loi_nhuan" label="Lợi nhuận" min-width="160" align="right" sortable="custom">
+              <el-table-column prop="loi_nhuan" label="Lợi nhuận" min-width="120" align="right" sortable="custom">
                 <template #default="{ row }">
                   <span class="font-mono font-bold" :class="lopMauLoiNhuan(row.loi_nhuan)">
                     {{ formatCurrency(row.loi_nhuan) }}
@@ -191,14 +216,14 @@
                   <div v-if="chuaHot(row)" class="text-xs text-gray-400 mt-0.5">chưa hốt kỳ nào</div>
                 </template>
               </el-table-column>
-              <el-table-column prop="status" label="Trạng thái" min-width="140" align="center">
+              <el-table-column prop="status" label="Trạng thái" min-width="112" align="center">
                 <template #default="{ row }">
                   <el-tag :type="getStatusTagType(row.status)" size="small" effect="plain" class="font-semibold">
                     {{ getStatusLabel(row.status) }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column label="Thao tác" width="90" align="center">
+              <el-table-column label="Thao tác" width="60" align="center">
                 <template #default="{ row }">
                   <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
                     <el-button link type="info" class="p-1">
@@ -327,11 +352,11 @@
                     </div>
                     <div class="flex justify-between">
                       <span class="text-gray-400 dark:text-gray-500 font-medium">Đã đóng:</span>
-                      <span class="text-gray-700 dark:text-gray-300 font-semibold font-mono">{{ formatCurrency(rosca.tong_da_dong) }}</span>
+                      <span class="font-semibold font-mono" :class="mauSo(rosca.tong_da_dong)">{{ formatCurrency(rosca.tong_da_dong) }}</span>
                     </div>
                     <div class="flex justify-between">
                       <span class="text-gray-400 dark:text-gray-500 font-medium">Đã hốt:</span>
-                      <span class="text-gray-700 dark:text-gray-300 font-semibold font-mono">{{ formatCurrency(rosca.tong_da_hot) }}</span>
+                      <span class="font-semibold font-mono" :class="mauSo(rosca.tong_da_hot)">{{ formatCurrency(rosca.tong_da_hot) }}</span>
                     </div>
                     <div class="flex justify-between">
                       <span class="text-gray-400 dark:text-gray-500 font-medium">Lợi nhuận:</span>
@@ -588,7 +613,12 @@
                   <el-select v-model="form.status" placeholder="Chọn trạng thái..." class="w-full highlight-select" style="width: 100%">
                     <el-option label="Đang hoạt động (Active)" value="Active" />
                     <el-option label="Hụi chết (Dead)" value="Dead" />
-                    <el-option label="Đã đóng (Closed)" value="Closed" />
+                    <!-- MỤC 381 — "Đã đóng"/"Ngưng hoạt động" -> "Đã hoàn
+                       thành"; thêm "Tai nạn" cho dây dừng giữa chừng. Giá trị
+                       lưu vẫn `Closed`, KHÔNG đổi — đổi giá trị là phải dọn
+                       dữ liệu cũ, mà chỉ cần đổi chữ hiện ra. -->
+                  <el-option label="Đã hoàn thành (Closed)" value="Closed" />
+                  <el-option label="Tai nạn (Accident)" value="Accident" />
                   </el-select>
                 </el-form-item>
               </el-col>
@@ -826,6 +856,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, reactive, computed } from 'vue'
+import { mauSo, mauSoDam } from '@/utils/mauSo'
 import { List, Search, Refresh, Plus, MoreFilled, User } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { roscaService, type Rosca, type UserRosca, type RoscaMember } from '@/api/roscaService'
@@ -872,10 +903,23 @@ const getStatusLabelForMember = (status?: string) => {
     case 'Defaulted':
     case 'Dead':
       return 'Hụi chết'
+    // ══ MỤC 381 (28/08/2026) — ĐỔI CHỮ VÀ THÊM MỘT TRẠNG THÁI ══
+    //
+    // s68 chốt 28/08:
+    //   · "Ngưng hoạt động" -> "Đã hoàn thành" — dây đi hết vòng, xong
+    //     việc. Chữ cũ nghe như bị dừng, trong khi thực tế là kết thúc
+    //     bình thường.
+    //   · Thêm "Tai nạn" — dây KHÔNG thể tiếp tục và dừng giữa chừng.
+    //
+    // 🔴 HAI CHUYỆN KHÁC HẲN NHAU, ĐỪNG GỘP. "Đã hoàn thành" là hết vòng
+    // bình thường; "Tai nạn" là đứt gánh, tiền còn treo. Gộp làm một thì
+    // nhìn danh sách không biết dây nào cần đi đòi.
     case 'Deactivate':
     case 'Closed':
     case 'Inactive':
-      return 'Ngưng hoạt động'
+      return 'Đã hoàn thành'
+    case 'Accident':
+      return 'Tai nạn'
     default:
       return status || '—'
   }
@@ -888,7 +932,15 @@ const getStatusTagTypeForMember = (status?: string) => {
       return 'success'
     case 'Defaulted':
     case 'Dead':
+      return 'danger'
+    // MỤC 381 — "Đã hoàn thành" là kết thúc bình thường -> xám.
     case 'Deactivate':
+    case 'Closed':
+    case 'Inactive':
+      return 'info'
+    // 🔴 "Tai nạn" phải NỔI BẬT. Đây là dây đứt gánh, tiền còn treo —
+    // nhìn lướt danh sách phải thấy ngay.
+    case 'Accident':
       return 'danger'
     default:
       return 'info'
@@ -1057,17 +1109,15 @@ const hienBang = computed(() => displayMode.value === 'list' && !laManHep.value)
 // Không bao giờ hiện cả hai cùng lúc.
 const hienThe = computed(() => displayMode.value === 'card' || laManHep.value)
 
-// ⚠️ Số ÂM tô đỏ, số DƯƠNG tô xanh. Nhưng dây đang chạy mà chưa hốt kỳ
-// nào thì âm là BÌNH THƯỜNG — tiền đóng đi trước, tiền hốt về sau. Nên
-// chỗ nào hiện số âm đều kèm một dòng chữ giải thích, xem `chuaHot`.
-const lopMauLoiNhuan = (val?: number) => {
-  if (val === undefined || val === null || val === 0) {
-    return 'text-gray-700 dark:text-gray-300'
-  }
-  return val < 0
-    ? 'text-red-600 dark:text-red-400'
-    : 'text-green-600 dark:text-green-400'
-}
+// ══ MỤC 380 (28/08/2026) — DÙNG QUY TẮC MÀU CHUNG ══
+// s68 chốt: toàn bộ số trên web — âm đỏ tươi, dương xanh biển, 0 xám.
+// Trước đây màn này tự đặt màu riêng (dương thì XANH LÁ). Mỗi màn một
+// kiểu là người đọc phải học lại màu ở từng trang.
+//
+// ⚠️ Dây ĐANG CHẠY mà chưa hốt kỳ nào thì lợi nhuận âm là BÌNH THƯỜNG —
+// tiền đóng đi trước, tiền hốt về sau. Màu đỏ ở đây KHÔNG có nghĩa là
+// hỏng, nên mọi chỗ hiện số âm đều kèm dòng chữ giải thích (`chuaHot`).
+const lopMauLoiNhuan = (val?: number) => mauSoDam(val)
 
 const chuaHot = (row: Rosca) => (row.so_ky_da_khui ?? 0) === 0
 

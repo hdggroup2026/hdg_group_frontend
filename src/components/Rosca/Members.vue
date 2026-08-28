@@ -52,7 +52,12 @@
                   <el-option label="Tất cả" value="" />
                   <el-option label="Đang hoạt động" value="Playing" />
                   <el-option label="Hụi chết" value="Dead" />
-                  <el-option label="Ngưng hoạt động" value="Closed" />
+                  <!-- MỤC 381 — "Ngưng hoạt động" -> "Đã hoàn thành";
+                       thêm "Tai nạn" cho dây dừng giữa chừng. Giá trị lưu
+                       vẫn là `Closed`, KHÔNG đổi — đổi giá trị là phải dọn
+                       dữ liệu cũ, mà chỉ cần đổi chữ hiện ra. -->
+                  <el-option label="Đã hoàn thành" value="Closed" />
+                  <el-option label="Tai nạn" value="Accident" />
                 </el-select>
               </div>
 
@@ -415,7 +420,8 @@
                   <el-select v-model="form.status" placeholder="Chọn trạng thái..." class="w-full highlight-select" style="width: 100%">
                     <el-option label="Đang hoạt động (Playing)" value="Playing" />
                     <el-option label="Hụi chết (Dead)" value="Dead" />
-                    <el-option label="Ngưng hoạt động (Closed)" value="Closed" />
+                    <el-option label="Đã hoàn thành (Closed)" value="Closed" />
+                    <el-option label="Tai nạn (Accident)" value="Accident" />
                   </el-select>
                 </el-form-item>
               </el-col>
@@ -731,10 +737,23 @@ const getStatusLabel = (status?: string) => {
     case 'Defaulted':
     case 'Dead':
       return 'Hụi chết'
+    // ══ MỤC 381 (28/08/2026) — ĐỔI CHỮ VÀ THÊM MỘT TRẠNG THÁI ══
+    //
+    // s68 chốt 28/08:
+    //   · "Ngưng hoạt động" -> "Đã hoàn thành" — dây đi hết vòng, xong
+    //     việc. Chữ cũ nghe như bị dừng, trong khi thực tế là kết thúc
+    //     bình thường.
+    //   · Thêm "Tai nạn" — dây KHÔNG thể tiếp tục và dừng giữa chừng.
+    //
+    // 🔴 HAI CHUYỆN KHÁC HẲN NHAU, ĐỪNG GỘP. "Đã hoàn thành" là hết vòng
+    // bình thường; "Tai nạn" là đứt gánh, tiền còn treo. Gộp làm một thì
+    // nhìn danh sách không biết dây nào cần đi đòi.
     case 'Deactivate':
     case 'Closed':
     case 'Inactive':
-      return 'Ngưng hoạt động'
+      return 'Đã hoàn thành'
+    case 'Accident':
+      return 'Tai nạn'
     default:
       return status || '—'
   }
@@ -748,10 +767,15 @@ const getStatusTagType = (status?: string) => {
     case 'Defaulted':
     case 'Dead':
       return 'danger'
+    // MỤC 381 — "Đã hoàn thành" là kết thúc bình thường -> xám.
     case 'Deactivate':
     case 'Closed':
     case 'Inactive':
       return 'info'
+    // 🔴 "Tai nạn" phải NỔI BẬT. Đây là dây đứt gánh, tiền còn treo —
+    // nhìn lướt danh sách phải thấy ngay.
+    case 'Accident':
+      return 'danger'
     default:
       return 'info'
   }
