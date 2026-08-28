@@ -675,7 +675,7 @@
 </template>
 
 <script setup lang="ts">
-import { dinhDangSo } from '@/utils/dinhDangSo'
+import { dinhDangSo, dinhDangSoLe } from '@/utils/dinhDangSo'
 import { ref, reactive, computed, watch, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -1300,8 +1300,12 @@ const lookupStats = computed(() => ({
 // ========== HELPERS ==========
 // MỤC 355 — hàm hiển thị, bỏ phần lẻ.
 const formatCurrency = (value: any) => dinhDangSo(value)
-// MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
-const formatNumber = (value: any) => dinhDangSo(value)
+// ══ MỤC 372 (28/08/2026) — SỐ ĐO GIỮ PHẦN LẺ ══
+// MỤC 355 áp quá rộng: bỏ phần lẻ cả khối lượng. s68 làm rõ 28/08 —
+// chỉ KẾT QUẢ TÍNH RA SỐ TIỀN mới bỏ phần lẻ. `formatCurrency` ở trên
+// giữ nguyên; `formatNumber` (số đo) nay giữ phần lẻ.
+const formatNumber = (value: any, _decimals?: number) =>
+  dinhDangSoLe(value, _decimals ?? 2)
 const formatDate = (dateString: string) => {
   const [year, month, day] = dateString.split('-')
   return `${day}/${month}/${year}`

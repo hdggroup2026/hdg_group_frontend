@@ -28,6 +28,28 @@ export interface Rosca {
   status?: string;
   note?: string | null;
   owner_name?: string;
+
+  // ══ MỤC 364/365 (28/08/2026) — SỐ TỔNG HỢP CỦA TỪNG DÂY ══
+  //
+  // s68 nêu 28/08: danh sách dây hụi không thấy tiền đã đóng, đã hốt,
+  // lợi nhuận, và không biết đang ở kỳ thứ mấy.
+  //
+  // Tám ô này do BACKEND TÍNH (`app/crud/rosca.py` →
+  // `_gan_tong_hop_day_hui`), KHÔNG có cột tương ứng trong bảng `roscas`.
+  // Nên chúng chỉ có trong `RoscaResponse`, không có trong form Tạo/Sửa —
+  // đừng gửi ngược lên khi lưu.
+  //
+  // 🔴 `loi_nhuan` = tong_da_hot − tong_da_dong. HDG luôn là NGƯỜI CHƠI,
+  // không làm chủ hụi dây nào (s68 chốt 28/08). Dây ĐANG CHẠY thì số này
+  // ÂM là bình thường — tiền đóng đi trước, tiền hốt về sau.
+  tong_da_dong?: number;
+  tong_da_hot?: number;
+  tien_thao?: number;
+  loi_nhuan?: number;
+  so_ky_da_khui?: number;
+  tong_so_ky?: number;
+  ky_gan_nhat?: number | null;
+  nguoi_hot_gan_nhat?: string | null;
 }
 
 export interface RoscaMember {

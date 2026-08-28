@@ -136,6 +136,142 @@
         </section>
 
         <!-- ═══════════════════════════════════════════════════════════
+             KHỐI 1B — BA BẢNG HẠCH TOÁN ĐỘC LẬP (MỤC 366, 28/08/2026)
+
+             🔴 s68 chốt 28/08, thay hẳn ý "gộp toàn công ty":
+             "Hạch toán độc lập để coi Tiến Nga sản xuất cao su bị hao hụt
+              thì có lợi nhuận hay không. Chứ không đem lợi nhuận các mảng
+              khác bù vào làm không xác định được hiệu quả sản xuất."
+
+             KHÔNG có dòng tổng ba bảng. Bảng "Cân đối toàn công ty" ở
+             trên GIỮ NGUYÊN để đối chiếu trong lúc chuyển đổi — s68 xem
+             quen rồi mới bỏ.
+
+             ⚠️ Không dùng bảng ngang: ba bảng × nhiều dòng trên màn 350px
+             là vuốt ngang liên tục. Dùng thẻ dọc theo
+             `tai_lieu_ai/quy_uoc_bo_cuc_the.md`.
+             ═══════════════════════════════════════════════════════════ -->
+        <section v-if="baBang && baBang.bang" class="mb-8">
+          <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
+            Hạch toán độc lập từng mảng
+          </h2>
+
+          <!-- 🔴 Nhãn cảnh báo. KHÔNG XOÁ. -->
+          <div class="mb-3 rounded-lg border border-amber-300 dark:border-amber-700
+                      bg-amber-50 dark:bg-amber-900/20 px-3 py-2
+                      text-xs text-amber-800 dark:text-amber-200">
+            ⚠️ {{ baBang.canh_bao }}
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div v-for="b in baBang.bang" :key="b.ten"
+                 class="rounded-xl border border-gray-200 dark:border-gray-700
+                        bg-white dark:bg-gray-800 overflow-hidden flex flex-col">
+              <div class="px-3 py-2.5 border-b border-gray-100 dark:border-gray-700
+                          bg-gray-50 dark:bg-gray-700/30">
+                <span class="font-semibold text-sm text-gray-800 dark:text-gray-100">
+                  {{ b.ten }}
+                </span>
+              </div>
+
+              <div class="p-3 space-y-3 flex-1 text-sm">
+                <!-- Tài sản -->
+                <div v-if="b.tai_san && b.tai_san.length">
+                  <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Tài sản</div>
+                  <div v-for="[ten, ke] in b.tai_san" :key="'ts-' + ten" class="mb-1.5">
+                    <div class="flex justify-between gap-2">
+                      <span class="text-gray-500 dark:text-gray-400">{{ ten }}</span>
+                      <span class="tabular-nums" :class="o(ke.so)">{{ tien(ke.so) }}</span>
+                    </div>
+                    <div v-if="ke.ghi_chu" class="text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                      {{ ke.ghi_chu }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Công nợ -->
+                <div v-if="b.cong_no && b.cong_no.length">
+                  <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Công nợ</div>
+                  <div v-for="[ten, ke] in b.cong_no" :key="'cn-' + ten" class="mb-1.5">
+                    <div class="flex justify-between gap-2">
+                      <span class="text-gray-500 dark:text-gray-400">{{ ten }}</span>
+                      <span class="tabular-nums" :class="o(ke.so)">{{ tien(ke.so) }}</span>
+                    </div>
+                    <div v-if="ke.ghi_chu" class="text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                      {{ ke.ghi_chu }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Hiệu quả trong năm -->
+                <div v-if="b.hieu_qua && b.hieu_qua.length">
+                  <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">
+                    Hiệu quả từ đầu năm
+                  </div>
+                  <div v-for="[ten, ke] in b.hieu_qua" :key="'hq-' + ten" class="mb-1.5">
+                    <div class="flex justify-between gap-2">
+                      <span class="text-gray-500 dark:text-gray-400">{{ ten }}</span>
+                      <span class="tabular-nums" :class="o(ke.so)">{{ tien(ke.so) }}</span>
+                    </div>
+                    <div v-if="ke.ghi_chu" class="text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                      {{ ke.ghi_chu }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Bảng Dịch vụ dùng dạng dòng cũ -->
+                <div v-if="b.dong && b.dong.length">
+                  <div v-for="d in b.dong" :key="d.du_an"
+                       class="mb-2 pb-2 border-b border-gray-100 dark:border-gray-700/50 last:border-0">
+                    <div class="font-medium text-gray-800 dark:text-gray-100">{{ d.du_an }}</div>
+                    <div class="flex justify-between gap-2 mt-0.5">
+                      <span class="text-gray-500 dark:text-gray-400">Tài sản</span>
+                      <span class="tabular-nums" :class="o(d.tai_san)">{{ tien(d.tai_san) }}</span>
+                    </div>
+                    <div class="flex justify-between gap-2">
+                      <span class="text-gray-500 dark:text-gray-400">Công nợ</span>
+                      <span class="tabular-nums" :class="o(d.cong_no)">{{ tien(d.cong_no) }}</span>
+                    </div>
+                    <div v-if="d.ghi_chu" class="mt-1 text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                      {{ d.ghi_chu }}
+                    </div>
+                  </div>
+                  <div class="flex justify-between gap-2 pt-1 font-semibold">
+                    <span class="text-gray-700 dark:text-gray-200">Cộng ba mảng</span>
+                    <span class="tabular-nums" :class="mauChenh(b.tong?.chenh_lech)">
+                      {{ tien(b.tong?.chenh_lech) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Lãi / lỗ — dòng cuối, chữ to nhất trong thẻ -->
+              <div v-if="b.lai_lo" class="px-3 py-2.5 border-t border-gray-100 dark:border-gray-700
+                                          bg-gray-50 dark:bg-gray-700/30">
+                <div class="flex justify-between items-baseline gap-2">
+                  <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                    {{ b.lai_lo.so !== null && b.lai_lo.so < 0 ? 'Lỗ' : 'Lãi' }}
+                  </span>
+                  <span class="text-base font-bold tabular-nums" :class="mauChenh(b.lai_lo.so)">
+                    {{ tien(b.lai_lo.so) }}
+                  </span>
+                </div>
+                <!-- ⚠️ Ghi chú ở đây là thứ CẦN ĐỌC, không phải chú thích
+                     phụ: nó nói số này còn thiếu chi phí gì. -->
+                <div v-if="b.lai_lo.ghi_chu"
+                     class="mt-1 text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                  {{ b.lai_lo.ghi_chu }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-2 px-1 text-[11px] leading-snug text-gray-500 dark:text-gray-400">
+            {{ baBang.vi_sao_khong_tong }}
+          </div>
+        </section>
+
+        <!-- ═══════════════════════════════════════════════════════════
              KHỐI 2 — CÁC Ô DỰ ÁN. s68 chốt: đẩy xuống DƯỚI bảng cân đối.
              ═══════════════════════════════════════════════════════════ -->
         <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
@@ -795,6 +931,8 @@ const loi = ref('')
 const duAnCuaToi = ref<DuAn[]>([])
 const bang = ref<any>(null)
 const canDoi = ref<any>(null)
+// MỤC 366 (28/08/2026) — ba bảng hạch toán độc lập.
+const baBang = ref<any>(null)
 
 // MỤC 353 — hộp hỏi trợ lý AI
 const laAdmin = ref(false)
@@ -865,9 +1003,11 @@ onMounted(async () => {
     const tt = await trangChuService.laySoLieu()
     bang.value = tt?.bang_dieu_khien || null
     canDoi.value = bang.value?.can_doi || null
+    baBang.value = bang.value?.ba_bang || null
   } catch (e) {
     bang.value = null
     canDoi.value = null
+    baBang.value = null
   }
 
   dangTai.value = false

@@ -14,8 +14,12 @@
           <!-- Filter Bar -->
           <div class="flex flex-wrap justify-between items-center gap-4 mb-4 shrink-0">
             <div class="flex flex-wrap items-center gap-4">
+              <!-- ══ MỤC 365 (28/08/2026) — ẨN Ô CHỌN TRÊN ĐIỆN THOẠI ══
+                   Trên màn hẹp chỉ có thẻ, không có bảng. Để nguyên ô chọn
+                   thì người dùng chọn "dạng List" rồi không thấy gì đổi —
+                   một nút bấm không làm gì là lỗi im lặng. -->
               <!-- Select Display Mode -->
-              <div class="flex items-center gap-2">
+              <div class="hidden md:flex items-center gap-2">
                 <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Hiển thị:</span>
                 <el-select
                   v-model="displayMode"
@@ -79,14 +83,27 @@
           </div>
 
           <!-- Table View (List) -->
-          <div v-if="displayMode === 'list'" v-loading="loading" class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700/80 overflow-hidden flex flex-col flex-1 min-h-0">
+          <!-- ══ MỤC 365 — BẢNG CHỈ HIỆN TỪ md (768px) TRỞ LÊN ══
+               `hidden md:flex`: điện thoại KHÔNG dựng bảng này ra, nên
+               không có gì để kẹt và không có gì phải vuốt ngang.
+               Máy tính bảng và máy tính giữ nguyên bảng như cũ —
+               s68 chốt: mọi thay đổi frontend áp cho CẢ BA cỡ máy. -->
+          <div v-if="hienBang" v-loading="loading" class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700/80 overflow-hidden flex flex-col flex-1 min-h-0">
             <el-table :data="paginatedRoscas" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
-              <el-table-column label="STT" width="70" align="center" fixed>
+              <!-- ══ MỤC 365 (28/08/2026) — BỎ HẾT `fixed` ══
+                   🔴 s68 chụp 28/08: trên điện thoại cột Trạng thái bị kẹt,
+                   không vuốt ngang xem được. Nguyên nhân: STT và Mã dây
+                   `fixed` trái, Trạng thái và Thao tác `fixed="right"`.
+                   Màn 390px trừ đệm còn ~350px — bốn cột ghim đã chiếm hết,
+                   phần giữa không còn chỗ để cuộn.
+                   Bảng chỉ hiện từ `md` (768px) trở lên; điện thoại dùng
+                   thẻ dọc, không có bảng nào để mà kẹt. -->
+              <el-table-column label="STT" width="70" align="center">
                 <template #default="{ $index }">
                   {{ (currentPage - 1) * pageSize + $index + 1 }}
                 </template>
               </el-table-column>
-              <el-table-column prop="code" label="Mã dây hụi" min-width="140" sortable="custom" fixed>
+              <el-table-column prop="code" label="Mã dây hụi" min-width="140" sortable="custom">
                 <template #default="{ row }">
                   <span class="font-mono font-bold text-blue-600 dark:text-blue-400 cursor-pointer hover:underline" @click="openMembersModal(row)">
                     {{ row.code }}
@@ -142,14 +159,46 @@
                   <span>{{ formatDate(row.end_date) }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="status" label="Trạng thái" min-width="140" align="center" fixed="right">
+              <!-- ══ MỤC 365 — BỐN CỘT SỐ MỚI (MỤC 364 tính ở backend) ══ -->
+              <el-table-column label="Kỳ đã khui" min-width="120" align="center">
+                <template #default="{ row }">
+                  <span class="font-mono font-semibold text-gray-700 dark:text-gray-300">
+                    {{ row.so_ky_da_khui ?? 0 }}/{{ row.tong_so_ky ?? 0 }}
+                  </span>
+                  <div v-if="row.ky_gan_nhat" class="text-xs text-gray-400 mt-0.5">
+                    kỳ {{ row.ky_gan_nhat }}: {{ row.nguoi_hot_gan_nhat || '—' }}
+                  </div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="tong_da_dong" label="Đã đóng" min-width="150" align="right" sortable="custom">
+                <template #default="{ row }">
+                  <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatCurrency(row.tong_da_dong) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="tong_da_hot" label="Đã hốt" min-width="150" align="right" sortable="custom">
+                <template #default="{ row }">
+                  <span class="font-mono text-gray-700 dark:text-gray-300">{{ formatCurrency(row.tong_da_hot) }}</span>
+                </template>
+              </el-table-column>
+              <el-table-column prop="loi_nhuan" label="Lợi nhuận" min-width="160" align="right" sortable="custom">
+                <template #default="{ row }">
+                  <span class="font-mono font-bold" :class="lopMauLoiNhuan(row.loi_nhuan)">
+                    {{ formatCurrency(row.loi_nhuan) }}
+                  </span>
+                  <!-- ⚠️ Dây ĐANG CHẠY thì lợi nhuận âm là BÌNH THƯỜNG:
+                       tiền đóng đi trước, tiền hốt về sau. Nói ra ngay tại
+                       chỗ, đừng để người đọc tưởng lỗ thật. -->
+                  <div v-if="chuaHot(row)" class="text-xs text-gray-400 mt-0.5">chưa hốt kỳ nào</div>
+                </template>
+              </el-table-column>
+              <el-table-column prop="status" label="Trạng thái" min-width="140" align="center">
                 <template #default="{ row }">
                   <el-tag :type="getStatusTagType(row.status)" size="small" effect="plain" class="font-semibold">
                     {{ getStatusLabel(row.status) }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+              <el-table-column label="Thao tác" width="90" align="center">
                 <template #default="{ row }">
                   <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
                     <el-button link type="info" class="p-1">
@@ -182,8 +231,12 @@
           </div>
 
           <!-- Cards Grid Container -->
-          <div v-else v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-1 flex flex-col justify-between">
-            <div v-if="paginatedRoscas.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <!-- ══ MỤC 365 — LUÔN HIỆN TRÊN ĐIỆN THOẠI ══
+               `v-if` đổi thành: hiện khi người dùng chọn dạng Card, HOẶC
+               khi màn hẹp (lúc đó bảng đã bị ẩn). Lớp `md:hidden` chỉ áp
+               khi đang ở chế độ List — để máy tính không hiện cả hai. -->
+          <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-1 flex flex-col justify-between">
+            <div v-if="paginatedRoscas.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6">
               <div 
                 v-for="rosca in paginatedRoscas" 
                 :key="rosca.id"
@@ -256,6 +309,41 @@
                     <span class="text-gray-600 dark:text-gray-450 font-semibold">
                       Ngày {{ rosca.payment_day || '—' }} | {{ rosca.bidding_time ? rosca.bidding_time.substring(0, 5) : '—' }}
                     </span>
+                  </div>
+
+                  <!-- ══ MỤC 365 (28/08/2026) — KHỐI TIỀN ══
+                       Đây là phần s68 cần nhất, và trên điện thoại đây là
+                       chỗ DUY NHẤT đọc được (bảng chỉ hiện từ md trở lên).
+                       Tách bằng đường kẻ để không lẫn với phần cấu hình. -->
+                  <div class="pt-3 mt-1 border-t border-dashed border-gray-200 dark:border-gray-700/60 space-y-2">
+                    <div class="flex justify-between">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium">Kỳ đã khui:</span>
+                      <span class="text-gray-700 dark:text-gray-300 font-semibold font-mono">
+                        {{ rosca.so_ky_da_khui ?? 0 }}/{{ rosca.tong_so_ky ?? 0 }}
+                        <template v-if="rosca.ky_gan_nhat">
+                          · kỳ {{ rosca.ky_gan_nhat }}: {{ rosca.nguoi_hot_gan_nhat || '—' }}
+                        </template>
+                      </span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium">Đã đóng:</span>
+                      <span class="text-gray-700 dark:text-gray-300 font-semibold font-mono">{{ formatCurrency(rosca.tong_da_dong) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium">Đã hốt:</span>
+                      <span class="text-gray-700 dark:text-gray-300 font-semibold font-mono">{{ formatCurrency(rosca.tong_da_hot) }}</span>
+                    </div>
+                    <div class="flex justify-between">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium">Lợi nhuận:</span>
+                      <span class="font-bold font-mono" :class="lopMauLoiNhuan(rosca.loi_nhuan)">
+                        {{ formatCurrency(rosca.loi_nhuan) }}
+                      </span>
+                    </div>
+                    <!-- ⚠️ Dây chưa hốt kỳ nào thì lợi nhuận âm là BÌNH
+                         THƯỜNG. Nói ngay tại chỗ, đừng để tưởng lỗ thật. -->
+                    <div v-if="chuaHot(rosca)" class="text-xs text-gray-400 dark:text-gray-500 italic">
+                      Chưa hốt kỳ nào — âm là bình thường, tiền đóng đi trước.
+                    </div>
                   </div>
                 </div>
 
@@ -737,7 +825,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive, computed } from 'vue'
+import { ref, onMounted, onBeforeUnmount, reactive, computed } from 'vue'
 import { List, Search, Refresh, Plus, MoreFilled, User } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { roscaService, type Rosca, type UserRosca, type RoscaMember } from '@/api/roscaService'
@@ -939,6 +1027,50 @@ const handleSearchInput = () => {
 
 // Client-side filtration and pagination for search input
 const displayMode = ref<'list' | 'card'>('list')
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 365 (28/08/2026) — ĐIỆN THOẠI DÙNG THẺ, MÁY TÍNH DÙNG BẢNG
+//
+// 🔴 s68 chụp 28/08: trên điện thoại cột "Trạng thái" bị kẹt, không vuốt
+// ngang xem được. Nguyên nhân trong `el-table`: STT và Mã dây khai
+// `fixed`, Trạng thái và Thao tác khai `fixed="right"`. Màn 390px trừ đệm
+// còn ~350px — bốn cột ghim đã chiếm hết, phần giữa không còn chỗ cuộn.
+//
+// Cách sửa theo đúng `tai_lieu_ai/quy_uoc_bo_cuc_the.md`: màn hẹp KHÔNG
+// dựng bảng ra, dùng thẻ dọc. Không có bảng thì không có gì để kẹt.
+//
+// ⚠️ Ngưỡng 768px trùng với `md:` của Tailwind mà cả dự án đang dùng. Đặt
+// một con số khác là có hai ngưỡng cho cùng một việc, và chúng sẽ lệch.
+const NGUONG_MAN_HEP = 768
+
+const laManHep = ref(false)
+
+const doBeRong = () => {
+  laManHep.value = typeof window !== 'undefined'
+    && window.innerWidth < NGUONG_MAN_HEP
+}
+
+// Bảng chỉ hiện khi người dùng chọn dạng List VÀ màn đủ rộng.
+const hienBang = computed(() => displayMode.value === 'list' && !laManHep.value)
+
+// Thẻ hiện khi chọn dạng Card, HOẶC khi màn hẹp (lúc đó bảng đã bị ẩn).
+// Không bao giờ hiện cả hai cùng lúc.
+const hienThe = computed(() => displayMode.value === 'card' || laManHep.value)
+
+// ⚠️ Số ÂM tô đỏ, số DƯƠNG tô xanh. Nhưng dây đang chạy mà chưa hốt kỳ
+// nào thì âm là BÌNH THƯỜNG — tiền đóng đi trước, tiền hốt về sau. Nên
+// chỗ nào hiện số âm đều kèm một dòng chữ giải thích, xem `chuaHot`.
+const lopMauLoiNhuan = (val?: number) => {
+  if (val === undefined || val === null || val === 0) {
+    return 'text-gray-700 dark:text-gray-300'
+  }
+  return val < 0
+    ? 'text-red-600 dark:text-red-400'
+    : 'text-green-600 dark:text-green-400'
+}
+
+const chuaHot = (row: Rosca) => (row.so_ky_da_khui ?? 0) === 0
+
 const currentPage = ref(1)
 const pageSize = ref(10)
 const sortProp = ref('')
@@ -1133,8 +1265,19 @@ const handleDelete = (row: Rosca) => {
 }
 
 onMounted(async () => {
+  // MỤC 365 — đo bề rộng NGAY khi mở trang, rồi theo dõi lúc xoay máy.
+  // Không đo lúc mở thì lần vẽ đầu tiên luôn ra bảng, và trên điện thoại
+  // người dùng thấy đúng cái màn hỏng trước khi nó tự sửa.
+  doBeRong()
+  window.addEventListener('resize', doBeRong)
   await fetchOwners()
   await fetchRoscas()
+})
+
+onBeforeUnmount(() => {
+  // Gỡ ra khi rời trang. Không gỡ thì mỗi lần vào lại chồng thêm một
+  // người nghe, và trang càng dùng càng chậm.
+  window.removeEventListener('resize', doBeRong)
 })
 </script>
 

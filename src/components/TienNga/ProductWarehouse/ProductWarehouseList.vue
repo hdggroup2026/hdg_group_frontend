@@ -109,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { dinhDangSo } from '@/utils/dinhDangSo'
+import { dinhDangSo, dinhDangSoLe } from '@/utils/dinhDangSo'
 import { Box, Location, ArrowRight, Plus, MoreFilled } from '@element-plus/icons-vue'
 
 interface ProductWarehouse {
@@ -142,10 +142,21 @@ const handleCommand = (command: string, wh: ProductWarehouse) => {
 }
 
 const formatNumber = (value: any, _decimals?: number) => {
-  // MỤC 355 — bỏ phần lẻ khi hiển thị, CẮT chứ không làm tròn.
-  // Tham số `_decimals` giữ lại để 105 chỗ gọi cũ không phải sửa; nay
-  // không dùng tới vì mọi số đều hiện phần nguyên.
-  return dinhDangSo(value)
+  // ══ MỤC 372 (28/08/2026) — SỐ ĐO GIỮ PHẦN LẺ ══
+  //
+  // 🔴 MỤC 355 áp quá rộng: nó bỏ phần lẻ cho MỌI con số, kể cả khối
+  // lượng và số độ. Kế toán nhắn 28/08: "hộ Thành 87.6 − 1 = 86.6 mà
+  // hiện đang ra số chẵn", "em thử nhập mấy hộ đều bị vậy" — cả buổi
+  // chiều phải bấm máy tính tay kiểm lại từng phiếu.
+  //
+  // s68 làm rõ: chỉ KẾT QUẢ TÍNH RA SỐ TIỀN CUỐI CÙNG mới bỏ phần lẻ.
+  // Mọi thông số và ô nhập liệu vẫn hiện đủ.
+  //
+  // ➜ `formatNumber`  — số đo (kg, số độ). Giữ phần lẻ.
+  // ➜ `formatCurrency` — tiền. Vẫn cắt sạch phần lẻ như MỤC 355.
+  //
+  // Vẫn CẮT chứ không làm tròn, và bỏ đuôi ",00" cho số tròn.
+  return dinhDangSoLe(value, _decimals ?? 2)
 }
 
 const getCapacityPercent = (wh: ProductWarehouse) => {
