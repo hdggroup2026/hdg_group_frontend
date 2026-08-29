@@ -301,7 +301,7 @@
       <div v-if="hienThe && (activeCategory === 'daily_harvest')" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
         <div v-if="paginatedData.length > 0" class="grid grid-cols-1 gap-4">
           <div
-            v-for="(row, i) in paginatedData"
+            v-for="(row, i) in (paginatedData as any[])"
             :key="row.id || row.contract_id || i"
             class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
           >
@@ -436,7 +436,7 @@
       <div v-if="hienThe && (activeCategory === 'supplies')" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
         <div v-if="paginatedData.length > 0" class="grid grid-cols-1 gap-4">
           <div
-            v-for="(row, i) in paginatedData"
+            v-for="(row, i) in (paginatedData as any[])"
             :key="row.id || row.contract_id || i"
             class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
           >
@@ -613,7 +613,7 @@
       <div v-if="hienThe && (activeCategory === 'daily_purchase')" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
         <div v-if="paginatedPurchaseData.length > 0" class="grid grid-cols-1 gap-4">
           <div
-            v-for="(row, i) in paginatedPurchaseData"
+            v-for="(row, i) in (paginatedPurchaseData as any[])"
             :key="row.id || row.contract_id || i"
             class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
           >

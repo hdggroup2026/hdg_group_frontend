@@ -290,7 +290,7 @@
       <div v-if="hienThe && (activeCategory === 'customer')" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
         <div v-if="paginatedCustomers.length > 0" class="grid grid-cols-1 gap-4">
           <div
-            v-for="(row, i) in paginatedCustomers"
+            v-for="(row, i) in (paginatedCustomers as any[])"
             :key="row.id || row.contract_id || i"
             class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
           >
@@ -461,7 +461,7 @@
       <div v-if="hienThe && (activeCategory === 'contract')" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
         <div v-if="paginatedContracts.length > 0" class="grid grid-cols-1 gap-4">
           <div
-            v-for="(row, i) in paginatedContracts"
+            v-for="(row, i) in (paginatedContracts as any[])"
             :key="row.id || row.contract_id || i"
             class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
           >
@@ -641,7 +641,7 @@
       <div v-if="hienThe && (activeCategory === 'payment')" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
         <div v-if="paginatedPayments.length > 0" class="grid grid-cols-1 gap-4">
           <div
-            v-for="(row, i) in paginatedPayments"
+            v-for="(row, i) in (paginatedPayments as any[])"
             :key="row.id || row.contract_id || i"
             class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
           >

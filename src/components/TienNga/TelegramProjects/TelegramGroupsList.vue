@@ -390,7 +390,7 @@
         <div v-if="hienThe" class="flex-1 min-h-0 overflow-y-auto p-3">
           <div v-if="groupMembers.length > 0" class="grid grid-cols-1 gap-4">
             <div
-              v-for="(row, i) in groupMembers"
+              v-for="(row, i) in (groupMembers as any[])"
               :key="row.id || row.contract_id || i"
               class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
             >

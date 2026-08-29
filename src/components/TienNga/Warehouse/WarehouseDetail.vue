@@ -210,7 +210,7 @@
               <div v-if="hienThe" class="flex-1 min-h-0 overflow-y-auto p-3">
                 <div v-if="paginatedPurchases.length > 0" class="grid grid-cols-1 gap-4">
                   <div
-                    v-for="(row, i) in paginatedPurchases"
+                    v-for="(row, i) in (paginatedPurchases as any[])"
                     :key="row.id || row.contract_id || i"
                     class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                   >
@@ -430,7 +430,7 @@
               <div v-if="hienThe" class="flex-1 min-h-0 overflow-y-auto p-3">
                 <div v-if="paginatedExports.length > 0" class="grid grid-cols-1 gap-4">
                   <div
-                    v-for="(row, i) in paginatedExports"
+                    v-for="(row, i) in (paginatedExports as any[])"
                     :key="row.id || row.contract_id || i"
                     class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                   >
@@ -661,7 +661,7 @@
                 <div v-if="hienThe" v-loading="lookupLoading" class="flex-1 min-h-0 overflow-y-auto p-3">
                   <div v-if="paginatedLookupPurchases.length > 0" class="grid grid-cols-1 gap-4">
                     <div
-                      v-for="(row, i) in paginatedLookupPurchases"
+                      v-for="(row, i) in (paginatedLookupPurchases as any[])"
                       :key="row.id || row.contract_id || i"
                       class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                     >
@@ -793,7 +793,7 @@
                 <div v-if="hienThe" v-loading="lookupLoading" class="flex-1 min-h-0 overflow-y-auto p-3">
                   <div v-if="paginatedLookupExports.length > 0" class="grid grid-cols-1 gap-4">
                     <div
-                      v-for="(row, i) in paginatedLookupExports"
+                      v-for="(row, i) in (paginatedLookupExports as any[])"
                       :key="row.id || row.contract_id || i"
                       class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                     >

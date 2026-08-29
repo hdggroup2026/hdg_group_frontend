@@ -167,7 +167,7 @@
             <div v-if="hienThe" v-loading="loadingConfigs" class="flex-1 min-h-0 overflow-y-auto p-3">
               <div v-if="paginatedConfigs.length > 0" class="grid grid-cols-1 gap-4">
                 <div
-                  v-for="(row, i) in paginatedConfigs"
+                  v-for="(row, i) in (paginatedConfigs as any[])"
                   :key="row.id || row.contract_id || i"
                   class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                 >
@@ -468,7 +468,7 @@
             <div v-if="hienThe" v-loading="loadingLogs" class="flex-1 min-h-0 overflow-y-auto p-3">
               <div v-if="logs.length > 0" class="grid grid-cols-1 gap-4">
                 <div
-                  v-for="(row, i) in logs"
+                  v-for="(row, i) in (logs as any[])"
                   :key="row.id || row.contract_id || i"
                   class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                 >
@@ -712,7 +712,7 @@
             <div v-if="hienThe" v-loading="loadingMappings" class="flex-1 min-h-0 overflow-y-auto p-3">
               <div v-if="paginatedMappings.length > 0" class="grid grid-cols-1 gap-4">
                 <div
-                  v-for="(row, i) in paginatedMappings"
+                  v-for="(row, i) in (paginatedMappings as any[])"
                   :key="row.id || row.contract_id || i"
                   class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                 >

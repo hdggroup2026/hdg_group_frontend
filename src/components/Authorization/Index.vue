@@ -134,7 +134,7 @@
                 <div v-if="hienThe" class="flex-1 min-h-0 overflow-y-auto p-3">
                   <div v-if="paginatedCredentials.length > 0" class="grid grid-cols-1 gap-4">
                     <div
-                      v-for="(row, i) in paginatedCredentials"
+                      v-for="(row, i) in (paginatedCredentials as any[])"
                       :key="row.id || row.contract_id || i"
                       class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                     >
@@ -303,7 +303,7 @@
                 <div v-if="hienThe" class="flex-1 min-h-0 overflow-y-auto p-3">
                   <div v-if="paginatedPermCredentials.length > 0" class="grid grid-cols-1 gap-4">
                     <div
-                      v-for="(row, i) in paginatedPermCredentials"
+                      v-for="(row, i) in (paginatedPermCredentials as any[])"
                       :key="row.id || row.contract_id || i"
                       class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                     >
@@ -313,18 +313,34 @@
                                                 <span class="block text-xxs font-mono text-gray-400">ID: {{ row.employee_id }}</span>
                         </div>
                       </div>
+                      <!-- ══ MỤC 402 (29/08/2026) — CỘT NÀY SINH BẰNG v-for ══
+                           🔴 Bảng gốc khai `<el-table-column v-for="perm in
+                           availablePermissions" :label="perm.label">` — tức
+                           MỘT cột cho MỖI quyền, nhãn cũng lấy từ vòng lặp.
+
+                           Công cụ sinh thẻ của MỤC 398 chỉ bóc phần
+                           `<template #default>` bên trong, nên MẤT vòng lặp:
+                           `perm` thành biến không tồn tại, và nhãn thành dấu
+                           hai chấm trống. TypeScript bắt được
+                           (`Property 'perm' does not exist`) — nếu không thì
+                           đây là màn trắng.
+
+                           ⚠️ Đây là cột DUY NHẤT trong toàn dự án khai v-for
+                           trên chính thẻ `<el-table-column>`. -->
                       <div class="space-y-2 text-sm text-left">
-                        <div class="flex justify-between gap-3">
-                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">:</span>
-                          <span class="text-right break-words min-w-0">
-                            <el-switch
-                                                    :model-value="hasPermission(row, perm.key)"
-                                                    @change="(val) => handleTogglePermission(row, perm.key, val)"
-                                                    active-color="#13ce66"
-                                                    inactive-color="#ff4949"
-                                                    :loading="permissionLoadingMap[row.employee_id + '_' + perm.key]"
-                                                  />
+                        <div v-for="perm in availablePermissions" :key="perm.key"
+                             class="flex items-center justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">
+                            {{ perm.label }}
                           </span>
+                          <el-switch
+                            :model-value="hasPermission(row, perm.key)"
+                            @change="(val) => handleTogglePermission(row, perm.key, val)"
+                            size="small"
+                            active-color="#13ce66"
+                            inactive-color="#ff4949"
+                            :loading="permissionLoadingMap[row.employee_id + '_' + perm.key]"
+                          />
                         </div>
                       </div>
                     </div>
