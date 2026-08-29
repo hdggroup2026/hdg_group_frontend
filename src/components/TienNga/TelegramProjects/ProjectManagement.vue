@@ -273,9 +273,19 @@
         </div>
 
         <!-- Members table -->
-        <el-table :data="groupMembers" style="width: 100%" max-height="400" stripe>
-          <el-table-column label="#" width="50" type="index" />
-          <el-table-column prop="full_name" label="Họ tên" min-width="150">
+        <!-- ══════════════════════════════════════════════════════════════
+             MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+             Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+             Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+             cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+             dùng vuốt mà màn hình không nhúc nhích.
+
+             Đã bỏ 0 cột ghim ở bảng này.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table v-if="hienBang" :data="groupMembers" style="width: 100%" max-height="400" stripe>
+          <el-table-column label="#" width="52" type="index" />
+          <el-table-column prop="full_name" label="Họ tên" min-width="108">
             <template #default="scope">
               <div class="flex items-center gap-2">
                 <span class="font-medium text-gray-800 dark:text-gray-100">{{ scope.row.full_name || '—' }}</span>
@@ -283,12 +293,12 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="user_name" label="Username" min-width="170">
+          <el-table-column prop="user_name" label="Username" min-width="122">
             <template #default="scope">
               <span class="text-blue-500">{{ scope.row.user_name ? `@${scope.row.user_name}` : '—' }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="role" label="Vai trò" width="110" align="center">
+          <el-table-column prop="role" label="Vai trò" width="79" align="center">
             <template #default="scope">
               <el-tag
                 :type="scope.row.role === 'main' ? 'success' : scope.row.role === 'member' ? 'primary' : 'info'"
@@ -300,7 +310,7 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="member_status" label="Trạng thái" width="120" align="center">
+          <el-table-column prop="member_status" label="Trạng thái" width="86" align="center">
             <template #default="scope">
               <el-tag
                 :type="scope.row.member_status === 'member' || scope.row.member_status === 'administrator' || scope.row.member_status === 'creator' ? 'success' : 'danger'"
@@ -312,12 +322,94 @@
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column prop="slot_name" label="Slot" min-width="120">
+          <el-table-column prop="slot_name" label="Slot" min-width="86">
             <template #default="scope">
               <span class="text-gray-500 dark:text-gray-400 text-xs">{{ scope.row.slot_name || '—' }}</span>
             </template>
           </el-table-column>
         </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+             MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+             🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+             Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+             ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+             màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+             đoạn mã.
+
+             ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+             bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+             cùng một con số.
+             ══════════════════════════════════════════════════════════ -->
+        <div v-if="hienThe" class="flex-1 min-h-0 overflow-y-auto p-3">
+          <div v-if="groupMembers.length > 0" class="grid grid-cols-1 gap-4">
+            <div
+              v-for="(row, i) in groupMembers"
+              :key="row.id || row.contract_id || i"
+              class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+            >
+              <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                <div class="min-w-0 break-words">
+                  —
+                </div>
+              </div>
+              <div class="space-y-2 text-sm text-left">
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Họ tên:</span>
+                  <span class="text-right break-words min-w-0">
+                    <div class="flex items-center gap-2">
+                                    <span class="font-medium text-gray-800 dark:text-gray-100">{{ row.full_name || '—' }}</span>
+                                    <el-tag v-if="row.is_bot" type="info" size="small" effect="light" round>Bot</el-tag>
+                                  </div>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Username:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="text-blue-500">{{ row.user_name ? `@${row.user_name}` : '—' }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Vai trò:</span>
+                  <span class="text-right break-words min-w-0">
+                    <el-tag
+                                    :type="row.role === 'main' ? 'success' : row.role === 'member' ? 'primary' : 'info'"
+                                    effect="light"
+                                    round
+                                    size="small"
+                                  >
+                                    {{ row.role }}
+                                  </el-tag>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Trạng thái:</span>
+                  <span class="text-right break-words min-w-0">
+                    <el-tag
+                                    :type="row.member_status === 'member' || row.member_status === 'administrator' || row.member_status === 'creator' ? 'success' : 'danger'"
+                                    effect="light"
+                                    round
+                                    size="small"
+                                  >
+                                    {{ row.member_status }}
+                                  </el-tag>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Slot:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="text-gray-500 dark:text-gray-400 text-xs">{{ row.slot_name || '—' }}</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+            <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+          </div>
+        </div>
 
         <!-- Empty -->
         <div v-if="!memberDialogLoading && groupMembers.length === 0" class="flex flex-col items-center justify-center py-10 text-gray-400">
@@ -372,6 +464,11 @@ import { useRouter } from 'vue-router'
 import { Connection, ChatLineRound, ArrowRight, User, MoreFilled, View, CopyDocument, Plus, Edit, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 const router = useRouter()
 

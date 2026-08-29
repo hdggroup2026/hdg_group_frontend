@@ -46,7 +46,17 @@
 
     <!-- Logs Table -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-      <el-table v-loading="loading" :data="paginatedLogs" style="width: 100%" class="flex-1" height="100%">
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+           Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+           Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+           cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+           dùng vuốt mà màn hình không nhúc nhích.
+
+           Đã bỏ 0 cột ghim ở bảng này.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang" v-loading="loading" :data="paginatedLogs" style="width: 100%" class="flex-1" height="100%">
         <el-table-column label="STT" width="60" align="center">
           <template #default="{ $index }">
             {{ (currentPage - 1) * pageSize + $index + 1 }}
@@ -94,6 +104,82 @@
         </el-table-column>
       </el-table>
 
+<!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+           Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+           ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+           màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+           đoạn mã.
+
+           ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+           bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+           cùng một con số.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="paginatedLogs.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="(row, i) in paginatedLogs"
+            :key="row.id || row.contract_id || i"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0 break-words">
+                <span class="text-gray-700 dark:text-gray-300 text-xs">{{ formatDateTime(row.sent_at) }}</span>
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Loại thông báo:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag size="small" type="info" effect="plain" class="font-semibold">
+                                {{ row.notify_type || '—' }}
+                              </el-tag>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Trạng thái:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag :type="getStatusTagType(row.status)" size="small" effect="plain" class="font-semibold">
+                                {{ getStatusLabel(row.status) }}
+                              </el-tag>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nhóm nhận:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="text-gray-700 dark:text-gray-300 text-xs">{{ row.group_name || row.chat_id || '—' }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Mã tham chiếu:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-mono text-blue-600 dark:text-blue-400 text-xs">{{ row.reference_id || '—' }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nội dung:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="text-gray-700 dark:text-gray-300 text-xs">{{ row.message_content || '—' }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Lỗi:</span>
+                <span class="text-right break-words min-w-0">
+                  <span v-if="row.error_message" class="text-red-500 text-xs">{{ row.error_message }}</span>
+                              <span v-else class="text-gray-400 text-xs">—</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+        </div>
+      </div>
+
       <!-- Pagination -->
       <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
         <el-pagination
@@ -114,6 +200,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import { Search, Refresh } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { scheduledNotificationService, type ScheduledNotifyLog } from '@/api/scheduledNotificationService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 const props = defineProps<{
   moduleKey: string

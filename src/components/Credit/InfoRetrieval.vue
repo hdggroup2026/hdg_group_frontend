@@ -211,28 +211,38 @@
     <!-- Table Results -->
     <div v-if="hasSearched" class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
       <!-- 1. Customer Table -->
-      <el-table v-if="activeCategory === 'customer'" v-loading="loading" :data="paginatedCustomers" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
-        <el-table-column label="STT" width="70" align="center" fixed>
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+           Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+           Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+           cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+           dùng vuốt mà màn hình không nhúc nhích.
+
+           Đã bỏ 0 cột ghim ở bảng này.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang && (activeCategory === 'customer')" v-loading="loading" :data="paginatedCustomers" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             {{ (currentPage - 1) * pageSize + $index + 1 }}
           </template>
         </el-table-column>
-        <el-table-column prop="customer_id" label="Mã KH" width="130" sortable="custom" fixed>
+        <el-table-column prop="customer_id" label="Mã KH" width="94" sortable="custom">
           <template #default="{ row }">
             <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.customer_id }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="customer_name" label="Tên khách hàng" width="200" sortable="custom" fixed show-overflow-tooltip>
+        <el-table-column prop="customer_name" label="Tên khách hàng" width="144" sortable="custom" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="group_name" label="Tên nhóm" width="140" show-overflow-tooltip>
+        <el-table-column prop="group_name" label="Tên nhóm" width="101" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="text-gray-600 dark:text-gray-400 font-medium">{{ row.group_name || '—' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="classification" label="Phân loại" width="130" align="center">
+        <el-table-column prop="classification" label="Phân loại" width="94" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.classification" size="small" type="info" effect="plain" class="font-bold">
               {{ row.classification }}
@@ -240,22 +250,22 @@
             <span v-else class="text-gray-400">—</span>
           </template>
         </el-table-column>
-        <el-table-column prop="contact_info" label="Liên hệ (Telegram)" min-width="220" show-overflow-tooltip>
+        <el-table-column prop="contact_info" label="Liên hệ (Telegram)" min-width="158" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="font-mono text-violet-650 dark:text-violet-400">{{ row.contact_info || '—' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="total_credit_limit" label="Hạn mức tín dụng" width="160" align="right">
+        <el-table-column prop="total_credit_limit" label="Hạn mức tín dụng" width="115" align="right">
           <template #default="{ row }">
-            <span class="text-gray-700 dark:text-gray-300">{{ formatCurrency(row.total_credit_limit) }}</span>
+            <span :class="mauSo(row.total_credit_limit)">{{ formatCurrency(row.total_credit_limit) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="remaining_credit_limit" label="Hạn mức còn lại" width="160" align="right">
+        <el-table-column prop="remaining_credit_limit" label="Hạn mức còn lại" width="115" align="right">
           <template #default="{ row }">
-            <span class="font-bold text-emerald-650 dark:text-emerald-400">{{ formatCurrency(row.remaining_credit_limit) }}</span>
+            <span class="font-bold" :class="mauSo(row.remaining_credit_limit)">{{ formatCurrency(row.remaining_credit_limit) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="total_principal_outstanding" label="Tổng dư nợ gốc" width="160" align="right">
+        <el-table-column prop="total_principal_outstanding" label="Tổng dư nợ gốc" width="115" align="right">
           <template #default="{ row }">
             <span :class="row.total_principal_outstanding > 0 ? 'text-rose-600 dark:text-rose-400 font-extrabold' : 'text-gray-400'">
               {{ formatCurrency(row.total_principal_outstanding) }}
@@ -264,25 +274,117 @@
         </el-table-column>
       </el-table>
 
+<!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+           Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+           ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+           màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+           đoạn mã.
+
+           ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+           bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+           cùng một con số.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe && (activeCategory === 'customer')" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="paginatedCustomers.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="(row, i) in paginatedCustomers"
+            :key="row.id || row.contract_id || i"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0 break-words">
+                <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.customer_id }}</span>
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên khách hàng:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên nhóm:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="text-gray-600 dark:text-gray-400 font-medium">{{ row.group_name || '—' }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Phân loại:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag v-if="row.classification" size="small" type="info" effect="plain" class="font-bold">
+                                {{ row.classification }}
+                              </el-tag>
+                              <span v-else class="text-gray-400">—</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Liên hệ (Telegram):</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-mono text-violet-650 dark:text-violet-400">{{ row.contact_info || '—' }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Hạn mức tín dụng:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="mauSo(row.total_credit_limit)">{{ formatCurrency(row.total_credit_limit) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Hạn mức còn lại:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold" :class="mauSo(row.remaining_credit_limit)">{{ formatCurrency(row.remaining_credit_limit) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tổng dư nợ gốc:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.total_principal_outstanding > 0 ? 'text-rose-600 dark:text-rose-400 font-extrabold' : 'text-gray-400'">
+                                {{ formatCurrency(row.total_principal_outstanding) }}
+                              </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+        </div>
+      </div>
+
       <!-- 2. Contract Table -->
-      <el-table v-if="activeCategory === 'contract'" v-loading="loading" :data="paginatedContracts" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
-        <el-table-column label="STT" width="70" align="center" fixed>
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+           Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+           Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+           cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+           dùng vuốt mà màn hình không nhúc nhích.
+
+           Đã bỏ 0 cột ghim ở bảng này.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang && (activeCategory === 'contract')" v-loading="loading" :data="paginatedContracts" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             {{ (currentPage - 1) * pageSize + $index + 1 }}
           </template>
         </el-table-column>
-        <el-table-column prop="contract_id" label="Mã HĐ" min-width="180" sortable="custom" fixed>
+        <el-table-column prop="contract_id" label="Mã HĐ" min-width="130" sortable="custom">
           <template #default="{ row }">
             <span class="font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">{{ row.contract_id }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="customer_name" label="Tên khách hàng" width="200" sortable="custom" show-overflow-tooltip>
+        <el-table-column prop="customer_name" label="Tên khách hàng" width="144" sortable="custom" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
             <span class="block text-xxs font-mono text-gray-400">KH: {{ row.customer_code }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="classification" label="Phân loại" width="130" align="center">
+        <el-table-column prop="classification" label="Phân loại" width="94" align="center">
           <template #default="{ row }">
             <el-tag v-if="row.classification" size="small" type="info" effect="plain" class="font-bold">
               {{ row.classification }}
@@ -290,120 +392,327 @@
             <span v-else class="text-gray-400">—</span>
           </template>
         </el-table-column>
-        <el-table-column prop="loan_type" label="Loại vay" width="110" align="center">
+        <el-table-column prop="loan_type" label="Loại vay" width="79" align="center">
           <template #default="{ row }">
             <el-tag :type="row.loan_type === 'Collateral' ? 'primary' : 'warning'" size="small">
               {{ row.loan_type === 'Collateral' ? 'Thế chấp' : 'Tín chấp' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="initial_principal" label="Gốc ban đầu" width="140" align="right">
+        <el-table-column prop="initial_principal" label="Gốc ban đầu" width="101" align="right">
           <template #default="{ row }">
-            <span class="text-gray-700 dark:text-gray-300">{{ formatCurrency(row.initial_principal) }}</span>
+            <span :class="mauSo(row.initial_principal)">{{ formatCurrency(row.initial_principal) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="remaining_principal" label="Gốc còn lại" width="140" align="right">
+        <el-table-column prop="remaining_principal" label="Gốc còn lại" width="101" align="right">
           <template #default="{ row }">
-            <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(row.remaining_principal) }}</span>
+            <span class="font-bold" :class="mauSo(row.remaining_principal)">{{ formatCurrency(row.remaining_principal) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="total_principal_paid" label="Gốc đã trả" width="140" align="right">
+        <el-table-column prop="total_principal_paid" label="Gốc đã trả" width="101" align="right">
           <template #default="{ row }">
-            <span class="text-gray-600 dark:text-gray-400">{{ formatCurrency(row.total_principal_paid) }}</span>
+            <span :class="mauSo(row.total_principal_paid)">{{ formatCurrency(row.total_principal_paid) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="monthly_interest_rate" label="Lãi suất" width="100" align="right">
+        <el-table-column prop="monthly_interest_rate" label="Lãi suất" width="72" align="right">
           <template #default="{ row }">
             <span>{{ row.monthly_interest_rate ? `${row.monthly_interest_rate}%` : '0%' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="interest_debt" label="Nợ lãi" width="130" align="right">
+        <el-table-column prop="interest_debt" label="Nợ lãi" width="94" align="right">
           <template #default="{ row }">
             <span :class="row.interest_debt > 0 ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-gray-400'">
               {{ formatCurrency(row.interest_debt) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="credit_status" label="Trạng thái" width="130" align="center">
+        <el-table-column prop="credit_status" label="Trạng thái" width="94" align="center">
           <template #default="{ row }">
             <el-tag :type="getStatusTag(row.credit_status)" effect="plain" size="small" class="capitalize">
               {{ getStatusText(row.credit_status) }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="due_date" label="Ngày đáo hạn" width="120" align="center">
+        <el-table-column prop="due_date" label="Ngày đáo hạn" width="86" align="center">
           <template #default="{ row }">
             <span>{{ formatDate(row.due_date) }}</span>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+        <el-table-column label="Thao tác" width="60" align="center">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="openContractDetail(row)">Chi tiết</el-button>
           </template>
         </el-table-column>
       </el-table>
 
+<!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+           Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+           ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+           màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+           đoạn mã.
+
+           ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+           bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+           cùng một con số.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe && (activeCategory === 'contract')" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="paginatedContracts.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="(row, i) in paginatedContracts"
+            :key="row.id || row.contract_id || i"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0 break-words">
+                <span class="font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">{{ row.contract_id }}</span>
+              </div>
+              <div class="shrink-0">
+                <el-button link type="primary" size="small" @click="openContractDetail(row)">Chi tiết</el-button>
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên khách hàng:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
+                              <span class="block text-xxs font-mono text-gray-400">KH: {{ row.customer_code }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Phân loại:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag v-if="row.classification" size="small" type="info" effect="plain" class="font-bold">
+                                {{ row.classification }}
+                              </el-tag>
+                              <span v-else class="text-gray-400">—</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Loại vay:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag :type="row.loan_type === 'Collateral' ? 'primary' : 'warning'" size="small">
+                                {{ row.loan_type === 'Collateral' ? 'Thế chấp' : 'Tín chấp' }}
+                              </el-tag>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Gốc ban đầu:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="mauSo(row.initial_principal)">{{ formatCurrency(row.initial_principal) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Gốc còn lại:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold" :class="mauSo(row.remaining_principal)">{{ formatCurrency(row.remaining_principal) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Gốc đã trả:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="mauSo(row.total_principal_paid)">{{ formatCurrency(row.total_principal_paid) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Lãi suất:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ row.monthly_interest_rate ? `${row.monthly_interest_rate}%` : '0%' }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nợ lãi:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.interest_debt > 0 ? 'text-rose-600 dark:text-rose-400 font-bold' : 'text-gray-400'">
+                                {{ formatCurrency(row.interest_debt) }}
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Trạng thái:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag :type="getStatusTag(row.credit_status)" effect="plain" size="small" class="capitalize">
+                                {{ getStatusText(row.credit_status) }}
+                              </el-tag>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ngày đáo hạn:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ formatDate(row.due_date) }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+        </div>
+      </div>
+
       <!-- 3. Payment Table -->
-      <el-table v-if="activeCategory === 'payment'" v-loading="loading" :data="paginatedPayments" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
-        <el-table-column label="STT" width="70" align="center" fixed>
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+           Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+           Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+           cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+           dùng vuốt mà màn hình không nhúc nhích.
+
+           Đã bỏ 0 cột ghim ở bảng này.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang && (activeCategory === 'payment')" v-loading="loading" :data="paginatedPayments" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             {{ (currentPage - 1) * pageSize + $index + 1 }}
           </template>
         </el-table-column>
-        <el-table-column prop="contract_id" label="Mã HĐ" min-width="180" sortable="custom" fixed>
+        <el-table-column prop="contract_id" label="Mã HĐ" min-width="130" sortable="custom">
           <template #default="{ row }">
             <span class="font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">{{ row.contract_id }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="customer_name" label="Tên khách hàng" width="200" sortable="custom" show-overflow-tooltip>
+        <el-table-column prop="customer_name" label="Tên khách hàng" width="144" sortable="custom" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
             <span class="block text-xxs font-mono text-gray-400">KH: {{ row.customer_code }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="loan_type" label="Loại vay" width="110" align="center">
+        <el-table-column prop="loan_type" label="Loại vay" width="79" align="center">
           <template #default="{ row }">
             <el-tag :type="row.loan_type === 'Collateral' ? 'primary' : 'warning'" size="small">
               {{ row.loan_type === 'Collateral' ? 'Thế chấp' : 'Tín chấp' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="initial_principal" label="Gốc ban đầu" width="140" align="right">
+        <el-table-column prop="initial_principal" label="Gốc ban đầu" width="101" align="right">
           <template #default="{ row }">
-            <span class="text-gray-700 dark:text-gray-300">{{ formatCurrency(row.initial_principal) }}</span>
+            <span :class="mauSo(row.initial_principal)">{{ formatCurrency(row.initial_principal) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="remaining_principal" label="Gốc còn lại" width="140" align="right">
+        <el-table-column prop="remaining_principal" label="Gốc còn lại" width="101" align="right">
           <template #default="{ row }">
-            <span class="font-bold text-gray-800 dark:text-gray-100">{{ formatCurrency(row.remaining_principal) }}</span>
+            <span class="font-bold" :class="mauSo(row.remaining_principal)">{{ formatCurrency(row.remaining_principal) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="monthly_interest_rate" label="Lãi suất / Tháng" width="130" align="right">
+        <el-table-column prop="monthly_interest_rate" label="Lãi suất / Tháng" width="94" align="right">
           <template #default="{ row }">
             <span>{{ row.monthly_interest_rate ? `${row.monthly_interest_rate}%` : '0%' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="interest_amount" label="Số tiền lãi" width="150" align="right">
+        <el-table-column prop="interest_amount" label="Số tiền lãi" width="108" align="right">
           <template #default="{ row }">
-            <span class="font-bold text-emerald-600 dark:text-emerald-400">{{ formatCurrency(row.interest_amount) }}</span>
+            <span class="font-bold" :class="mauSo(row.interest_amount)">{{ formatCurrency(row.interest_amount) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="interest_payment_date" label="Ngày trả lãi" width="130" align="center">
+        <el-table-column prop="interest_payment_date" label="Ngày trả lãi" width="94" align="center">
           <template #default="{ row }">
             <span>{{ formatDate(row.interest_payment_date) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="payment_time" label="Thời gian ghi nhận" width="165" align="center">
+        <el-table-column prop="payment_time" label="Thời gian ghi nhận" width="119" align="center">
           <template #default="{ row }">
             <span class="text-gray-600 dark:text-gray-400">{{ formatDateTime(row.payment_time) }}</span>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+        <el-table-column label="Thao tác" width="60" align="center">
           <template #default="{ row }">
             <el-button link type="primary" size="small" @click="openPaymentDetail(row)">Chi tiết</el-button>
           </template>
         </el-table-column>
       </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+           Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+           ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+           màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+           đoạn mã.
+
+           ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+           bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+           cùng một con số.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe && (activeCategory === 'payment')" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="paginatedPayments.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="(row, i) in paginatedPayments"
+            :key="row.id || row.contract_id || i"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0 break-words">
+                <span class="font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">{{ row.contract_id }}</span>
+              </div>
+              <div class="shrink-0">
+                <el-button link type="primary" size="small" @click="openPaymentDetail(row)">Chi tiết</el-button>
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên khách hàng:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
+                              <span class="block text-xxs font-mono text-gray-400">KH: {{ row.customer_code }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Loại vay:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag :type="row.loan_type === 'Collateral' ? 'primary' : 'warning'" size="small">
+                                {{ row.loan_type === 'Collateral' ? 'Thế chấp' : 'Tín chấp' }}
+                              </el-tag>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Gốc ban đầu:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="mauSo(row.initial_principal)">{{ formatCurrency(row.initial_principal) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Gốc còn lại:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold" :class="mauSo(row.remaining_principal)">{{ formatCurrency(row.remaining_principal) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Lãi suất / Tháng:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ row.monthly_interest_rate ? `${row.monthly_interest_rate}%` : '0%' }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số tiền lãi:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold" :class="mauSo(row.interest_amount)">{{ formatCurrency(row.interest_amount) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ngày trả lãi:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ formatDate(row.interest_payment_date) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Thời gian ghi nhận:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="text-gray-600 dark:text-gray-400">{{ formatDateTime(row.payment_time) }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+        </div>
+      </div>
 
       <!-- Pagination -->
       <div class="mt-auto shrink-0 p-4 flex flex-wrap justify-end gap-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -708,9 +1017,15 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { mauSo } from '@/utils/mauSo'
 import { Search, Wallet, CreditCard, Money, TrendCharts, Collection, Files } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { creditService } from '@/api/creditService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 // Category type: 'customer' | 'contract' | 'payment'
 const activeCategory = ref<'customer' | 'contract' | 'payment'>('customer')

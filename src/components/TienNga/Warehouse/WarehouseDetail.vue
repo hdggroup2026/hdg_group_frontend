@@ -114,60 +114,70 @@
 
             <!-- Table & Pagination -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0 border border-gray-100 dark:border-gray-700">
-              <el-table :data="paginatedPurchases" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handlePurchaseSortChange">
-                <el-table-column label="STT" width="60" align="center" fixed>
+              <!-- ══════════════════════════════════════════════════════════════
+                   MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+                   Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+                   Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+                   cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+                   dùng vuốt mà màn hình không nhúc nhích.
+
+                   Đã bỏ 0 cột ghim ở bảng này.
+                   ══════════════════════════════════════════════════════════ -->
+              <el-table v-if="hienBang" :data="paginatedPurchases" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handlePurchaseSortChange">
+                <el-table-column label="STT" width="52" align="center">
                   <template #default="{ $index }">
                     <span class="font-mono text-xs text-gray-500">{{ (purchasePage - 1) * purchasePageSize + $index + 1 }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Ngày giao dịch" prop="date" width="150" sortable="custom" fixed>
+                <el-table-column label="Ngày giao dịch" prop="date" width="108" sortable="custom">
                   <template #default="scope">
                     <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">{{ formatDate(scope.row.date) }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Tên khách hàng" prop="customerName" min-width="300" fixed show-overflow-tooltip>
+                <el-table-column label="Tên khách hàng" prop="customerName" min-width="216" show-overflow-tooltip>
                   <template #default="scope">
                     <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">{{ scope.row.customerName }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Nguyên liệu" prop="material" width="130">
+                <el-table-column label="Nguyên liệu" prop="material" width="94">
                   <template #default="scope">
                     <el-tag type="warning" effect="light" round size="small">{{ scope.row.material }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="Tên Kho" prop="warehouseName" width="180" show-overflow-tooltip />
-                <el-table-column label="Số chuyến" prop="trips" width="110" align="right">
+                <el-table-column label="Tên Kho" prop="warehouseName" width="130" show-overflow-tooltip />
+                <el-table-column label="Số chuyến" prop="trips" width="79" align="right">
                   <template #default="scope">
                     <span class="font-medium">{{ scope.row.trips }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Khối lượng" width="130" align="right">
+                <el-table-column label="Khối lượng" width="94" align="right">
                   <template #default="scope">
                     <span>{{ formatNumber(scope.row.weight) }} kg</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Đơn giá" width="130" align="right">
+                <el-table-column label="Đơn giá" width="94" align="right">
                   <template #default="scope">
                     <span>{{ formatCurrency(scope.row.unitPrice) }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Thành tiền" width="150" align="right">
+                <el-table-column label="Thành tiền" width="108" align="right">
                   <template #default="scope">
-                    <span class="font-bold text-green-500">{{ formatCurrency(scope.row.totalAmount) }}</span>
+                    <span class="font-bold" :class="mauSo(scope.row.totalAmount)">{{ formatCurrency(scope.row.totalAmount) }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Ứng tiền" width="150" align="right">
+                <el-table-column label="Ứng tiền" width="108" align="right">
                   <template #default="scope">
-                    <span class="font-medium text-orange-500">{{ formatCurrency(scope.row.advanceAmount) }}</span>
+                    <span class="font-medium" :class="mauSo(scope.row.advanceAmount)">{{ formatCurrency(scope.row.advanceAmount) }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Công nợ" width="150" align="right">
+                <el-table-column label="Công nợ" width="108" align="right">
                   <template #default="scope">
-                    <span class="font-bold">{{ formatCurrency(scope.row.debt) }}</span>
+                    <span class="font-bold" :class="mauSo(scope.row.debt)">{{ formatCurrency(scope.row.debt) }}</span>
                   </template>
                 </el-table-column>
                 <!-- Thao tác -->
-                <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+                <el-table-column label="Thao tác" width="60" align="center">
                   <template #default="scope">
                     <el-dropdown trigger="click" @command="(cmd) => handlePurchaseCommand(cmd, scope.row)">
                       <el-button link type="info" class="p-1">
@@ -183,6 +193,108 @@
                   </template>
                 </el-table-column>
               </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+                   MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+                   🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+                   Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+                   ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+                   màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+                   đoạn mã.
+
+                   ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+                   bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+                   cùng một con số.
+                   ══════════════════════════════════════════════════════════ -->
+              <div v-if="hienThe" class="flex-1 min-h-0 overflow-y-auto p-3">
+                <div v-if="paginatedPurchases.length > 0" class="grid grid-cols-1 gap-4">
+                  <div
+                    v-for="(row, i) in paginatedPurchases"
+                    :key="row.id || row.contract_id || i"
+                    class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+                  >
+                    <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                      <div class="min-w-0 break-words">
+                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">{{ formatDate(row.date) }}</span>
+                      </div>
+                      <div class="shrink-0">
+                        <el-dropdown trigger="click" @command="(cmd) => handlePurchaseCommand(cmd, row)">
+                                              <el-button link type="info" class="p-1">
+                                                <el-icon class="text-xl"><MoreFilled /></el-icon>
+                                              </el-button>
+                                              <template #dropdown>
+                                                <el-dropdown-menu>
+                                                  <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                                                  <el-dropdown-item command="delete" class="!text-red-500">Xóa</el-dropdown-item>
+                                                </el-dropdown-menu>
+                                              </template>
+                                            </el-dropdown>
+                      </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-left">
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên khách hàng:</span>
+                        <span class="text-right break-words min-w-0">
+                          <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">{{ row.customerName }}</span>
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nguyên liệu:</span>
+                        <span class="text-right break-words min-w-0">
+                          <el-tag type="warning" effect="light" round size="small">{{ row.material }}</el-tag>
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên Kho:</span>
+                        <span class="text-right break-words min-w-0">
+                          {{ row.warehouseName }}
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số chuyến:</span>
+                        <span class="text-right break-words min-w-0">
+                          <span class="font-medium">{{ row.trips }}</span>
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Khối lượng:</span>
+                        <span class="text-right break-words min-w-0">
+                          <span>{{ formatNumber(row.weight) }} kg</span>
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Đơn giá:</span>
+                        <span class="text-right break-words min-w-0">
+                          <span>{{ formatCurrency(row.unitPrice) }}</span>
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Thành tiền:</span>
+                        <span class="text-right break-words min-w-0">
+                          <span class="font-bold" :class="mauSo(row.totalAmount)">{{ formatCurrency(row.totalAmount) }}</span>
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ứng tiền:</span>
+                        <span class="text-right break-words min-w-0">
+                          <span class="font-medium" :class="mauSo(row.advanceAmount)">{{ formatCurrency(row.advanceAmount) }}</span>
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Công nợ:</span>
+                        <span class="text-right break-words min-w-0">
+                          <span class="font-bold" :class="mauSo(row.debt)">{{ formatCurrency(row.debt) }}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+                  <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+                </div>
+              </div>
 
               <div class="mt-auto shrink-0 p-4 flex flex-wrap justify-end gap-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <el-pagination
@@ -246,36 +358,46 @@
 
             <!-- Table & Pagination -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0 border border-gray-100 dark:border-gray-700">
-              <el-table :data="paginatedExports" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handleExportSortChange">
-                <el-table-column label="STT" width="60" align="center" fixed>
+              <!-- ══════════════════════════════════════════════════════════════
+                   MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+                   Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+                   Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+                   cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+                   dùng vuốt mà màn hình không nhúc nhích.
+
+                   Đã bỏ 0 cột ghim ở bảng này.
+                   ══════════════════════════════════════════════════════════ -->
+              <el-table v-if="hienBang" :data="paginatedExports" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handleExportSortChange">
+                <el-table-column label="STT" width="52" align="center">
                   <template #default="{ $index }">
                     <span class="font-mono text-xs text-gray-500">{{ (exportPage - 1) * exportPageSize + $index + 1 }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Thời gian" prop="date" width="140" sortable="custom" fixed>
+                <el-table-column label="Thời gian" prop="date" width="101" sortable="custom">
                   <template #default="scope">
                     <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">{{ formatDate(scope.row.date) }}</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Người thực hiện" prop="executor" min-width="180" fixed show-overflow-tooltip />
-                <el-table-column label="Loại nguyên liệu" prop="material" width="150">
+                <el-table-column label="Người thực hiện" prop="executor" min-width="130" show-overflow-tooltip />
+                <el-table-column label="Loại nguyên liệu" prop="material" width="108">
                   <template #default="scope">
                     <el-tag type="warning" effect="light" round size="small">{{ scope.row.material }}</el-tag>
                   </template>
                 </el-table-column>
-                <el-table-column label="Tên Kho" prop="warehouseName" width="200" show-overflow-tooltip />
-                <el-table-column label="Khối lượng xuất" width="160" align="right">
+                <el-table-column label="Tên Kho" prop="warehouseName" width="144" show-overflow-tooltip />
+                <el-table-column label="Khối lượng xuất" width="115" align="right">
                   <template #default="scope">
                     <span class="font-bold text-rose-500 dark:text-rose-400">-{{ formatNumber(scope.row.exportWeight) }} kg</span>
                   </template>
                 </el-table-column>
-                <el-table-column label="Khối lượng còn lại" width="180" align="right">
+                <el-table-column label="Khối lượng còn lại" width="130" align="right">
                   <template #default="scope">
                     <span class="font-bold text-blue-600 dark:text-blue-400">{{ formatNumber(scope.row.remainingWeight) }} kg</span>
                   </template>
                 </el-table-column>
                 <!-- Thao tác -->
-                <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+                <el-table-column label="Thao tác" width="60" align="center">
                   <template #default="scope">
                     <el-dropdown trigger="click" @command="(cmd) => handleExportCommand(cmd, scope.row)">
                       <el-button link type="info" class="p-1">
@@ -291,6 +413,84 @@
                   </template>
                 </el-table-column>
               </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+                   MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+                   🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+                   Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+                   ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+                   màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+                   đoạn mã.
+
+                   ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+                   bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+                   cùng một con số.
+                   ══════════════════════════════════════════════════════════ -->
+              <div v-if="hienThe" class="flex-1 min-h-0 overflow-y-auto p-3">
+                <div v-if="paginatedExports.length > 0" class="grid grid-cols-1 gap-4">
+                  <div
+                    v-for="(row, i) in paginatedExports"
+                    :key="row.id || row.contract_id || i"
+                    class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+                  >
+                    <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                      <div class="min-w-0 break-words">
+                        <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">{{ formatDate(row.date) }}</span>
+                      </div>
+                      <div class="shrink-0">
+                        <el-dropdown trigger="click" @command="(cmd) => handleExportCommand(cmd, row)">
+                                              <el-button link type="info" class="p-1">
+                                                <el-icon class="text-xl"><MoreFilled /></el-icon>
+                                              </el-button>
+                                              <template #dropdown>
+                                                <el-dropdown-menu>
+                                                  <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                                                  <el-dropdown-item command="delete" class="!text-red-500">Xóa</el-dropdown-item>
+                                                </el-dropdown-menu>
+                                              </template>
+                                            </el-dropdown>
+                      </div>
+                    </div>
+                    <div class="space-y-2 text-sm text-left">
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Người thực hiện:</span>
+                        <span class="text-right break-words min-w-0">
+                          {{ row.executor }}
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Loại nguyên liệu:</span>
+                        <span class="text-right break-words min-w-0">
+                          <el-tag type="warning" effect="light" round size="small">{{ row.material }}</el-tag>
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên Kho:</span>
+                        <span class="text-right break-words min-w-0">
+                          {{ row.warehouseName }}
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Khối lượng xuất:</span>
+                        <span class="text-right break-words min-w-0">
+                          <span class="font-bold text-rose-500 dark:text-rose-400">-{{ formatNumber(row.exportWeight) }} kg</span>
+                        </span>
+                      </div>
+                      <div class="flex justify-between gap-3">
+                        <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Khối lượng còn lại:</span>
+                        <span class="text-right break-words min-w-0">
+                          <span class="font-bold text-blue-600 dark:text-blue-400">{{ formatNumber(row.remainingWeight) }} kg</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+                  <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+                </div>
+              </div>
 
               <div class="mt-auto shrink-0 p-4 flex flex-wrap justify-end gap-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
                 <el-pagination
@@ -389,84 +589,258 @@
             <div v-if="lookupSearched" class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0 border border-gray-100 dark:border-gray-700">
               <!-- Purchase Lookup Table -->
               <template v-if="lookupFilters.category === 'purchase'">
-                <el-table v-loading="lookupLoading" :data="paginatedLookupPurchases" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handleLookupSortChange">
-                  <el-table-column label="STT" width="60" align="center" fixed>
+                <!-- ══════════════════════════════════════════════════════════════
+                     MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+                     Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+                     Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+                     cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+                     dùng vuốt mà màn hình không nhúc nhích.
+
+                     Đã bỏ 0 cột ghim ở bảng này.
+                     ══════════════════════════════════════════════════════════ -->
+                <el-table v-if="hienBang" v-loading="lookupLoading" :data="paginatedLookupPurchases" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handleLookupSortChange">
+                  <el-table-column label="STT" width="52" align="center">
                     <template #default="{ $index }">
                       <span class="font-mono text-xs text-gray-500">{{ (lookupPage - 1) * lookupPageSize + $index + 1 }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Ngày giao dịch" prop="date" width="150" sortable="custom" fixed>
+                  <el-table-column label="Ngày giao dịch" prop="date" width="108" sortable="custom">
                     <template #default="scope">
                       <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">{{ formatDate(scope.row.date) }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Tên khách hàng" prop="customerName" min-width="300" show-overflow-tooltip>
+                  <el-table-column label="Tên khách hàng" prop="customerName" min-width="216" show-overflow-tooltip>
                     <template #default="scope">
                       <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">{{ scope.row.customerName }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Nguyên liệu" prop="material" width="130">
+                  <el-table-column label="Nguyên liệu" prop="material" width="94">
                     <template #default="scope">
                       <el-tag type="warning" effect="light" round size="small">{{ scope.row.material }}</el-tag>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Tên Kho" prop="warehouseName" width="180" show-overflow-tooltip />
-                  <el-table-column label="Số chuyến" prop="trips" width="110" align="right" />
-                  <el-table-column label="Khối lượng" width="130" align="right">
+                  <el-table-column label="Tên Kho" prop="warehouseName" width="130" show-overflow-tooltip />
+                  <el-table-column label="Số chuyến" prop="trips" width="79" align="right" />
+                  <el-table-column label="Khối lượng" width="94" align="right">
                     <template #default="scope">{{ formatNumber(scope.row.weight) }} kg</template>
                   </el-table-column>
-                  <el-table-column label="Đơn giá" width="130" align="right">
+                  <el-table-column label="Đơn giá" width="94" align="right">
                     <template #default="scope">{{ formatCurrency(scope.row.unitPrice) }}</template>
                   </el-table-column>
-                  <el-table-column label="Thành tiền" width="150" align="right">
+                  <el-table-column label="Thành tiền" width="108" align="right">
                     <template #default="scope">
-                      <span class="font-bold text-green-500">{{ formatCurrency(scope.row.totalAmount) }}</span>
+                      <span class="font-bold" :class="mauSo(scope.row.totalAmount)">{{ formatCurrency(scope.row.totalAmount) }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Ứng tiền" width="150" align="right">
+                  <el-table-column label="Ứng tiền" width="108" align="right">
                     <template #default="scope">
-                      <span class="font-medium text-orange-500">{{ formatCurrency(scope.row.advanceAmount) }}</span>
+                      <span class="font-medium" :class="mauSo(scope.row.advanceAmount)">{{ formatCurrency(scope.row.advanceAmount) }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Công nợ" width="150" align="right">
+                  <el-table-column label="Công nợ" width="108" align="right">
                     <template #default="scope">
-                      <span class="font-bold">{{ formatCurrency(scope.row.debt) }}</span>
+                      <span class="font-bold" :class="mauSo(scope.row.debt)">{{ formatCurrency(scope.row.debt) }}</span>
                     </template>
                   </el-table-column>
                 </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+                     MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+                     🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+                     Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+                     ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+                     màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+                     đoạn mã.
+
+                     ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+                     bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+                     cùng một con số.
+                     ══════════════════════════════════════════════════════════ -->
+                <div v-if="hienThe" v-loading="lookupLoading" class="flex-1 min-h-0 overflow-y-auto p-3">
+                  <div v-if="paginatedLookupPurchases.length > 0" class="grid grid-cols-1 gap-4">
+                    <div
+                      v-for="(row, i) in paginatedLookupPurchases"
+                      :key="row.id || row.contract_id || i"
+                      class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+                    >
+                      <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                        <div class="min-w-0 break-words">
+                          <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">{{ formatDate(row.date) }}</span>
+                        </div>
+                      </div>
+                      <div class="space-y-2 text-sm text-left">
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên khách hàng:</span>
+                          <span class="text-right break-words min-w-0">
+                            <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">{{ row.customerName }}</span>
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nguyên liệu:</span>
+                          <span class="text-right break-words min-w-0">
+                            <el-tag type="warning" effect="light" round size="small">{{ row.material }}</el-tag>
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên Kho:</span>
+                          <span class="text-right break-words min-w-0">
+                            {{ row.warehouseName }}
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số chuyến:</span>
+                          <span class="text-right break-words min-w-0">
+                            {{ row.trips }}
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Khối lượng:</span>
+                          <span class="text-right break-words min-w-0">
+                            {{ formatNumber(row.weight) }} kg
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Đơn giá:</span>
+                          <span class="text-right break-words min-w-0">
+                            {{ formatCurrency(row.unitPrice) }}
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Thành tiền:</span>
+                          <span class="text-right break-words min-w-0">
+                            <span class="font-bold" :class="mauSo(row.totalAmount)">{{ formatCurrency(row.totalAmount) }}</span>
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ứng tiền:</span>
+                          <span class="text-right break-words min-w-0">
+                            <span class="font-medium" :class="mauSo(row.advanceAmount)">{{ formatCurrency(row.advanceAmount) }}</span>
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Công nợ:</span>
+                          <span class="text-right break-words min-w-0">
+                            <span class="font-bold" :class="mauSo(row.debt)">{{ formatCurrency(row.debt) }}</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+                    <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+                  </div>
+                </div>
               </template>
 
               <!-- Export Lookup Table -->
               <template v-if="lookupFilters.category === 'export'">
-                <el-table v-loading="lookupLoading" :data="paginatedLookupExports" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handleLookupSortChange">
-                  <el-table-column label="STT" width="60" align="center" fixed>
+                <!-- ══════════════════════════════════════════════════════════════
+                     MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+                     Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+                     Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+                     cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+                     dùng vuốt mà màn hình không nhúc nhích.
+
+                     Đã bỏ 0 cột ghim ở bảng này.
+                     ══════════════════════════════════════════════════════════ -->
+                <el-table v-if="hienBang" v-loading="lookupLoading" :data="paginatedLookupExports" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handleLookupSortChange">
+                  <el-table-column label="STT" width="52" align="center">
                     <template #default="{ $index }">
                       <span class="font-mono text-xs text-gray-500">{{ (lookupPage - 1) * lookupPageSize + $index + 1 }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Thời gian" prop="date" width="140" sortable="custom" fixed>
+                  <el-table-column label="Thời gian" prop="date" width="101" sortable="custom">
                     <template #default="scope">
                       <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">{{ formatDate(scope.row.date) }}</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Người thực hiện" prop="executor" min-width="180" show-overflow-tooltip />
-                  <el-table-column label="Loại nguyên liệu" prop="material" width="150">
+                  <el-table-column label="Người thực hiện" prop="executor" min-width="130" show-overflow-tooltip />
+                  <el-table-column label="Loại nguyên liệu" prop="material" width="108">
                     <template #default="scope">
                       <el-tag type="warning" effect="light" round size="small">{{ scope.row.material }}</el-tag>
                     </template>
                   </el-table-column>
-                  <el-table-column label="Tên Kho" prop="warehouseName" width="200" show-overflow-tooltip />
-                  <el-table-column label="Khối lượng xuất" width="160" align="right">
+                  <el-table-column label="Tên Kho" prop="warehouseName" width="144" show-overflow-tooltip />
+                  <el-table-column label="Khối lượng xuất" width="115" align="right">
                     <template #default="scope">
                       <span class="font-bold text-rose-500">-{{ formatNumber(scope.row.exportWeight) }} kg</span>
                     </template>
                   </el-table-column>
-                  <el-table-column label="KL còn lại" width="160" align="right">
+                  <el-table-column label="KL còn lại" width="115" align="right">
                     <template #default="scope">
                       <span class="font-bold text-blue-600 dark:text-blue-400">{{ formatNumber(scope.row.remainingWeight) }} kg</span>
                     </template>
                   </el-table-column>
                 </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+                     MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+                     🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+                     Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+                     ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+                     màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+                     đoạn mã.
+
+                     ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+                     bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+                     cùng một con số.
+                     ══════════════════════════════════════════════════════════ -->
+                <div v-if="hienThe" v-loading="lookupLoading" class="flex-1 min-h-0 overflow-y-auto p-3">
+                  <div v-if="paginatedLookupExports.length > 0" class="grid grid-cols-1 gap-4">
+                    <div
+                      v-for="(row, i) in paginatedLookupExports"
+                      :key="row.id || row.contract_id || i"
+                      class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+                    >
+                      <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                        <div class="min-w-0 break-words">
+                          <span class="text-xs font-semibold text-gray-600 dark:text-gray-400">{{ formatDate(row.date) }}</span>
+                        </div>
+                      </div>
+                      <div class="space-y-2 text-sm text-left">
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Người thực hiện:</span>
+                          <span class="text-right break-words min-w-0">
+                            {{ row.executor }}
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Loại nguyên liệu:</span>
+                          <span class="text-right break-words min-w-0">
+                            <el-tag type="warning" effect="light" round size="small">{{ row.material }}</el-tag>
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên Kho:</span>
+                          <span class="text-right break-words min-w-0">
+                            {{ row.warehouseName }}
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Khối lượng xuất:</span>
+                          <span class="text-right break-words min-w-0">
+                            <span class="font-bold text-rose-500">-{{ formatNumber(row.exportWeight) }} kg</span>
+                          </span>
+                        </div>
+                        <div class="flex justify-between gap-3">
+                          <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">KL còn lại:</span>
+                          <span class="text-right break-words min-w-0">
+                            <span class="font-bold text-blue-600 dark:text-blue-400">{{ formatNumber(row.remainingWeight) }} kg</span>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+                    <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+                  </div>
+                </div>
               </template>
 
               <!-- Pagination -->
@@ -1090,6 +1464,7 @@
 <script setup lang="ts">
 import { dinhDangSo, dinhDangSoLe } from '@/utils/dinhDangSo'
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { mauSo } from '@/utils/mauSo'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
 import {
@@ -1101,6 +1476,11 @@ import {
   Refresh
 } from '@element-plus/icons-vue'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 // Types
 interface Warehouse {

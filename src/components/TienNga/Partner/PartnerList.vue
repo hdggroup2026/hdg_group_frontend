@@ -30,8 +30,13 @@
       </div>
       <div class="flex items-center gap-2">
         <el-button :icon="Refresh" circle @click="fetchPartners" :loading="loading" />
+        <!-- ══ MỤC 391 — NÚT NÀY DỰA VÀO Ô TICK CỦA BẢNG ══
+             Màn hẹp không dựng bảng nên không có ô tick, bấm vào sẽ
+             không làm gì. `hidden md:inline-flex` giấu nó đi; trên
+             điện thoại việc chi trả nằm trong menu ba chấm của thẻ. -->
         <el-button 
           type="success" 
+          class="hidden md:inline-flex"
           :disabled="selectedRows.length !== 1" 
           @click="handlePayDebtClick"
         >
@@ -42,44 +47,64 @@
     </div>
 
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-      <el-table :data="tableData" style="width: 100%" class="flex-1" height="100%" v-loading="loading" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
-        <!-- Fixed Columns -->
-        <el-table-column type="selection" width="55" fixed />
-        <el-table-column label="STT" width="60" align="center" fixed>
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 391 (29/08/2026) — BẢNG CHỈ HIỆN TỪ 768px TRỞ LÊN
+
+           🔴 s68 chụp màn 29/08: cột "Tên Đối tác" bị cắt còn `NH`,
+           `Ổ P`, vuốt ngang không ăn. Nguyên nhân giống hệt MỤC 365 ở
+           màn Hụi: ô tick, STT và Mã Đối tác khai `fixed` bên trái,
+           Thao tác khai `fixed="right"`. Màn 390px trừ đệm còn ~350px,
+           riêng bốn cột ghim đã chiếm hết. Phần giữa không còn chỗ để
+           cuộn, nên vuốt không có tác dụng.
+
+           ⚠️ MỤC 386 đã thu gọn bề rộng các cột này rồi, nhưng thu gọn
+           KHÔNG sửa được lỗi — cột ghim vẫn ghim. Bề rộng là chuyện dễ
+           nhìn, `fixed` mới là nguyên nhân.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang" :data="tableData" style="width: 100%" class="flex-1" height="100%" v-loading="loading" @selection-change="handleSelectionChange" @sort-change="handleSortChange">
+        <!-- ══ MỤC 391 — ĐÃ BỎ HẾT `fixed` ══
+             ⚠️ Cột "Mã Đối tác" nới riêng 94 -> 120: nó có `sortable`,
+             mũi tên sắp xếp ăn thêm ~24px mà công thức MỤC 386 không
+             biết. Cột "Số điện thoại" nới 115 -> 125, tiêu đề 13 ký
+             tự. Nới ĐÚNG HAI CỘT ĐÓ, không nới cả bảng. -->
+        <el-table-column type="selection" width="55" />
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="code" label="Mã Đối tác" width="130" sortable="custom" fixed />
+        <el-table-column prop="code" label="Mã Đối tác" width="120" sortable="custom" />
 
-        <el-table-column prop="name" label="Tên Đối tác" min-width="380" show-overflow-tooltip>
+        <el-table-column prop="name" label="Tên Đối tác" min-width="274" show-overflow-tooltip>
           <template #default="scope">
             <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="debt" label="Công nợ" width="160" align="right">
+        <el-table-column prop="debt" label="Công nợ" width="115" align="right">
           <template #default="scope">
-            <span 
-              class="font-bold" 
-              :class="scope.row.debt >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'"
-            >
+            <!-- MỤC 392 — bỏ bảng màu riêng của màn này.
+                 Cũ: `debt >= 0` -> xanh LÁ. Quy ước ở
+                 `src/utils/mauSo.ts` là dương -> xanh BIỂN, và số 0 ->
+                 XÁM chứ không xanh (0 ở đây thường nghĩa là chưa nhập
+                 liệu, không phải "đã trả xong"). -->
+            <span class="font-bold" :class="mauSo(scope.row.debt)">
               {{ formatCurrency(scope.row.debt) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="username" label="Username" width="150">
+        <el-table-column prop="username" label="Username" width="108">
           <template #default="scope">
             <span class="text-blue-500">{{ scope.row.username }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="telegramGroup" label="Nhóm Telegram" min-width="230" />
-        <el-table-column prop="bankName" label="Ngân hàng" min-width="220" show-overflow-tooltip />
-        <el-table-column prop="bankAccount" label="Số tài khoản" width="160" />
-        <el-table-column prop="maSoThue" label="Mã số thuế" width="160" />
-        <el-table-column prop="diaChi" label="Địa chỉ" width="220" />
-        <el-table-column prop="soDienThoai" label="Số điện thoại" width="160" />
-        <el-table-column prop="zalo" label="Zalo" width="160" />
-        <el-table-column prop="status" label="Trạng thái" width="140" align="center">
+        <el-table-column prop="telegramGroup" label="Nhóm Telegram" min-width="166" />
+        <el-table-column prop="bankName" label="Ngân hàng" min-width="158" show-overflow-tooltip />
+        <el-table-column prop="bankAccount" label="Số tài khoản" width="115" />
+        <el-table-column prop="maSoThue" label="Mã số thuế" width="115" />
+        <el-table-column prop="diaChi" label="Địa chỉ" width="158" />
+        <el-table-column prop="soDienThoai" label="Số điện thoại" width="125" />
+        <el-table-column prop="zalo" label="Zalo" width="115" />
+        <el-table-column prop="status" label="Trạng thái" width="101" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.status === 'Hoạt động' ? 'success' : 'danger'" effect="light" round>
               {{ scope.row.status }}
@@ -88,7 +113,7 @@
         </el-table-column>
 
         <!-- Fixed Right Operations -->
-        <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+        <el-table-column label="Thao tác" width="60" align="center">
           <template #default="scope">
             <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, scope.row)">
               <el-button link type="info" class="p-1">
@@ -106,14 +131,110 @@
         </el-table-column>
       </el-table>
 
-      <!-- Phân trang -->
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 391 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+           Mẫu lấy đúng từ `src/components/Rosca/List.vue` (MỤC 365), là
+           màn s68 chỉ đích danh: *"Fix lại giống bên hụi luôn."*
+           Thẻ hiện ĐỦ 13 trường — bảng bị cắt vì hết chiều ngang, thẻ
+           trôi xuống dưới nên không có giới hạn đó.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="tableData.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="doiTac in tableData"
+            :key="doiTac.id"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0">
+                <div class="font-mono font-bold text-blue-600 dark:text-blue-400 text-base select-all">{{ doiTac.code }}</div>
+                <div class="mt-1 font-semibold text-gray-800 dark:text-gray-100 break-words">{{ doiTac.name }}</div>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <el-tag :type="doiTac.status === 'Hoạt động' ? 'success' : 'danger'" effect="light" size="small" round>
+                  {{ doiTac.status }}
+                </el-tag>
+                <!-- ══ MỤC 391 — MENU THẺ CÓ THÊM "CHI TRẢ CÔNG NỢ" ══
+                     Nút xanh lá trên thanh công cụ đã bị giấu ở màn hẹp
+                     vì nó cần ô tick của bảng. Không đưa việc đó vào
+                     đây thì trên điện thoại KHÔNG CÒN đường nào chi trả
+                     công nợ — mất chức năng chứ không phải đổi bố cục. -->
+                <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, doiTac)">
+                  <el-button link type="info" class="p-1">
+                    <el-icon class="text-xl"><MoreFilled /></el-icon>
+                  </el-button>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                      <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
+                      <el-dropdown-item command="paydebt" divided>Chi trả công nợ</el-dropdown-item>
+                      <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+            </div>
+
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Công nợ:</span>
+                <span class="font-bold font-mono text-right" :class="mauSo(doiTac.debt)">{{ formatCurrency(doiTac.debt) }} VNĐ</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Username:</span>
+                <span class="text-blue-500 text-right break-all">{{ doiTac.username }}</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nhóm Telegram:</span>
+                <span class="text-gray-700 dark:text-gray-300 text-right break-words">{{ doiTac.telegramGroup }}</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số điện thoại:</span>
+                <span class="text-gray-700 dark:text-gray-300 font-mono text-right">{{ doiTac.soDienThoai }}</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Zalo:</span>
+                <span class="text-gray-700 dark:text-gray-300 font-mono text-right">{{ doiTac.zalo }}</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Địa chỉ:</span>
+                <span class="text-gray-700 dark:text-gray-300 text-right break-words">{{ doiTac.diaChi }}</span>
+              </div>
+
+              <div class="pt-2 mt-1 border-t border-dashed border-gray-200 dark:border-gray-700/60 space-y-2">
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ngân hàng:</span>
+                  <span class="text-gray-700 dark:text-gray-300 text-right break-words">{{ doiTac.bankName }}</span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số tài khoản:</span>
+                  <span class="text-gray-700 dark:text-gray-300 font-mono text-right break-all">{{ doiTac.bankAccount }}</span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Mã số thuế:</span>
+                  <span class="text-gray-700 dark:text-gray-300 font-mono text-right break-all">{{ doiTac.maSoThue }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có đối tác nào khớp bộ lọc</p>
+        </div>
+      </div>
+
+      <!-- Phân trang — DÙNG CHUNG cho cả bảng lẫn thẻ. Cố tình KHÔNG
+           nhân đôi khối này: hai khối phân trang trên cùng một trang là
+           hai chỗ phải sửa mỗi lần đổi, và chúng sẽ lệch nhau. -->
       <div class="mt-auto shrink-0 p-4 flex flex-wrap justify-end gap-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :page-sizes="[10, 20, 50, 100]"
           :background="true"
-          layout="total, sizes, prev, pager, next, jumper"
+          :small="laManHep"
+          :layout="laManHep ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper'"
           :total="total"
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
@@ -410,7 +531,7 @@
               <span class="text-gray-400 dark:text-gray-500">|</span>
               <span 
                 class="font-bold"
-                :class="detailData.debt >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'"
+                :class="mauSo(detailData.debt)"
               >
                 Công nợ: {{ formatCurrency(detailData.debt) }} VNĐ
               </span>
@@ -499,7 +620,7 @@
               <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Công nợ</div>
               <div 
                 class="text-sm font-bold"
-                :class="detailData.debt >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500 dark:text-red-400'"
+                :class="mauSo(detailData.debt)"
               >
                 {{ formatCurrency(detailData.debt) }} VNĐ
               </div>
@@ -765,10 +886,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, onMounted, watch } from 'vue'
+import { ref, computed, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
 import { MoreFilled, Search, Refresh } from '@element-plus/icons-vue'
 import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 392 — dùng hàm chung, không viết hàm thứ hai cho cùng một việc.
+import { dinhDangSo } from '@/utils/dinhDangSo'
+import { mauSo } from '@/utils/mauSo'
 
 const selectedStatus = ref('all')
 const searchQuery = ref('')
@@ -955,6 +1079,11 @@ const editForm = reactive({
 })
 
 const handleCommand = (command: string, row: any) => {
+  // MỤC 391 — lối vào chi trả công nợ dành cho thẻ ở màn hẹp.
+  if (command === 'paydebt') {
+    handlePayDebtClick(row)
+    return
+  }
   if (command === 'edit') {
     editingRow.value = row
     editForm.code = row.code
@@ -1077,9 +1206,45 @@ const parseFloatInput = (val: string | number | null | undefined) => {
   return parseFloat(clean) || 0
 }
 
-const handlePayDebtClick = () => {
-  if (selectedRows.value.length === 1) {
-    const row = selectedRows.value[0]
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 391 (29/08/2026) — ĐIỆN THOẠI DÙNG THẺ, MÁY TÍNH DÙNG BẢNG
+//
+// ⚠️ Ngưỡng 768px trùng `md:` của Tailwind mà cả dự án đang dùng. Đặt
+// một con số khác là có hai ngưỡng cho cùng một việc, và chúng sẽ lệch.
+const NGUONG_MAN_HEP = 768
+
+const laManHep = ref(false)
+
+const doBeRong = () => {
+  laManHep.value = typeof window !== 'undefined'
+    && window.innerWidth < NGUONG_MAN_HEP
+}
+
+// Không bao giờ hiện cả hai, không bao giờ hiện rỗng: hai giá trị này
+// luôn ngược nhau vì cùng đọc một biến.
+const hienBang = computed(() => !laManHep.value)
+const hienThe = computed(() => laManHep.value)
+
+// ⚠️ Phải gỡ ở `onBeforeUnmount`. Không gỡ thì mỗi lần vào lại màn này
+// là chồng thêm một người nghe `resize`, và không có gì báo lỗi.
+onMounted(() => {
+  doBeRong()
+  window.addEventListener('resize', doBeRong)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', doBeRong)
+})
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 391 — NHẬN THÊM THAM SỐ `row`
+//
+// Bảng gọi không tham số, lấy dòng từ ô tick như cũ. Thẻ trên điện
+// thoại KHÔNG có ô tick nên truyền thẳng dòng vào. Một hàm, hai đường
+// gọi — thay vì chép đôi phần điền form rồi để hai bản lệch nhau.
+const handlePayDebtClick = (rowTuThe?: any) => {
+  const row = rowTuThe || (selectedRows.value.length === 1 ? selectedRows.value[0] : null)
+  if (row) {
     selectedRowForPayDebt.value = row
     
     payDebtForm.amount = ''
@@ -1235,9 +1400,16 @@ const submitPayDebtForm = async () => {
   })
 }
 
-const formatCurrency = (value: number) => {
-  return new Intl.NumberFormat('vi-VN').format(value)
-}
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 392 (29/08/2026) — GỌI HÀM CHUNG THAY VÌ TỰ ĐỊNH DẠNG
+//
+// Bản cũ `new Intl.NumberFormat('vi-VN').format(value)` KHÔNG cắt phần
+// lẻ, nên cùng một số tiền hiện ở màn Đối tác khác với màn Thu mua Mủ —
+// màn kia đã đi qua `dinhDangSo` từ MỤC 355.
+//
+// Giữ nguyên TÊN `formatCurrency` để không phải sửa 6 chỗ gọi trong các
+// hộp thoại — đổi tên chỉ làm bản vá to ra mà không thêm giá trị nào.
+const formatCurrency = (value: number) => dinhDangSo(value)
 
 const generateMockData = () => {
   const data = []

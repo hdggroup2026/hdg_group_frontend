@@ -69,4 +69,57 @@ export const trangChuService = {
 
     return await response.json()
   },
+
+  /**
+   * MỤC 394 (29/08/2026) — Đánh dấu / bỏ đánh dấu "đã kiểm tra" cho các
+   * dòng đăng nhập thất bại của một tên.
+   *
+   * 🔴 CHỈ ADMIN/OWNER. Máy chủ trả 403 cho tài khoản thường — không
+   * phải frontend tự ẩn ô tick rồi coi là xong. Ai mở công cụ trình
+   * duyệt vẫn gọi được, nên cửa thật nằm ở máy chủ.
+   *
+   * ⚠️ Đánh dấu tác động lên MỌI dòng chưa kiểm của tên đó, không phải
+   * một dòng. Đó là chủ ý: ô tick nghĩa là "tôi đã xem tới đây". Lần
+   * thất bại MỚI sau đó không mang dấu nên tên đó hiện lại ngay.
+   *
+   * Nhóm không có tên hiện trên màn là `(trống)` — gửi đúng chuỗi đó.
+   */
+  async danhDauDaKiem(tenGoVao: string): Promise<any> {
+    return await goiNhatKy('danh-dau-da-kiem', tenGoVao)
+  },
+
+  /**
+   * 🔴 PHẢI CÓ ĐƯỜNG QUAY LẠI. Tick nhầm mà không gỡ được thì dòng cảnh
+   * báo bảo mật biến mất vĩnh viễn và không ai biết.
+   */
+  async boDanhDau(tenGoVao: string): Promise<any> {
+    return await goiNhatKy('bo-danh-dau', tenGoVao)
+  },
+}
+
+/**
+ * Phần chung của hai lời gọi trên. Tách ra để không có hai bản xử lý lỗi
+ * cho cùng một việc — hai bản thì sớm muộn một bản quên đọc `detail`.
+ */
+async function goiNhatKy(duong: string, tenGoVao: string): Promise<any> {
+  const baseUrl = await getApiUrl()
+  const response = await fetch(`${baseUrl}/home/nhat-ky/${duong}`, {
+    method: 'POST',
+    headers: getApiHeaders(),
+    body: JSON.stringify({ ten_go_vao: tenGoVao }),
+  })
+
+  if (!response.ok) {
+    const chiTiet = await response.json().catch(() => ({}))
+    // ⚠️ Giữ nguyên câu máy chủ trả về. Nuốt nó rồi thay bằng "có lỗi
+    // xảy ra" là bỏ đúng thông tin cần để biết hỏng ở đâu — máy chủ đã
+    // phân biệt sẵn 403 (không đủ quyền), 400 (thiếu tên), 500 (ghi hỏng).
+    const loi: any = new Error(
+      chiTiet?.detail || 'Không ghi được dấu đã kiểm.'
+    )
+    loi.status = response.status
+    throw loi
+  }
+
+  return await response.json()
 }

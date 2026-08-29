@@ -58,8 +58,7 @@
 
       <!-- Lỗi -->
       <div v-if="loi"
-           class="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20
-                  dark:border-amber-800 p-4 text-sm text-amber-800 dark:text-amber-200 mb-4">
+           class="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-4 text-sm text-amber-800 dark:text-amber-200 mb-4">
         {{ loi }}
       </div>
 
@@ -89,13 +88,11 @@
 
       <!-- Bảng ĐĂNG NHẬP -->
       <div v-if="the === 'dangnhap' && !loi" v-loading="dangTai"
-           class="rounded-xl border border-gray-200 dark:border-gray-700
-                  bg-white dark:bg-gray-800 overflow-hidden">
+           class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-sm min-w-[900px]">
             <thead>
-              <tr class="text-xs text-gray-500 dark:text-gray-400
-                         border-b border-gray-200 dark:border-gray-700">
+              <tr class="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                 <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Lúc</th>
                 <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Tên gõ vào</th>
                 <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Kết quả</th>
@@ -137,13 +134,11 @@
 
       <!-- Bảng THAY ĐỔI -->
       <div v-if="the === 'thaydoi' && !loi" v-loading="dangTai"
-           class="rounded-xl border border-gray-200 dark:border-gray-700
-                  bg-white dark:bg-gray-800 overflow-hidden">
+           class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden">
         <div class="overflow-x-auto">
           <table class="w-full text-sm min-w-[900px]">
             <thead>
-              <tr class="text-xs text-gray-500 dark:text-gray-400
-                         border-b border-gray-200 dark:border-gray-700">
+              <tr class="text-xs text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
                 <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Lúc</th>
                 <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Ai làm</th>
                 <th class="text-left font-medium px-3 py-2 whitespace-nowrap">Kiểu</th>

@@ -44,8 +44,7 @@
             `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
             `pl-4` để chữ không dính vạch.
           -->
-          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
-                      dark:divide-gray-600 [&>*+*]:pl-4">
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200 dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
               <div class="text-sm text-gray-500 dark:text-gray-400">Mủ nước</div>
               <div class="text-2xl font-bold text-gray-800 dark:text-gray-100 leading-tight">{{ formatNumber(totalMuNuoc) }} <span class="text-sm font-normal text-gray-400">Kg</span></div>
@@ -81,8 +80,7 @@
             `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
             `pl-4` để chữ không dính vạch.
           -->
-          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
-                      dark:divide-gray-600 [&>*+*]:pl-4">
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200 dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
               <div class="text-sm text-gray-500 dark:text-gray-400">Tổng nhập kho</div>
               <div class="text-2xl font-bold text-gray-800 dark:text-gray-100 leading-tight">{{ formatNumber(totalImportQty) }} <span class="text-sm font-normal text-gray-400">Kg</span></div>
@@ -127,8 +125,7 @@
             `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
             `pl-4` để chữ không dính vạch.
           -->
-          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
-                      dark:divide-gray-600 [&>*+*]:pl-4">
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200 dark:divide-gray-600 [&>*+*]:pl-4">
               <div>
                 <div class="text-xs text-gray-400 dark:text-gray-500">Nhập</div>
                 <div class="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">{{ formatNumber(partnerMuNuocImport) }} <span class="text-xs font-normal text-gray-400">Kg</span></div>
@@ -150,8 +147,7 @@
             `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
             `pl-4` để chữ không dính vạch.
           -->
-          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
-                      dark:divide-gray-600 [&>*+*]:pl-4">
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200 dark:divide-gray-600 [&>*+*]:pl-4">
               <div>
                 <div class="text-xs text-gray-400 dark:text-gray-500">Nhập</div>
                 <div class="text-lg font-bold text-gray-800 dark:text-gray-100 leading-tight">{{ formatNumber(partnerProductImport) }} <span class="text-xs font-normal text-gray-400">Kg</span></div>
@@ -185,8 +181,7 @@
             `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
             `pl-4` để chữ không dính vạch.
           het ghi chu]
-          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
-                      dark:divide-gray-600 [&>*+*]:pl-4">
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200 dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
               <div class="text-sm text-gray-500 dark:text-gray-400">Tổng thu</div>
               <div class="text-xl font-bold text-green-500 leading-tight">850,000,000 <span class="text-sm font-normal text-green-500/70">VNĐ</span></div>
@@ -230,8 +225,7 @@
             `divide-x` kẻ vạch dọc giữa hai cột; cột phải lùi vào bằng
             `pl-4` để chữ không dính vạch.
           het ghi chu]
-          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200
-                      dark:divide-gray-600 [&>*+*]:pl-4">
+          <div class="grid grid-cols-2 gap-4 divide-x divide-gray-200 dark:divide-gray-600 [&>*+*]:pl-4">
             <div>
               <div class="text-sm text-gray-500 dark:text-gray-400">Mủ nước</div>
               <div class="text-2xl font-bold text-gray-800 dark:text-gray-100 leading-tight">18,300 <span class="text-sm font-normal text-gray-400">Kg</span></div>

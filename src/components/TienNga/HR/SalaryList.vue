@@ -51,94 +51,104 @@
 
     <!-- Table -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-      <el-table v-loading="loading" :data="paginatedData" :empty-text="tableEmptyText" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+           Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+           Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+           cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+           dùng vuốt mà màn hình không nhúc nhích.
+
+           Đã bỏ 0 cột ghim ở bảng này.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang" v-loading="loading" :data="paginatedData" :empty-text="tableEmptyText" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
         <!-- STT Column -->
-        <el-table-column label="STT" width="60" align="center" fixed>
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="employeeCode" label="Mã NV" width="120" sortable="custom" fixed />
-        <el-table-column prop="employeeName" label="Tên nhân viên" width="200" fixed show-overflow-tooltip />
-        <el-table-column prop="penaltyRate" label="Tỉ lệ phạt" width="120" align="center">
+        <el-table-column prop="employeeCode" label="Mã NV" width="86" sortable="custom" />
+        <el-table-column prop="employeeName" label="Tên nhân viên" width="144" show-overflow-tooltip />
+        <el-table-column prop="penaltyRate" label="Tỉ lệ phạt" width="86" align="center">
           <template #default="scope">
             <span :class="scope.row.penaltyRate > 0 ? 'text-red-500 font-semibold' : 'text-gray-400'">
               {{ scope.row.penaltyRate }}%
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="year" label="Năm" width="80" align="center" />
-        <el-table-column prop="month" label="Tháng" width="80" align="center" />
-        <el-table-column prop="paidLeave" label="Nghỉ có phép" width="130" align="center">
+        <el-table-column prop="year" label="Năm" width="70" align="center" />
+        <el-table-column prop="month" label="Tháng" width="70" align="center" />
+        <el-table-column prop="paidLeave" label="Nghỉ có phép" width="94" align="center">
           <template #default="scope">
             <span :class="scope.row.paidLeave > 0 ? 'text-blue-500 font-medium' : 'text-gray-400'">
               {{ scope.row.paidLeave }} ngày
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="unpaidLeave" label="Nghỉ không phép" width="150" align="center">
+        <el-table-column prop="unpaidLeave" label="Nghỉ không phép" width="108" align="center">
           <template #default="scope">
             <span :class="scope.row.unpaidLeave > 0 ? 'text-red-500 font-semibold' : 'text-gray-400'">
               {{ scope.row.unpaidLeave }} ngày
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Lương cơ bản" width="150" align="right">
+        <el-table-column label="Lương cơ bản" width="108" align="right">
           <template #default="scope">
-            <span class="font-medium text-gray-700 dark:text-gray-200">{{ formatCurrency(scope.row.baseSalary) }}</span>
+            <span class="font-medium" :class="mauSo(scope.row.baseSalary)">{{ formatCurrency(scope.row.baseSalary) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Lương tăng ca" width="150" align="right">
+        <el-table-column label="Lương tăng ca" width="108" align="right">
           <template #default="scope">
             <span :class="scope.row.overtimeSalary > 0 ? 'text-green-500 font-medium' : 'text-gray-400'">
               {{ formatCurrency(scope.row.overtimeSalary) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Phụ cấp ăn trưa" width="160" align="right">
+        <el-table-column label="Phụ cấp ăn trưa" width="115" align="right">
           <template #default="scope">
             <span :class="scope.row.lunchAllowance > 0 ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-400'">
               {{ formatCurrency(scope.row.lunchAllowance) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Phụ cấp khác" width="150" align="right">
+        <el-table-column label="Phụ cấp khác" width="108" align="right">
           <template #default="scope">
             <span :class="scope.row.otherAllowance > 0 ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-400'">
               {{ formatCurrency(scope.row.otherAllowance) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Thưởng năng suất" width="170" align="right">
+        <el-table-column label="Thưởng năng suất" width="122" align="right">
           <template #default="scope">
             <span :class="scope.row.productivityBonus > 0 ? 'text-amber-500 font-bold' : 'text-gray-400'">
               {{ formatCurrency(scope.row.productivityBonus) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="BHXH" width="140" align="right">
+        <el-table-column label="BHXH" width="101" align="right">
           <template #default="scope">
             <span :class="scope.row.socialInsurance > 0 ? 'text-orange-500 font-medium' : 'text-gray-400'">
               {{ scope.row.socialInsurance > 0 ? '-' + formatCurrency(scope.row.socialInsurance) : formatCurrency(0) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Phạt đi trễ" width="140" align="right">
+        <el-table-column label="Phạt đi trễ" width="101" align="right">
           <template #default="scope">
             <span :class="scope.row.latePenalty > 0 ? 'text-red-500 font-semibold' : 'text-gray-400'">
               {{ scope.row.latePenalty > 0 ? '-' + formatCurrency(scope.row.latePenalty) : formatCurrency(0) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column prop="note" label="Ghi chú" width="200" show-overflow-tooltip />
-        <el-table-column label="Lương thực nhận" width="170" align="right" fixed="right">
+        <el-table-column prop="note" label="Ghi chú" width="144" show-overflow-tooltip />
+        <el-table-column label="Lương thực nhận" width="122" align="right">
           <template #default="scope">
             <span class="text-emerald-600 dark:text-emerald-400 font-bold text-base">
               {{ formatCurrency(scope.row.netSalary) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+        <el-table-column label="Thao tác" width="60" align="center">
           <template #default="scope">
             <el-dropdown trigger="click" @command="(cmd: string) => handleCommand(cmd, scope.row)">
               <el-button link type="info" class="p-1">
@@ -153,6 +163,163 @@
           </template>
         </el-table-column>
       </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+           Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+           ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+           màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+           đoạn mã.
+
+           ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+           bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+           cùng một con số.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="paginatedData.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="(row, i) in paginatedData"
+            :key="row.id || row.contract_id || i"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0 break-words">
+                {{ row.employeeCode }}
+              </div>
+              <div class="shrink-0">
+                <el-dropdown trigger="click" @command="(cmd: string) => handleCommand(cmd, row)">
+                              <el-button link type="info" class="p-1">
+                                <el-icon class="text-xl"><MoreFilled /></el-icon>
+                              </el-button>
+                              <template #dropdown>
+                                <el-dropdown-menu>
+                                  <el-dropdown-item command="delete" class="!text-red-500">Xóa</el-dropdown-item>
+                                </el-dropdown-menu>
+                              </template>
+                            </el-dropdown>
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên nhân viên:</span>
+                <span class="text-right break-words min-w-0">
+                  {{ row.employeeName }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tỉ lệ phạt:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.penaltyRate > 0 ? 'text-red-500 font-semibold' : 'text-gray-400'">
+                                {{ row.penaltyRate }}%
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Năm:</span>
+                <span class="text-right break-words min-w-0">
+                  {{ row.year }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tháng:</span>
+                <span class="text-right break-words min-w-0">
+                  {{ row.month }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nghỉ có phép:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.paidLeave > 0 ? 'text-blue-500 font-medium' : 'text-gray-400'">
+                                {{ row.paidLeave }} ngày
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nghỉ không phép:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.unpaidLeave > 0 ? 'text-red-500 font-semibold' : 'text-gray-400'">
+                                {{ row.unpaidLeave }} ngày
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Lương cơ bản:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-medium" :class="mauSo(row.baseSalary)">{{ formatCurrency(row.baseSalary) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Lương tăng ca:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.overtimeSalary > 0 ? 'text-green-500 font-medium' : 'text-gray-400'">
+                                {{ formatCurrency(row.overtimeSalary) }}
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Phụ cấp ăn trưa:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.lunchAllowance > 0 ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-400'">
+                                {{ formatCurrency(row.lunchAllowance) }}
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Phụ cấp khác:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.otherAllowance > 0 ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-400'">
+                                {{ formatCurrency(row.otherAllowance) }}
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Thưởng năng suất:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.productivityBonus > 0 ? 'text-amber-500 font-bold' : 'text-gray-400'">
+                                {{ formatCurrency(row.productivityBonus) }}
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">BHXH:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.socialInsurance > 0 ? 'text-orange-500 font-medium' : 'text-gray-400'">
+                                {{ row.socialInsurance > 0 ? '-' + formatCurrency(row.socialInsurance) : formatCurrency(0) }}
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Phạt đi trễ:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.latePenalty > 0 ? 'text-red-500 font-semibold' : 'text-gray-400'">
+                                {{ row.latePenalty > 0 ? '-' + formatCurrency(row.latePenalty) : formatCurrency(0) }}
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ghi chú:</span>
+                <span class="text-right break-words min-w-0">
+                  {{ row.note }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Lương thực nhận:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="text-emerald-600 dark:text-emerald-400 font-bold text-base">
+                                {{ formatCurrency(row.netSalary) }}
+                              </span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+        </div>
+      </div>
 
       <!-- Pagination -->
       <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -171,9 +338,15 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { mauSo } from '@/utils/mauSo'
 import { Search, MoreFilled } from '@element-plus/icons-vue'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import { employeeService } from '@/api/employeeService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 // Filters (bound to inputs)
 const filters = reactive({

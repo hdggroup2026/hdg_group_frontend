@@ -50,33 +50,43 @@
 
       <!-- Table Container -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0 border border-gray-100 dark:border-gray-700">
-        <el-table :data="tableData" style="width: 100%" class="flex-1" height="100%" v-loading="loading" @sort-change="handleSortChange">
+        <!-- ══════════════════════════════════════════════════════════════
+             MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+             Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+             Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+             cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+             dùng vuốt mà màn hình không nhúc nhích.
+
+             Đã bỏ 0 cột ghim ở bảng này.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table v-if="hienBang" :data="tableData" style="width: 100%" class="flex-1" height="100%" v-loading="loading" @sort-change="handleSortChange">
           <!-- Selection Column -->
-          <el-table-column type="selection" width="55" fixed />
+          <el-table-column type="selection" width="55" />
 
           <!-- STT Column -->
-          <el-table-column label="STT" width="60" align="center" fixed>
+          <el-table-column label="STT" width="52" align="center">
             <template #default="{ $index }">
               <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
             </template>
           </el-table-column>
 
           <!-- Mã Cổ đông -->
-          <el-table-column prop="shareholder_code" label="Mã Cổ đông" width="130" sortable="custom" fixed>
+          <el-table-column prop="shareholder_code" label="Mã Cổ đông" width="94" sortable="custom">
             <template #default="{ row }">
               <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.shareholder_code }}</span>
             </template>
           </el-table-column>
 
           <!-- Tên Cổ đông -->
-          <el-table-column prop="fullname" label="Tên Cổ đông" min-width="160" fixed>
+          <el-table-column prop="fullname" label="Tên Cổ đông" min-width="115">
             <template #default="{ row }">
               <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.fullname }}</span>
             </template>
           </el-table-column>
 
           <!-- Quỹ Liên kết -->
-          <el-table-column prop="investment_name" label="Quỹ liên kết" width="180">
+          <el-table-column prop="investment_name" label="Quỹ liên kết" width="130">
             <template #default="{ row }">
               <span v-if="row.investment_name" class="font-semibold text-gray-700 dark:text-gray-300">
                 {{ row.investment_name }}
@@ -86,7 +96,7 @@
           </el-table-column>
 
           <!-- Số tiền góp vốn -->
-          <el-table-column prop="investment_amount" label="Số tiền góp vốn" width="160" align="right">
+          <el-table-column prop="investment_amount" label="Số tiền góp vốn" width="115" align="right">
             <template #default="{ row }">
               <span v-if="row.investment_amount" class="font-bold text-emerald-600 dark:text-emerald-450">
                 {{ formatCurrency(row.investment_amount) }}
@@ -96,14 +106,14 @@
           </el-table-column>
 
           <!-- Ngày tham gia -->
-          <el-table-column prop="start_date" label="Ngày bắt đầu" width="120" align="center">
+          <el-table-column prop="start_date" label="Ngày bắt đầu" width="86" align="center">
             <template #default="{ row }">
               <span class="font-mono text-xs">{{ formatDate(row.start_date) }}</span>
             </template>
           </el-table-column>
 
           <!-- Username -->
-          <el-table-column prop="username" label="Username Telegram" width="160">
+          <el-table-column prop="username" label="Username Telegram" width="115">
             <template #default="{ row }">
               <span v-if="row.username" class="text-blue-500 font-mono text-xs">{{ row.username }}</span>
               <span v-else class="text-gray-400">—</span>
@@ -111,7 +121,7 @@
           </el-table-column>
 
           <!-- Nhóm Telegram -->
-          <el-table-column prop="telegram_group" label="Nhóm Telegram" width="200" show-overflow-tooltip>
+          <el-table-column prop="telegram_group" label="Nhóm Telegram" width="144" show-overflow-tooltip>
             <template #default="{ row }">
               <span v-if="row.telegram_group" class="text-xs text-gray-700 dark:text-gray-300 font-semibold">{{ row.telegram_group }}</span>
               <span v-else class="text-gray-400">—</span>
@@ -119,10 +129,10 @@
           </el-table-column>
 
           <!-- Ghi chú -->
-          <el-table-column prop="notes" label="Ghi chú" min-width="180" show-overflow-tooltip />
+          <el-table-column prop="notes" label="Ghi chú" min-width="130" show-overflow-tooltip />
 
           <!-- Actions -->
-          <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+          <el-table-column label="Thao tác" width="60" align="center">
             <template #default="{ row }">
               <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
                 <el-button link type="info" class="p-1">
@@ -139,6 +149,105 @@
             </template>
           </el-table-column>
         </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+             MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+             🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+             Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+             ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+             màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+             đoạn mã.
+
+             ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+             bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+             cùng một con số.
+             ══════════════════════════════════════════════════════════ -->
+        <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+          <div v-if="tableData.length > 0" class="grid grid-cols-1 gap-4">
+            <div
+              v-for="(row, i) in tableData"
+              :key="row.id || row.contract_id || i"
+              class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+            >
+              <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                <div class="min-w-0 break-words">
+                  <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.shareholder_code }}</span>
+                </div>
+                <div class="shrink-0">
+                  <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+                                  <el-button link type="info" class="p-1">
+                                    <el-icon class="text-xl"><MoreFilled /></el-icon>
+                                  </el-button>
+                                  <template #dropdown>
+                                    <el-dropdown-menu>
+                                      <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                                      <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
+                                      <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                  </template>
+                                </el-dropdown>
+                </div>
+              </div>
+              <div class="space-y-2 text-sm text-left">
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên Cổ đông:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.fullname }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Quỹ liên kết:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span v-if="row.investment_name" class="font-semibold text-gray-700 dark:text-gray-300">
+                                    {{ row.investment_name }}
+                                  </span>
+                                  <span v-else class="text-gray-400">—</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số tiền góp vốn:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span v-if="row.investment_amount" class="font-bold text-emerald-600 dark:text-emerald-450">
+                                    {{ formatCurrency(row.investment_amount) }}
+                                  </span>
+                                  <span v-else class="text-gray-400">—</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ngày bắt đầu:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="font-mono text-xs">{{ formatDate(row.start_date) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Username Telegram:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span v-if="row.username" class="text-blue-500 font-mono text-xs">{{ row.username }}</span>
+                                  <span v-else class="text-gray-400">—</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nhóm Telegram:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span v-if="row.telegram_group" class="text-xs text-gray-700 dark:text-gray-300 font-semibold">{{ row.telegram_group }}</span>
+                                  <span v-else class="text-gray-400">—</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ghi chú:</span>
+                  <span class="text-right break-words min-w-0">
+                    {{ row.notes }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+            <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+          </div>
+        </div>
 
         <!-- Pagination -->
         <div class="mt-auto shrink-0 p-4 flex flex-wrap justify-end gap-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -363,6 +472,11 @@ import { ref, computed, reactive, onMounted } from 'vue'
 import { Plus, Search, Refresh, MoreFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 const loading = ref(false)
 const searchQuery = ref('')

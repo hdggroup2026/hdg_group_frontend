@@ -36,8 +36,7 @@
       -->
       <div
         v-else-if="loi"
-        class="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20
-               dark:border-amber-800 p-4 text-sm text-amber-800 dark:text-amber-200"
+        class="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 p-4 text-sm text-amber-800 dark:text-amber-200"
       >
         <div class="font-medium mb-1">Không đọc được hồ sơ</div>
         <div>{{ loi }}</div>
@@ -46,8 +45,7 @@
       <template v-else-if="hoSo">
 
         <!-- ═══ KHỐI 1 — TÀI KHOẢN ═══ -->
-        <div class="rounded-xl border border-gray-200 dark:border-gray-700
-                    bg-white dark:bg-gray-800 p-4 sm:p-5 mb-4">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5 mb-4">
           <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3">
             Tài khoản
           </h2>
@@ -76,9 +74,7 @@
                 {{ hoSo.tai_khoan.vai_tro || chuaCo }}
                 <span
                   v-if="hoSo.tai_khoan.la_admin"
-                  class="ml-1.5 text-[11px] px-1.5 py-0.5 rounded
-                         bg-blue-50 text-blue-700 border border-blue-200
-                         dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
+                  class="ml-1.5 text-[11px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
                 >quản trị</span>
               </dd>
             </div>
@@ -86,8 +82,7 @@
         </div>
 
         <!-- ═══ KHỐI 2 — QUYỀN ═══ -->
-        <div class="rounded-xl border border-gray-200 dark:border-gray-700
-                    bg-white dark:bg-gray-800 p-4 sm:p-5 mb-4">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5 mb-4">
           <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3">
             Quyền được cấp
             <span class="ml-1 text-xs font-normal text-gray-400">
@@ -102,16 +97,13 @@
             <span
               v-for="q in hoSo.quyen"
               :key="q"
-              class="text-xs px-2 py-1 rounded border
-                     bg-gray-50 text-gray-700 border-gray-200
-                     dark:bg-gray-700/50 dark:text-gray-200 dark:border-gray-600"
+              class="text-xs px-2 py-1 rounded border bg-gray-50 text-gray-700 border-gray-200 dark:bg-gray-700/50 dark:text-gray-200 dark:border-gray-600"
             >{{ q }}</span>
           </div>
         </div>
 
         <!-- ═══ KHỐI 3 — TRẠNG THÁI ═══ -->
-        <div class="rounded-xl border border-gray-200 dark:border-gray-700
-                    bg-white dark:bg-gray-800 p-4 sm:p-5 mb-4">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5 mb-4">
           <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3">
             Trạng thái
           </h2>
@@ -154,8 +146,7 @@
         </div>
 
         <!-- ═══ KHỐI 4 — MỐC THỜI GIAN ═══ -->
-        <div class="rounded-xl border border-gray-200 dark:border-gray-700
-                    bg-white dark:bg-gray-800 p-4 sm:p-5">
+        <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 sm:p-5">
           <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3">
             Mốc thời gian
           </h2>
@@ -211,9 +202,7 @@
               v-if="hoSo.moc_thoi_gian.so_lan_go_sai_tu_lan_dang_nhap_truoc > 0"
               class="pt-2 mt-1 border-t border-gray-100 dark:border-gray-700"
             >
-              <div class="rounded-lg bg-amber-50 dark:bg-amber-900/20 border
-                          border-amber-200 dark:border-amber-800 p-3
-                          text-amber-800 dark:text-amber-200 text-sm">
+              <div class="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3 text-amber-800 dark:text-amber-200 text-sm">
                 Có <b>{{ hoSo.moc_thoi_gian.so_lan_go_sai_tu_lan_dang_nhap_truoc }}</b>
                 lần gõ sai mật khẩu vào tài khoản này kể từ lần đăng nhập trước.
                 Nếu không phải bạn, hãy đổi mật khẩu.

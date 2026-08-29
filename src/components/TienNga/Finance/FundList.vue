@@ -78,7 +78,7 @@
         <div class="space-y-3 pt-3 border-t border-gray-50 dark:border-gray-700/40">
           <div class="flex justify-between items-center text-xs">
             <span class="text-gray-400 dark:text-gray-500 font-medium">Vốn ban đầu</span>
-            <span class="font-bold text-gray-700 dark:text-gray-300">{{ formatCurrency(fund.initialCapital) }}</span>
+            <span class="font-bold" :class="mauSo(fund.initialCapital)">{{ formatCurrency(fund.initialCapital) }}</span>
           </div>
           <div class="flex justify-between items-center text-xs">
             <span class="text-gray-400 dark:text-gray-500 font-medium">Tổng thu (+)</span>
@@ -109,6 +109,7 @@
 </template>
 
 <script setup lang="ts">
+import { mauSo } from '@/utils/mauSo'
 import { 
   Wallet, 
   CreditCard, 

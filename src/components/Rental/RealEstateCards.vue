@@ -4,7 +4,10 @@
     <div class="flex flex-wrap justify-between items-center mb-6 shrink-0 gap-3">
       <div class="flex flex-wrap items-center gap-4">
         <!-- Display Mode Select -->
-        <div class="flex items-center gap-2">
+        <!-- MỤC 400 — giấu ở màn hẹp: dưới 768px chỉ còn một chế độ dùng
+             được, để ô chọn ở đó là người dùng chọn rồi không thấy gì
+             đổi. `hidden md:flex` theo đúng quy ước bố cục. -->
+        <div class="hidden md:flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Hiển thị:</span>
           <el-select
             v-model="displayMode"
@@ -86,108 +89,118 @@
 
       <!-- Table Container -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0 border border-gray-100 dark:border-gray-700">
-        <el-table :data="paginatedProperties" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handleSortChange">
-          <el-table-column label="STT" width="60" align="center" fixed>
+        <!-- ══════════════════════════════════════════════════════════════
+             MỤC 396 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+             Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+             Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+             cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+             dùng vuốt mà màn hình không nhúc nhích.
+
+             Đã bỏ 4 cột ghim ở bảng này.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table v-if="hienBang" :data="paginatedProperties" style="width: 100%" class="flex-1 custom-table" height="100%" @sort-change="handleSortChange">
+          <el-table-column label="STT" width="52" align="center">
             <template #default="{ $index }">
               <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="real_estate_id" label="Mã BĐS" width="130" sortable="custom" fixed>
+          <el-table-column prop="real_estate_id" label="Mã BĐS" width="94" sortable="custom">
             <template #default="{ row }">
               <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.real_estate_id }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="address" label="Địa chỉ" min-width="220" fixed show-overflow-tooltip />
-          <el-table-column label="Tình trạng" width="140" align="center">
+          <el-table-column prop="address" label="Địa chỉ" min-width="158" show-overflow-tooltip />
+          <el-table-column label="Tình trạng" width="101" align="center">
             <template #default="{ row }">
               <el-tag :type="getStatusTag(row.status)" effect="light" size="small" round>
                 {{ getStatusText(row.status) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="Tổng đầu tư" width="160" align="right">
+          <el-table-column label="Tổng đầu tư" width="115" align="right">
             <template #default="{ row }">
-              <span class="font-bold text-gray-800 dark:text-gray-200">{{ formatCurrency(row.total_cost) }}</span>
+              <span class="font-bold" :class="mauSo(row.total_cost)">{{ formatCurrency(row.total_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền BĐS" width="150" align="right">
+          <el-table-column label="Tiền BĐS" width="108" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.real_estate_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền xây dựng" width="150" align="right">
+          <el-table-column label="Tiền xây dựng" width="108" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.construction_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền nội thất" width="150" align="right">
+          <el-table-column label="Tiền nội thất" width="108" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.furniture_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền đã góp" width="150" align="right">
+          <el-table-column label="Tiền đã góp" width="108" align="right">
             <template #default="{ row }">
-              <span class="text-blue-600 dark:text-blue-400">{{ formatCurrency(row.contributed_cost) }}</span>
+              <span  :class="mauSo(row.contributed_cost)">{{ formatCurrency(row.contributed_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Lãi suất / Tháng" width="140" align="right">
+          <el-table-column label="Lãi suất / Tháng" width="101" align="right">
             <template #default="{ row }">
               <span>{{ row.monthly_interest_rate ? `${row.monthly_interest_rate}%` : '0%' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="LN Khai thác" width="160" align="right">
+          <el-table-column label="LN Khai thác" width="115" align="right">
             <template #default="{ row }">
-              <span class="text-emerald-600 dark:text-emerald-400">{{ formatCurrency(row.mining_profit) }}</span>
+              <span  :class="mauSo(row.mining_profit)">{{ formatCurrency(row.mining_profit) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="LN Cho thuê" width="160" align="right">
+          <el-table-column label="LN Cho thuê" width="115" align="right">
             <template #default="{ row }">
-              <span class="text-emerald-600 dark:text-emerald-400">{{ formatCurrency(row.rental_profit) }}</span>
+              <span  :class="mauSo(row.rental_profit)">{{ formatCurrency(row.rental_profit) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Giá tạm tính" width="160" align="right">
+          <el-table-column label="Giá tạm tính" width="115" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.current_estimated) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền bán ra" width="150" align="right">
+          <el-table-column label="Tiền bán ra" width="108" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.sale_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Bán ra sau thuế" width="160" align="right">
+          <el-table-column label="Bán ra sau thuế" width="115" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.profit_after_tax) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="LN Sau bán" width="160" align="right">
+          <el-table-column label="LN Sau bán" width="115" align="right">
             <template #default="{ row }">
-              <span class="font-bold text-violet-600 dark:text-violet-400">{{ formatCurrency(row.profit_after_sale) }}</span>
+              <span class="font-bold" :class="mauSo(row.profit_after_sale)">{{ formatCurrency(row.profit_after_sale) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Bắt đầu mua" prop="start_buy" width="130" sortable align="center">
+          <el-table-column label="Bắt đầu mua" prop="start_buy" width="94" sortable align="center">
             <template #default="{ row }">
               <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.start_buy) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Kết thúc mua" prop="end_buy" width="130" sortable align="center">
+          <el-table-column label="Kết thúc mua" prop="end_buy" width="94" sortable align="center">
             <template #default="{ row }">
               <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.end_buy) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Bắt đầu bán" prop="start_sale" width="130" sortable align="center">
+          <el-table-column label="Bắt đầu bán" prop="start_sale" width="94" sortable align="center">
             <template #default="{ row }">
               <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.start_sale) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Kết thúc bán" prop="end_sale" width="130" sortable align="center">
+          <el-table-column label="Kết thúc bán" prop="end_sale" width="94" sortable align="center">
             <template #default="{ row }">
               <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.end_sale) }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="note" label="Ghi chú" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="note" label="Ghi chú" min-width="144" show-overflow-tooltip />
 
-          <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+          <el-table-column label="Thao tác" width="60" align="center">
             <template #default="{ row }">
               <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
                 <el-button link type="info" class="p-1">
@@ -205,6 +218,23 @@
             </template>
           </el-table-column>
         </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+     MỤC 400 (29/08/2026) — MÀN NÀY KHÔNG DÙNG THẺ TỰ SINH
+
+     🔴 MỤC 397 sinh một khối thẻ cho màn này như 59 màn khác. Nhưng màn
+     Bất động sản ĐÃ CÓ SẴN chế độ thẻ riêng (`displayMode === 'card'`),
+     dựng tay cho đúng loại dữ liệu này.
+
+     Để cả hai thì trên điện thoại chọn "List" ra thẻ tự sinh, chọn
+     "Card" ra thẻ dựng tay — hai kiểu thẻ khác nhau cho cùng một dữ
+     liệu, và người dùng không hiểu vì sao.
+
+     ➜ Bỏ thẻ tự sinh. Màn hẹp ép về chế độ thẻ có sẵn (xem `watch` trên
+     `laManHep` trong phần script), và ô chọn List/Card bị giấu đi vì ở
+     bề rộng đó nó không còn lựa chọn nào để chọn — một ô chọn không làm
+     gì là lỗi im lặng.
+     ══════════════════════════════════════════════════════════ -->
 
         <!-- Pagination -->
         <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -276,11 +306,11 @@
             <div class="space-y-3 pt-3 border-t border-gray-50 dark:border-gray-700/40">
               <div class="flex justify-between items-center text-xs">
                 <span class="text-gray-400 dark:text-gray-500 font-medium">Tổng đầu tư</span>
-                <span class="font-bold text-gray-700 dark:text-gray-300">{{ formatCurrency(prop.total_cost) }}</span>
+                <span class="font-bold" :class="mauSo(prop.total_cost)">{{ formatCurrency(prop.total_cost) }}</span>
               </div>
               <div class="flex justify-between items-center text-xs">
                 <span class="text-gray-400 dark:text-gray-500 font-medium">Tiền đã góp</span>
-                <span class="font-bold text-blue-600 dark:text-blue-400">{{ formatCurrency(prop.contributed_cost) }}</span>
+                <span class="font-bold" :class="mauSo(prop.contributed_cost)">{{ formatCurrency(prop.contributed_cost) }}</span>
               </div>
               <div class="flex justify-between items-center text-xs">
                 <span class="text-gray-400 dark:text-gray-500 font-medium">LN Cho thuê</span>
@@ -317,6 +347,7 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { mauSo } from '@/utils/mauSo'
 import {
   Search,
   Plus,
@@ -330,6 +361,11 @@ import {
   TrendCharts
 } from '@element-plus/icons-vue'
 import ScheduledNotificationModal from '@/components/ScheduledNotification/ScheduledNotificationModal.vue'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 interface Property {
   id: string
@@ -369,6 +405,17 @@ const emit = defineEmits<{
 
 // Display mode: 'list' (default) or 'card'
 const displayMode = ref<'list' | 'card'>('list')
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 400 (29/08/2026) — MÀN HẸP ÉP VỀ CHẾ ĐỘ THẺ CÓ SẴN
+//
+// ⚠️ `{ immediate: true }` là BẮT BUỘC. Không có nó thì lần mở đầu tiên
+// trên điện thoại vẫn ở chế độ "list" — tức dựng bảng 22 cột trên màn
+// 390px, đúng thứ MỤC 396-398 dựng ra để tránh. `watch` chỉ chạy khi giá
+// trị ĐỔI, mà lúc mở màn nó chưa đổi lần nào.
+watch(laManHep, (hep) => {
+  if (hep) displayMode.value = 'card'
+}, { immediate: true })
 
 const searchQuery = ref('')
 const filterStatus = ref('')

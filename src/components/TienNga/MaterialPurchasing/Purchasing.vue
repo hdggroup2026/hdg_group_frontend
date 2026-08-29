@@ -79,60 +79,161 @@
 
     <!-- Table -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-      <el-table :data="tableData" style="width: 100%" class="flex-1" height="100%" v-loading="loading" @sort-change="handleSortChange">
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+           Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+           Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+           cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+           dùng vuốt mà màn hình không nhúc nhích.
+
+           Đã bỏ 0 cột ghim ở bảng này.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang" :data="tableData" style="width: 100%" class="flex-1" height="100%" v-loading="loading" @sort-change="handleSortChange">
         <!-- Fixed Columns -->
-        <el-table-column type="selection" width="55" fixed />
-        <el-table-column label="STT" width="60" align="center" fixed>
+        <el-table-column type="selection" width="55" />
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="date" label="Ngày giao dịch" width="170" sortable="custom" fixed />
+        <el-table-column prop="date" label="Ngày giao dịch" width="122" sortable="custom" />
 
-        <el-table-column prop="customerName" label="Tên khách hàng" min-width="300" sortable="custom" show-overflow-tooltip>
+        <el-table-column prop="customerName" label="Tên khách hàng" min-width="216" sortable="custom" show-overflow-tooltip>
           <template #default="scope">
             <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">{{ scope.row.customerName }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="material" label="Nguyên liệu" width="140">
+        <el-table-column prop="material" label="Nguyên liệu" width="101">
           <template #default="scope">
             <el-tag :type="getMaterialTagType(scope.row.material)" effect="light" round>
               {{ scope.row.material }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="warehouse" label="Kho hàng" min-width="180" />
-        <el-table-column prop="trips" label="Số chuyến" width="110" align="right">
+        <el-table-column prop="warehouse" label="Kho hàng" min-width="130" />
+        <el-table-column prop="trips" label="Số chuyến" width="79" align="right">
           <template #default="scope">
             <span class="font-medium">{{ scope.row.trips }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="weight" label="Khối lượng" width="130" align="right">
+        <el-table-column prop="weight" label="Khối lượng" width="94" align="right">
           <template #default="scope">
             <span>{{ formatNumber(scope.row.weight) }} kg</span>
           </template>
         </el-table-column>
-        <el-table-column prop="unitPrice" label="Đơn giá" width="130" align="right">
+        <el-table-column prop="unitPrice" label="Đơn giá" width="94" align="right">
           <template #default="scope">
             <span>{{ formatCurrency(scope.row.unitPrice) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="totalAmount" label="Thành tiền" width="150" align="right">
+        <el-table-column prop="totalAmount" label="Thành tiền" width="108" align="right">
           <template #default="scope">
-            <span class="font-bold text-green-500">{{ formatCurrency(scope.row.totalAmount) }}</span>
+            <span class="font-bold" :class="mauSo(scope.row.totalAmount)">{{ formatCurrency(scope.row.totalAmount) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="advanceAmount" label="Ứng tiền" width="150" align="right">
+        <el-table-column prop="advanceAmount" label="Ứng tiền" width="108" align="right">
           <template #default="scope">
-            <span class="font-medium text-orange-500">{{ formatCurrency(scope.row.advanceAmount) }}</span>
+            <span class="font-medium" :class="mauSo(scope.row.advanceAmount)">{{ formatCurrency(scope.row.advanceAmount) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="debt" label="Công nợ" width="150" align="right">
+        <el-table-column prop="debt" label="Công nợ" width="108" align="right">
           <template #default="scope">
-            <span class="font-bold">{{ formatCurrency(scope.row.debt) }}</span>
+            <span class="font-bold" :class="mauSo(scope.row.debt)">{{ formatCurrency(scope.row.debt) }}</span>
           </template>
         </el-table-column>
       </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+           Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+           ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+           màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+           đoạn mã.
+
+           ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+           bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+           cùng một con số.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="tableData.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="(row, i) in tableData"
+            :key="row.id || row.contract_id || i"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0 break-words">
+                {{ row.date }}
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên khách hàng:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">{{ row.customerName }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nguyên liệu:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag :type="getMaterialTagType(row.material)" effect="light" round>
+                                {{ row.material }}
+                              </el-tag>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Kho hàng:</span>
+                <span class="text-right break-words min-w-0">
+                  {{ row.warehouse }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số chuyến:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-medium">{{ row.trips }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Khối lượng:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ formatNumber(row.weight) }} kg</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Đơn giá:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ formatCurrency(row.unitPrice) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Thành tiền:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold" :class="mauSo(row.totalAmount)">{{ formatCurrency(row.totalAmount) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ứng tiền:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-medium" :class="mauSo(row.advanceAmount)">{{ formatCurrency(row.advanceAmount) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Công nợ:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold" :class="mauSo(row.debt)">{{ formatCurrency(row.debt) }}</span>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+        </div>
+      </div>
 
       <!-- Phân trang -->
       <div class="mt-auto shrink-0 p-4 flex flex-wrap justify-end gap-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -153,9 +254,15 @@
 <script setup lang="ts">
 import { dinhDangSo, dinhDangSoLe } from '@/utils/dinhDangSo'
 import { ref, computed, onMounted } from 'vue'
+import { mauSo } from '@/utils/mauSo'
 import { Search } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 const selectedMaterial = ref('all')
 const selectedWarehouse = ref('all')

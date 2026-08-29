@@ -76,52 +76,62 @@
 
     <!-- DATA TABLE -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-      <el-table :data="tableData" style="width: 100%" class="flex-1" height="100%" v-loading="loading" @sort-change="handleSortChange">
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 396 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+           Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+           Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+           cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+           dùng vuốt mà màn hình không nhúc nhích.
+
+           Đã bỏ 4 cột ghim ở bảng này.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang" :data="tableData" style="width: 100%" class="flex-1" height="100%" v-loading="loading" @sort-change="handleSortChange">
         <!-- Columns -->
-        <el-table-column type="selection" width="55" fixed />
-        <el-table-column label="STT" width="60" align="center" fixed>
+        <el-table-column type="selection" width="55" />
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="product_code" label="Mã hàng" min-width="140" sortable="custom" fixed>
+        <el-table-column prop="product_code" label="Mã hàng" min-width="101" sortable="custom">
           <template #default="scope">
             <span class="font-bold text-blue-600 dark:text-blue-400">{{ scope.row.product_code }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="day" label="Ngày thu mua" min-width="120" />
-        <el-table-column prop="estimated_completion" label="Dự kiến hoàn thành" min-width="160">
+        <el-table-column prop="day" label="Ngày thu mua" min-width="86" />
+        <el-table-column prop="estimated_completion" label="Dự kiến hoàn thành" min-width="115">
           <template #default="scope">
             <span>{{ scope.row.estimated_completion || '—' }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="total_wet_rubber" label="Tổng mủ nước" min-width="130" align="right">
+        <el-table-column prop="total_wet_rubber" label="Tổng mủ nước" min-width="94" align="right">
           <template #default="scope">
             <span>{{ formatNumber(scope.row.total_wet_rubber) }} kg</span>
           </template>
         </el-table-column>
-        <el-table-column prop="avg_degree" label="Độ TB" min-width="100" align="right">
+        <el-table-column prop="avg_degree" label="Độ TB" min-width="72" align="right">
           <template #default="scope">
             <span>{{ formatNumber(scope.row.avg_degree, 2) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="total_dry_rubber" label="Tổng mủ khô" min-width="130" align="right">
+        <el-table-column prop="total_dry_rubber" label="Tổng mủ khô" min-width="94" align="right">
           <template #default="scope">
             <span class="font-medium text-blue-500">{{ formatNumber(scope.row.total_dry_rubber, 2) }} kg</span>
           </template>
         </el-table-column>
-        <el-table-column prop="avg_unit_price" label="Đơn giá TB" min-width="130" align="right">
+        <el-table-column prop="avg_unit_price" label="Đơn giá TB" min-width="94" align="right">
           <template #default="scope">
             <span>{{ formatCurrency(scope.row.avg_unit_price) }} VNĐ</span>
           </template>
         </el-table-column>
-        <el-table-column prop="total_amount" label="Tổng thành tiền" min-width="180" align="right">
+        <el-table-column prop="total_amount" label="Tổng thành tiền" min-width="130" align="right">
           <template #default="scope">
             <span class="font-bold text-green-500">{{ formatCurrency(scope.row.total_amount) }} VNĐ</span>
           </template>
         </el-table-column>
-        <el-table-column prop="transaction_count" label="Số giao dịch" min-width="120" align="right" />
-        <el-table-column prop="processing_type" label="Loại chế biến" min-width="140" align="center">
+        <el-table-column prop="transaction_count" label="Số giao dịch" min-width="86" align="right" />
+        <el-table-column prop="processing_type" label="Loại chế biến" min-width="101" align="center">
           <template #default="scope">
             <el-tag v-if="scope.row.processing_type === 'dry_production'" type="primary" effect="light">
               Chế biến khô
@@ -136,7 +146,7 @@
         </el-table-column>
 
         <!-- Operations Column -->
-        <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+        <el-table-column label="Thao tác" width="60" align="center">
           <template #default="scope">
             <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, scope.row)">
               <el-button link type="info" class="p-1">
@@ -153,6 +163,117 @@
           </template>
         </el-table-column>
       </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+           MỤC 397 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+           Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+           ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+           màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+           đoạn mã.
+
+           ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+           bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+           cùng một con số.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="tableData.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="(row, i) in tableData"
+            :key="row.id || row.contract_id || i"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0 break-words">
+                <span class="font-bold text-blue-600 dark:text-blue-400">{{ row.product_code }}</span>
+              </div>
+              <div class="shrink-0">
+                <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+                              <el-button link type="info" class="p-1">
+                                <el-icon class="text-xl"><MoreFilled /></el-icon>
+                              </el-button>
+                              <template #dropdown>
+                                <el-dropdown-menu>
+                                  <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                                  <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
+                                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
+                                </el-dropdown-menu>
+                              </template>
+                            </el-dropdown>
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ngày thu mua:</span>
+                <span class="text-right break-words min-w-0">
+                  {{ row.day }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Dự kiến hoàn thành:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ row.estimated_completion || '—' }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tổng mủ nước:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ formatNumber(row.total_wet_rubber) }} kg</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Độ TB:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ formatNumber(row.avg_degree, 2) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tổng mủ khô:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-medium text-blue-500">{{ formatNumber(row.total_dry_rubber, 2) }} kg</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Đơn giá TB:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ formatCurrency(row.avg_unit_price) }} VNĐ</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tổng thành tiền:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold text-green-500">{{ formatCurrency(row.total_amount) }} VNĐ</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số giao dịch:</span>
+                <span class="text-right break-words min-w-0">
+                  {{ row.transaction_count }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Loại chế biến:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag v-if="row.processing_type === 'dry_production'" type="primary" effect="light">
+                                Chế biến khô
+                              </el-tag>
+                              <el-tag v-else-if="row.processing_type === 'wet_sale'" type="success" effect="light">
+                                Bán mủ nước
+                              </el-tag>
+                              <el-tag v-else type="info" effect="light">
+                                {{ row.processing_type || 'Chưa rõ' }}
+                              </el-tag>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+        </div>
+      </div>
 
       <!-- Pagination -->
       <div class="mt-auto shrink-0 p-4 flex flex-wrap justify-end gap-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -587,6 +708,11 @@ import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { MoreFilled, Search, Refresh } from '@element-plus/icons-vue'
 import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 const formatDate = (date: Date) => {
   const yyyy = date.getFullYear()

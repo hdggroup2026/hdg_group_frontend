@@ -49,107 +49,268 @@
 
       <!-- Table Container -->
       <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-        <el-table v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
-          <el-table-column label="STT" width="70" align="center" fixed>
+        <!-- ══════════════════════════════════════════════════════════════
+             MỤC 396 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+             Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+             Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+             cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+             dùng vuốt mà màn hình không nhúc nhích.
+
+             Đã bỏ 3 cột ghim ở bảng này.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table v-if="hienBang" v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
+          <el-table-column label="STT" width="52" align="center">
             <template #default="{ $index }">
               {{ (currentPage - 1) * pageSize + $index + 1 }}
             </template>
           </el-table-column>
-          <el-table-column prop="real_estate_id" label="Mã BĐS" width="130" sortable="custom" fixed>
+          <el-table-column prop="real_estate_id" label="Mã BĐS" width="94" sortable="custom">
             <template #default="{ row }">
               <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.real_estate_id }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="address" label="Địa chỉ" min-width="220" fixed show-overflow-tooltip />
-          <el-table-column label="Tình trạng" width="130" align="center">
+          <el-table-column prop="address" label="Địa chỉ" min-width="158" show-overflow-tooltip />
+          <el-table-column label="Tình trạng" width="94" align="center">
             <template #default="{ row }">
               <el-tag :type="getStatusTag(row.status)" effect="light" size="small" round>
                 {{ getStatusText(row.status) }}
               </el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="Tổng đầu tư" width="160" align="right">
+          <el-table-column label="Tổng đầu tư" width="115" align="right">
             <template #default="{ row }">
-              <span class="font-bold text-gray-800 dark:text-gray-200">{{ formatCurrency(row.total_cost) }}</span>
+              <span class="font-bold" :class="mauSo(row.total_cost)">{{ formatCurrency(row.total_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền BĐS" width="150" align="right">
+          <el-table-column label="Tiền BĐS" width="108" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.real_estate_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền xây dựng" width="150" align="right">
+          <el-table-column label="Tiền xây dựng" width="108" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.construction_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền nội thất" width="150" align="right">
+          <el-table-column label="Tiền nội thất" width="108" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.furniture_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền đã góp" width="150" align="right">
+          <el-table-column label="Tiền đã góp" width="108" align="right">
             <template #default="{ row }">
-              <span class="text-blue-600 dark:text-blue-400">{{ formatCurrency(row.contributed_cost) }}</span>
+              <span  :class="mauSo(row.contributed_cost)">{{ formatCurrency(row.contributed_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Lãi suất / Tháng" width="140" align="right">
+          <el-table-column label="Lãi suất / Tháng" width="101" align="right">
             <template #default="{ row }">
               <span>{{ row.monthly_interest_rate ? `${row.monthly_interest_rate}%` : '0%' }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="LN Khai thác" width="160" align="right">
+          <el-table-column label="LN Khai thác" width="115" align="right">
             <template #default="{ row }">
-              <span class="text-emerald-600 dark:text-emerald-400">{{ formatCurrency(row.mining_profit) }}</span>
+              <span  :class="mauSo(row.mining_profit)">{{ formatCurrency(row.mining_profit) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="LN Cho thuê" width="160" align="right">
+          <el-table-column label="LN Cho thuê" width="115" align="right">
             <template #default="{ row }">
-              <span class="text-emerald-600 dark:text-emerald-400">{{ formatCurrency(row.rental_profit) }}</span>
+              <span  :class="mauSo(row.rental_profit)">{{ formatCurrency(row.rental_profit) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Giá tạm tính" width="160" align="right">
+          <el-table-column label="Giá tạm tính" width="115" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.current_estimated) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Tiền bán ra" width="150" align="right">
+          <el-table-column label="Tiền bán ra" width="108" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.sale_cost) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Bán ra sau thuế" width="160" align="right">
+          <el-table-column label="Bán ra sau thuế" width="115" align="right">
             <template #default="{ row }">
               <span>{{ formatCurrency(row.profit_after_tax) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="LN Sau bán" width="160" align="right">
+          <el-table-column label="LN Sau bán" width="115" align="right">
             <template #default="{ row }">
-              <span class="font-bold text-violet-600 dark:text-violet-400">{{ formatCurrency(row.profit_after_sale) }}</span>
+              <span class="font-bold" :class="mauSo(row.profit_after_sale)">{{ formatCurrency(row.profit_after_sale) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Bắt đầu mua" prop="start_buy" width="130" sortable align="center">
+          <el-table-column label="Bắt đầu mua" prop="start_buy" width="94" sortable align="center">
             <template #default="{ row }">
               <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.start_buy) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Kết thúc mua" prop="end_buy" width="130" sortable align="center">
+          <el-table-column label="Kết thúc mua" prop="end_buy" width="94" sortable align="center">
             <template #default="{ row }">
               <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.end_buy) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Bắt đầu bán" prop="start_sale" width="130" sortable align="center">
+          <el-table-column label="Bắt đầu bán" prop="start_sale" width="94" sortable align="center">
             <template #default="{ row }">
               <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.start_sale) }}</span>
             </template>
           </el-table-column>
-          <el-table-column label="Kết thúc bán" prop="end_sale" width="130" sortable align="center">
+          <el-table-column label="Kết thúc bán" prop="end_sale" width="94" sortable align="center">
             <template #default="{ row }">
               <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.end_sale) }}</span>
             </template>
           </el-table-column>
-          <el-table-column prop="note" label="Ghi chú" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="note" label="Ghi chú" min-width="144" show-overflow-tooltip />
         </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+             MỤC 397 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+             🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+             Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+             ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+             màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+             đoạn mã.
+
+             ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+             bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+             cùng một con số.
+             ══════════════════════════════════════════════════════════ -->
+        <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+          <div v-if="paginatedData.length > 0" class="grid grid-cols-1 gap-4">
+            <div
+              v-for="(row, i) in paginatedData"
+              :key="row.id || row.contract_id || i"
+              class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+            >
+              <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                <div class="min-w-0 break-words">
+                  <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.real_estate_id }}</span>
+                </div>
+              </div>
+              <div class="space-y-2 text-sm text-left">
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Địa chỉ:</span>
+                  <span class="text-right break-words min-w-0">
+                    {{ row.address }}
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tình trạng:</span>
+                  <span class="text-right break-words min-w-0">
+                    <el-tag :type="getStatusTag(row.status)" effect="light" size="small" round>
+                                    {{ getStatusText(row.status) }}
+                                  </el-tag>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tổng đầu tư:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="font-bold" :class="mauSo(row.total_cost)">{{ formatCurrency(row.total_cost) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tiền BĐS:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span>{{ formatCurrency(row.real_estate_cost) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tiền xây dựng:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span>{{ formatCurrency(row.construction_cost) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tiền nội thất:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span>{{ formatCurrency(row.furniture_cost) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tiền đã góp:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span  :class="mauSo(row.contributed_cost)">{{ formatCurrency(row.contributed_cost) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Lãi suất / Tháng:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span>{{ row.monthly_interest_rate ? `${row.monthly_interest_rate}%` : '0%' }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">LN Khai thác:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span  :class="mauSo(row.mining_profit)">{{ formatCurrency(row.mining_profit) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">LN Cho thuê:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span  :class="mauSo(row.rental_profit)">{{ formatCurrency(row.rental_profit) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Giá tạm tính:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span>{{ formatCurrency(row.current_estimated) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tiền bán ra:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span>{{ formatCurrency(row.sale_cost) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Bán ra sau thuế:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span>{{ formatCurrency(row.profit_after_tax) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">LN Sau bán:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="font-bold" :class="mauSo(row.profit_after_sale)">{{ formatCurrency(row.profit_after_sale) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Bắt đầu mua:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.start_buy) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Kết thúc mua:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.end_buy) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Bắt đầu bán:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.start_sale) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Kết thúc bán:</span>
+                  <span class="text-right break-words min-w-0">
+                    <span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(row.end_sale) }}</span>
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ghi chú:</span>
+                  <span class="text-right break-words min-w-0">
+                    {{ row.note }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+            <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+          </div>
+        </div>
 
         <!-- Pagination -->
         <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -177,9 +338,15 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { mauSo } from '@/utils/mauSo'
 import { Search, Wallet, Money, Stamp, TrendCharts } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { rentalService } from '@/api/rentalService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 interface Property {
   id: string

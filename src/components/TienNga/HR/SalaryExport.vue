@@ -104,90 +104,90 @@
         @selection-change="handleSelectionChange"
         @sort-change="handleSortChange"
       >
-        <el-table-column type="selection" width="55" fixed />
+        <el-table-column type="selection" width="55" />
         <!-- STT Column -->
-        <el-table-column label="STT" width="60" align="center" fixed>
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="employeeCode" label="Mã NV" width="120" sortable="custom" fixed />
-        <el-table-column prop="employeeName" label="Tên nhân viên" width="200" fixed show-overflow-tooltip />
-        <el-table-column prop="standardWorkdays" label="Công chuẩn" width="110" align="center">
+        <el-table-column prop="employeeCode" label="Mã NV" width="86" sortable="custom" />
+        <el-table-column prop="employeeName" label="Tên nhân viên" width="144" show-overflow-tooltip />
+        <el-table-column prop="standardWorkdays" label="Công chuẩn" width="79" align="center">
           <template #default="scope">
             <span class="font-medium text-gray-500 dark:text-gray-400">{{ scope.row.standardWorkdays }} ngày</span>
           </template>
         </el-table-column>
-        <el-table-column prop="workDays" label="Công thực tế" width="120" align="center">
+        <el-table-column prop="workDays" label="Công thực tế" width="86" align="center">
           <template #default="scope">
             <span class="font-medium">{{ scope.row.workDays }} ngày</span>
           </template>
         </el-table-column>
-        <el-table-column label="Lương cơ bản" width="150" align="right">
+        <el-table-column label="Lương cơ bản" width="108" align="right">
           <template #default="scope">
-            <span class="font-medium text-gray-700 dark:text-gray-200">{{ formatCurrency(scope.row.baseSalary) }}</span>
+            <span class="font-medium" :class="mauSo(scope.row.baseSalary)">{{ formatCurrency(scope.row.baseSalary) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Lương theo ngày công" width="180" align="right">
+        <el-table-column label="Lương theo ngày công" width="130" align="right">
           <template #default="scope">
-            <span class="font-medium text-gray-700 dark:text-gray-200">{{ formatCurrency(scope.row.receivedSalary) }}</span>
+            <span class="font-medium" :class="mauSo(scope.row.receivedSalary)">{{ formatCurrency(scope.row.receivedSalary) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Lương tăng ca" width="150" align="right">
+        <el-table-column label="Lương tăng ca" width="108" align="right">
           <template #default="scope">
             <span :class="scope.row.overtimeSalary > 0 ? 'text-green-500 font-medium' : 'text-gray-400'">
               {{ formatCurrency(scope.row.overtimeSalary) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Phụ cấp ăn trưa" width="160" align="right">
+        <el-table-column label="Phụ cấp ăn trưa" width="115" align="right">
           <template #default="scope">
             <span :class="scope.row.lunchAllowance > 0 ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-400'">
               {{ formatCurrency(scope.row.lunchAllowance) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Phụ cấp khác" width="140" align="right">
+        <el-table-column label="Phụ cấp khác" width="101" align="right">
           <template #default="scope">
             <span :class="scope.row.allowance > 0 ? 'text-blue-600 dark:text-blue-400 font-medium' : 'text-gray-400'">
               {{ formatCurrency(scope.row.allowance) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Thưởng năng suất" width="170" align="right">
+        <el-table-column label="Thưởng năng suất" width="122" align="right">
           <template #default="scope">
             <span :class="scope.row.productivityBonus > 0 ? 'text-amber-500 font-bold' : 'text-gray-400'">
               {{ formatCurrency(scope.row.productivityBonus) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Thưởng khác" width="140" align="right">
+        <el-table-column label="Thưởng khác" width="101" align="right">
           <template #default="scope">
             <span :class="scope.row.bonus > 0 ? 'text-amber-500 font-bold' : 'text-gray-400'">
               {{ formatCurrency(scope.row.bonus) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="BHXH" width="140" align="right">
+        <el-table-column label="BHXH" width="101" align="right">
           <template #default="scope">
             <span class="text-orange-500 font-medium">-{{ formatCurrency(scope.row.socialInsurance) }}</span>
           </template>
         </el-table-column>
-        <el-table-column label="Phạt" width="130" align="right">
+        <el-table-column label="Phạt" width="94" align="right">
           <template #default="scope">
             <span :class="scope.row.penalty > 0 ? 'text-red-500 font-semibold' : 'text-gray-400'">
               {{ scope.row.penalty > 0 ? '-' + formatCurrency(scope.row.penalty) : formatCurrency(0) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Thực nhận" width="170" align="right" fixed="right">
+        <el-table-column label="Thực nhận" width="122" align="right">
           <template #default="scope">
             <span class="text-emerald-600 dark:text-emerald-400 font-bold text-base">
               {{ formatCurrency(scope.row.netSalary) }}
             </span>
           </template>
         </el-table-column>
-        <el-table-column label="Trạng thái" width="130" align="center" fixed="right">
+        <el-table-column label="Trạng thái" width="94" align="center">
           <template #default="scope">
             <el-tag
               :type="getStatusType(scope.row.status)"
@@ -218,6 +218,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed } from 'vue'
+import { mauSo } from '@/utils/mauSo'
 import { Search, Download, Check } from '@element-plus/icons-vue'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import * as XLSX from 'xlsx-js-style'

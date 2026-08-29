@@ -67,8 +67,18 @@
 
     <!-- Data Table -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-      <el-table v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1" height="100%">
-        <el-table-column label="STT" width="60" align="center" fixed>
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+           Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+           Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+           cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+           dùng vuốt mà màn hình không nhúc nhích.
+
+           Đã bỏ 0 cột ghim ở bảng này.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang" v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1" height="100%">
+        <el-table-column label="STT" width="60" align="center">
           <template #default="{ $index }">
             {{ (currentPage - 1) * pageSize + $index + 1 }}
           </template>
@@ -121,7 +131,7 @@
             />
           </template>
         </el-table-column>
-        <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+        <el-table-column label="Thao tác" width="90" align="center">
           <template #default="{ row }">
             <el-dropdown trigger="click" @command="(cmd: string) => handleCommand(cmd, row)">
               <el-button link type="info" class="p-1">
@@ -139,6 +149,104 @@
           </template>
         </el-table-column>
       </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+           Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+           ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+           màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+           đoạn mã.
+
+           ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+           bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+           cùng một con số.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="paginatedData.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="(row, i) in paginatedData"
+            :key="row.id || row.contract_id || i"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0 break-words">
+                <div>
+                              <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.group_name || '—' }}</span>
+                              <div class="text-xs text-gray-400 dark:text-gray-500 font-mono mt-0.5">{{ row.chat_id }}</div>
+                            </div>
+              </div>
+              <div class="shrink-0">
+                <el-dropdown trigger="click" @command="(cmd: string) => handleCommand(cmd, row)">
+                              <el-button link type="info" class="p-1">
+                                <el-icon class="text-xl"><MoreFilled /></el-icon>
+                              </el-button>
+                              <template #dropdown>
+                                <el-dropdown-menu>
+                                  <el-dropdown-item command="test">Gửi thử</el-dropdown-item>
+                                  <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
+                                  <el-dropdown-item command="logs">Xem nhật ký</el-dropdown-item>
+                                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
+                                </el-dropdown-menu>
+                              </template>
+                            </el-dropdown>
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Đối tượng liên kết:</span>
+                <span class="text-right break-words min-w-0">
+                  <div v-if="row.reference_id">
+                                <span class="font-mono font-bold text-amber-600 dark:text-amber-400 text-xs">{{ row.reference_id }}</span>
+                                <div v-if="row.reference_name" class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ row.reference_name }}</div>
+                              </div>
+                              <span v-else class="text-xs text-gray-400">— (Tất cả)</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Loại thông báo:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag size="small" type="info" effect="plain" class="font-semibold">
+                                {{ getNotifyTypeLabel(row.notify_type) }}
+                              </el-tag>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tần suất:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag size="small" :type="getScheduleTagType(row.schedule_type)" effect="plain">
+                                {{ getScheduleLabel(row.schedule_type) }}
+                              </el-tag>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Giờ gửi:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-mono font-bold text-gray-800 dark:text-gray-200">
+                                {{ String(row.schedule_hour).padStart(2, '0') }}:{{ String(row.schedule_minute).padStart(2, '0') }}
+                              </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Bật/Tắt:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-switch
+                                v-model="row.is_enabled"
+                                @change="handleToggle(row)"
+                                :loading="row._toggling"
+                                size="small"
+                              />
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+        </div>
+      </div>
 
       <!-- Pagination -->
       <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -177,6 +285,11 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { scheduledNotificationService, type ScheduledNotifyConfig } from '@/api/scheduledNotificationService'
 import ScheduledNotificationModal from './ScheduledNotificationModal.vue'
 import ScheduledNotificationLogsModal from './ScheduledNotificationLogsModal.vue'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 const props = defineProps<{
   moduleKey: string

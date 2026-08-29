@@ -55,60 +55,70 @@
 
     <!-- Table Container -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-      <el-table v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+           Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+           Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+           cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+           dùng vuốt mà màn hình không nhúc nhích.
+
+           Đã bỏ 0 cột ghim ở bảng này.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang" v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
         <!-- STT Column -->
-        <el-table-column label="STT" width="60" align="center" fixed>
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="land_code" label="Mã đất" width="120" sortable="custom" fixed>
+        <el-table-column prop="land_code" label="Mã đất" width="86" sortable="custom">
           <template #default="{ row }">
             <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.land_code }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="land_name" label="Tên đất" min-width="180">
+        <el-table-column prop="land_name" label="Tên đất" min-width="130">
           <template #default="{ row }">
             <span class="font-semibold text-gray-850 dark:text-gray-100">{{ row.land_name }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="affiliation" label="Trực thuộc" width="140">
+        <el-table-column prop="affiliation" label="Trực thuộc" width="101">
           <template #default="{ row }">
             <span class="text-gray-650 dark:text-gray-300 font-medium">{{ row.affiliation }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="total_area" label="Tổng diện tích (ha)" width="150" align="right">
+        <el-table-column prop="total_area" label="Tổng diện tích (ha)" width="108" align="right">
           <template #default="{ row }">
             <span class="font-bold text-gray-800 dark:text-gray-200">{{ formatNumber(row.total_area) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="harvest_area" label="Đang thu hoạch (ha)" width="165" align="right">
+        <el-table-column prop="harvest_area" label="Đang thu hoạch (ha)" width="119" align="right">
           <template #default="{ row }">
             <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ formatNumber(row.harvest_area) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="planting_area" label="Đang trồng (ha)" width="150" align="right">
+        <el-table-column prop="planting_area" label="Đang trồng (ha)" width="108" align="right">
           <template #default="{ row }">
             <span class="font-semibold text-blue-500 dark:text-blue-400">{{ formatNumber(row.planting_area) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="empty_area" label="Diện tích trống (ha)" width="160" align="right">
+        <el-table-column prop="empty_area" label="Diện tích trống (ha)" width="115" align="right">
           <template #default="{ row }">
             <span class="font-semibold text-amber-500 dark:text-amber-400">{{ formatNumber(row.empty_area) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="harvesting_trees" :label="cropType === 'cao_su' ? 'Cây thu hoạch' : 'Số cây thu hoạch'" width="140" align="right">
+        <el-table-column prop="harvesting_trees" :label="cropType === 'cao_su' ? 'Cây thu hoạch' : 'Số cây thu hoạch'" width="101" align="right">
           <template #default="{ row }">
             <span>{{ formatInt(row.harvesting_trees) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="planting_trees" :label="cropType === 'cao_su' ? 'Cây đang trồng' : 'Số cây đang trồng'" width="145" align="right">
+        <el-table-column prop="planting_trees" :label="cropType === 'cao_su' ? 'Cây đang trồng' : 'Số cây đang trồng'" width="104" align="right">
           <template #default="{ row }">
             <span>{{ formatInt(row.planting_trees) }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="address" label="Địa chỉ" min-width="180" show-overflow-tooltip />
-        <el-table-column prop="status" label="Trạng thái" width="130" align="center">
+        <el-table-column prop="address" label="Địa chỉ" min-width="130" show-overflow-tooltip />
+        <el-table-column prop="status" label="Trạng thái" width="94" align="center">
           <template #default="{ row }">
             <el-tag :type="row.status === 'ACTIVE' ? 'success' : 'danger'" effect="light" size="small" round>
               {{ row.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động' }}
@@ -117,7 +127,7 @@
         </el-table-column>
 
         <!-- Actions -->
-        <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+        <el-table-column label="Thao tác" width="60" align="center">
           <template #default="{ row }">
             <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
               <el-button link type="info" class="p-1">
@@ -134,6 +144,117 @@
           </template>
         </el-table-column>
       </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+           MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+           Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+           ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+           màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+           đoạn mã.
+
+           ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+           bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+           cùng một con số.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="paginatedData.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="(row, i) in paginatedData"
+            :key="row.id || row.contract_id || i"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0 break-words">
+                <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.land_code }}</span>
+              </div>
+              <div class="shrink-0">
+                <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+                              <el-button link type="info" class="p-1">
+                                <el-icon class="text-xl"><MoreFilled /></el-icon>
+                              </el-button>
+                              <template #dropdown>
+                                <el-dropdown-menu>
+                                  <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                                  <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
+                                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
+                                </el-dropdown-menu>
+                              </template>
+                            </el-dropdown>
+              </div>
+            </div>
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên đất:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-semibold text-gray-850 dark:text-gray-100">{{ row.land_name }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Trực thuộc:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="text-gray-650 dark:text-gray-300 font-medium">{{ row.affiliation }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tổng diện tích (ha):</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-bold text-gray-800 dark:text-gray-200">{{ formatNumber(row.total_area) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Đang thu hoạch (ha):</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-semibold text-emerald-600 dark:text-emerald-400">{{ formatNumber(row.harvest_area) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Đang trồng (ha):</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-semibold text-blue-500 dark:text-blue-400">{{ formatNumber(row.planting_area) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Diện tích trống (ha):</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-semibold text-amber-500 dark:text-amber-400">{{ formatNumber(row.empty_area) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ formatInt(row.harvesting_trees) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">:</span>
+                <span class="text-right break-words min-w-0">
+                  <span>{{ formatInt(row.planting_trees) }}</span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Địa chỉ:</span>
+                <span class="text-right break-words min-w-0">
+                  {{ row.address }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Trạng thái:</span>
+                <span class="text-right break-words min-w-0">
+                  <el-tag :type="row.status === 'ACTIVE' ? 'success' : 'danger'" effect="light" size="small" round>
+                                {{ row.status === 'ACTIVE' ? 'Hoạt động' : 'Ngừng hoạt động' }}
+                              </el-tag>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+        </div>
+      </div>
 
       <!-- Pagination -->
       <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -399,6 +520,11 @@ import { ref, computed, reactive, watch, onMounted } from 'vue'
 import { Search, MoreFilled, Location, Plus, Refresh } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { harvestService } from '@/api/harvestService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 interface AgriculturalLand {
   id: string

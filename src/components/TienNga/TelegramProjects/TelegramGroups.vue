@@ -97,7 +97,17 @@
 
           <!-- Table Container -->
           <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-            <el-table 
+            <!-- ══════════════════════════════════════════════════════════════
+                 MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+                 Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+                 Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+                 cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+                 dùng vuốt mà màn hình không nhúc nhích.
+
+                 Đã bỏ 0 cột ghim ở bảng này.
+                 ══════════════════════════════════════════════════════════ -->
+            <el-table v-if="hienBang" 
               v-loading="loading"
               :data="paginatedMembers" 
               style="width: 100%" 
@@ -106,45 +116,45 @@
               @selection-change="handleSelectionChange"
             >
               <!-- Nút tích chọn (Checkbox) -->
-              <el-table-column type="selection" width="50" align="center" fixed />
+              <el-table-column type="selection" width="55" align="center" />
 
               <!-- STT -->
-              <el-table-column label="STT" width="60" align="center" fixed>
+              <el-table-column label="STT" width="52" align="center">
                 <template #default="{ $index }">
                   <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
                 </template>
               </el-table-column>
 
               <!-- Dự án -->
-              <el-table-column label="Dự án" min-width="120" show-overflow-tooltip fixed>
+              <el-table-column label="Dự án" min-width="86" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="font-bold text-gray-800 dark:text-gray-200">{{ getProjectName(row.project_id) }}</span>
                 </template>
               </el-table-column>
 
               <!-- Chat ID -->
-              <el-table-column label="Chat ID" width="130" show-overflow-tooltip>
+              <el-table-column label="Chat ID" width="94" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="font-mono text-xs text-blue-600 dark:text-blue-400 font-bold select-all">{{ row.chat_id }}</span>
                 </template>
               </el-table-column>
 
               <!-- Tên nhóm -->
-              <el-table-column prop="group_name" label="Tên nhóm" min-width="250" show-overflow-tooltip>
+              <el-table-column prop="group_name" label="Tên nhóm" min-width="180" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="font-bold text-gray-855 dark:text-gray-100">{{ row.group_name || '—' }}</span>
                 </template>
               </el-table-column>
 
               <!-- User ID -->
-              <el-table-column label="User ID" width="120" show-overflow-tooltip>
+              <el-table-column label="User ID" width="86" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="font-mono text-xs text-gray-700 dark:text-gray-300 font-bold select-all">{{ row.user_id }}</span>
                 </template>
               </el-table-column>
 
               <!-- Username -->
-              <el-table-column label="Username" min-width="170" show-overflow-tooltip>
+              <el-table-column label="Username" min-width="122" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span v-if="row.user_name" class="text-blue-500 dark:text-blue-400 font-bold">@{{ row.user_name }}</span>
                   <span v-else class="text-gray-400">—</span>
@@ -152,28 +162,28 @@
               </el-table-column>
 
               <!-- Họ & tên -->
-              <el-table-column prop="full_name" label="Họ & tên" min-width="140" show-overflow-tooltip>
+              <el-table-column prop="full_name" label="Họ & tên" min-width="101" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="text-xs text-gray-700 dark:text-gray-300 font-semibold">{{ row.full_name || '—' }}</span>
                 </template>
               </el-table-column>
 
               <!-- Chức danh tùy chỉnh -->
-              <el-table-column prop="custom_title" label="Chức danh" width="130" show-overflow-tooltip>
+              <el-table-column prop="custom_title" label="Chức danh" width="94" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="text-xs text-gray-700 dark:text-gray-300 font-semibold">{{ row.custom_title || '—' }}</span>
                 </template>
               </el-table-column>
 
               <!-- Tên Slot -->
-              <el-table-column prop="slot_name" label="Tên Slot" width="110" show-overflow-tooltip>
+              <el-table-column prop="slot_name" label="Tên Slot" width="79" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="text-xs text-gray-750 dark:text-gray-250 font-semibold">{{ row.slot_name || '—' }}</span>
                 </template>
               </el-table-column>
 
               <!-- Là Bot? -->
-              <el-table-column label="Bot?" width="85" align="center">
+              <el-table-column label="Bot?" width="70" align="center">
                 <template #default="{ row }">
                   <el-tag v-if="row.is_bot" size="small" type="danger" effect="plain" class="font-bold">Bot</el-tag>
                   <span v-else class="text-gray-400">—</span>
@@ -181,14 +191,14 @@
               </el-table-column>
 
               <!-- Nút cha (Parent ID) -->
-              <el-table-column prop="parent_id" label="Nút cha (Parent)" width="125" show-overflow-tooltip>
+              <el-table-column prop="parent_id" label="Nút cha (Parent)" width="90" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="font-mono text-xs text-gray-600 dark:text-gray-400 font-bold select-all">{{ row.parent_id || '—' }}</span>
                 </template>
               </el-table-column>
 
               <!-- Vai trò -->
-              <el-table-column label="Vai trò" width="100" align="center">
+              <el-table-column label="Vai trò" width="72" align="center">
                 <template #default="{ row }">
                   <el-tag 
                     v-if="row.role"
@@ -204,7 +214,7 @@
               </el-table-column>
 
               <!-- Trạng thái -->
-              <el-table-column label="Trạng thái" width="120" align="center">
+              <el-table-column label="Trạng thái" width="86" align="center">
                 <template #default="{ row }">
                   <el-tag 
                     v-if="row.member_status"
@@ -220,28 +230,28 @@
               </el-table-column>
 
               <!-- Ngày vào nhóm -->
-              <el-table-column label="Ngày vào nhóm" width="150" align="center">
+              <el-table-column label="Ngày vào nhóm" width="108" align="center">
                 <template #default="{ row }">
                   <span class="font-mono text-xs text-gray-500 dark:text-gray-400 font-semibold">{{ formatDate(row.first_seen_at) }}</span>
                 </template>
               </el-table-column>
 
               <!-- Hoạt động cuối -->
-              <el-table-column label="Hoạt động cuối" width="150" align="center">
+              <el-table-column label="Hoạt động cuối" width="108" align="center">
                 <template #default="{ row }">
                   <span class="font-mono text-xs text-gray-500 dark:text-gray-400 font-semibold">{{ formatDate(row.last_seen_at) }}</span>
                 </template>
               </el-table-column>
 
               <!-- Ghi nhận bởi -->
-              <el-table-column prop="last_seen_by" label="Ghi nhận bởi" width="130" show-overflow-tooltip>
+              <el-table-column prop="last_seen_by" label="Ghi nhận bởi" width="94" show-overflow-tooltip>
                 <template #default="{ row }">
                   <span class="text-xs text-gray-700 dark:text-gray-300 font-medium">{{ row.last_seen_by || '—' }}</span>
                 </template>
               </el-table-column>
 
               <!-- Thao tác -->
-              <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+              <el-table-column label="Thao tác" width="60" align="center">
                 <template #default="{ row }">
                   <el-button link type="primary" size="small" class="font-bold" @click="handleOpenDetailDialog(row)">
                     Chi tiết
@@ -249,6 +259,150 @@
                 </template>
               </el-table-column>
             </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+                 MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+                 🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+                 Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+                 ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+                 màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+                 đoạn mã.
+
+                 ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+                 bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+                 cùng một con số.
+                 ══════════════════════════════════════════════════════════ -->
+            <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+              <div v-if="paginatedMembers.length > 0" class="grid grid-cols-1 gap-4">
+                <div
+                  v-for="(row, i) in paginatedMembers"
+                  :key="row.id || row.contract_id || i"
+                  class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+                >
+                  <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                    <div class="min-w-0 break-words">
+                      <span class="font-bold text-gray-800 dark:text-gray-200">{{ getProjectName(row.project_id) }}</span>
+                    </div>
+                    <div class="shrink-0">
+                      <el-button link type="primary" size="small" class="font-bold" @click="handleOpenDetailDialog(row)">
+                                          Chi tiết
+                                        </el-button>
+                    </div>
+                  </div>
+                  <div class="space-y-2 text-sm text-left">
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Chat ID:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono text-xs text-blue-600 dark:text-blue-400 font-bold select-all">{{ row.chat_id }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên nhóm:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-bold text-gray-855 dark:text-gray-100">{{ row.group_name || '—' }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">User ID:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono text-xs text-gray-700 dark:text-gray-300 font-bold select-all">{{ row.user_id }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Username:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span v-if="row.user_name" class="text-blue-500 dark:text-blue-400 font-bold">@{{ row.user_name }}</span>
+                                          <span v-else class="text-gray-400">—</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Họ & tên:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="text-xs text-gray-700 dark:text-gray-300 font-semibold">{{ row.full_name || '—' }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Chức danh:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="text-xs text-gray-700 dark:text-gray-300 font-semibold">{{ row.custom_title || '—' }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên Slot:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="text-xs text-gray-750 dark:text-gray-250 font-semibold">{{ row.slot_name || '—' }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Bot?:</span>
+                      <span class="text-right break-words min-w-0">
+                        <el-tag v-if="row.is_bot" size="small" type="danger" effect="plain" class="font-bold">Bot</el-tag>
+                                          <span v-else class="text-gray-400">—</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nút cha (Parent):</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono text-xs text-gray-600 dark:text-gray-400 font-bold select-all">{{ row.parent_id || '—' }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Vai trò:</span>
+                      <span class="text-right break-words min-w-0">
+                        <el-tag 
+                                            v-if="row.role"
+                                            :type="row.role === 'Main' ? 'danger' : 'primary'"
+                                            effect="light"
+                                            class="font-bold"
+                                            size="small"
+                                          >
+                                            {{ row.role }}
+                                          </el-tag>
+                                          <span v-else class="text-gray-400">—</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Trạng thái:</span>
+                      <span class="text-right break-words min-w-0">
+                        <el-tag 
+                                            v-if="row.member_status"
+                                            :type="getMemberStatusTagType(row.member_status)"
+                                            effect="plain"
+                                            size="small"
+                                            class="font-semibold"
+                                          >
+                                            {{ row.member_status }}
+                                          </el-tag>
+                                          <span v-else class="text-gray-400">—</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ngày vào nhóm:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono text-xs text-gray-500 dark:text-gray-400 font-semibold">{{ formatDate(row.first_seen_at) }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Hoạt động cuối:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono text-xs text-gray-500 dark:text-gray-400 font-semibold">{{ formatDate(row.last_seen_at) }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ghi nhận bởi:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="text-xs text-gray-700 dark:text-gray-300 font-medium">{{ row.last_seen_by || '—' }}</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+                <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+              </div>
+            </div>
 
             <!-- Pagination -->
             <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -363,6 +517,11 @@ import { ref, onMounted, reactive, computed } from 'vue'
 import { ChatLineRound, Refresh, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 interface Project {
   id: string;

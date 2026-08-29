@@ -1,8 +1,11 @@
 <template>
   <div class="hr-container h-full flex flex-col">
     <!-- Filter Bar -->
-    <div class="flex justify-between items-center mb-4 shrink-0">
-      <div class="flex items-center gap-4">
+    <!-- MỤC 391 — `flex-wrap`: màn 390px không đủ chỗ cho ô Giới tính,
+         ô Tìm kiếm và nút Thêm trên cùng một hàng; không cho xuống dòng
+         thì chúng bị bóp lại hoặc tràn ra ngoài. -->
+    <div class="flex flex-wrap justify-between items-center gap-x-4 gap-y-3 mb-4 shrink-0">
+      <div class="flex flex-wrap items-center gap-x-4 gap-y-3">
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Giới tính:</span>
           <el-select
@@ -33,116 +36,132 @@
 
     <!-- Table -->
     <div class="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden flex flex-col flex-1 min-h-0">
-      <el-table v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
-        <el-table-column type="selection" width="55" fixed />
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 391 (29/08/2026) — BẢNG CHỈ HIỆN TỪ 768px TRỞ LÊN
+
+           🔴 s68 chụp màn 29/08: cột "Địa chỉ" và "SĐT" bị cột Thao tác
+           ghim đè lên. Nguyên nhân: ô tick, STT, Mã NV, Họ và Tên đều
+           khai `fixed` bên trái — cộng lại đã rộng hơn cả màn điện
+           thoại — thêm Thao tác `fixed="right"` nữa. Vùng cuộn bằng 0.
+
+           ⚠️ MỤC 386 đã thu gọn bề rộng rồi, nhưng bảng này có 47 cột,
+           thu gọn 27% vẫn còn hơn 5.000px. Không có cách nào nhét vừa
+           màn 390px, và cũng không nên cố.
+           ══════════════════════════════════════════════════════════ -->
+      <el-table v-if="hienBang" v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
+        <!-- ══ MỤC 391 — ĐÃ BỎ HẾT `fixed` ══
+             ⚠️ Cột "Mã NV" nới riêng 86 -> 110: nó có `sortable`, mũi
+             tên sắp xếp ăn thêm ~24px mà công thức MỤC 386 không biết.
+             Nới ĐÚNG CỘT ĐÓ, không nới cả bảng. -->
+        <el-table-column type="selection" width="55" />
         <!-- STT Column -->
-        <el-table-column label="STT" width="60" align="center" fixed>
+        <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
             <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="code" label="Mã NV" width="120" sortable="custom" fixed />
-        <el-table-column prop="lastName" label="Họ" width="140" fixed />
-        <el-table-column prop="firstName" label="Tên" width="120" fixed />
-        <el-table-column prop="username" label="Username" width="150">
+        <el-table-column prop="code" label="Mã NV" width="110" sortable="custom" />
+        <el-table-column prop="lastName" label="Họ" width="101" />
+        <el-table-column prop="firstName" label="Tên" width="86" />
+        <el-table-column prop="username" label="Username" width="108">
           <template #default="scope"><span class="text-blue-500">{{ scope.row.username }}</span></template>
         </el-table-column>
-        <el-table-column prop="authorization" label="Ủy quyền" width="140" />
-        <el-table-column prop="telegramGroup" label="Nhóm Telegram" width="220" show-overflow-tooltip />
-        <el-table-column prop="gender" label="Giới tính" width="110" align="center">
+        <el-table-column prop="authorization" label="Ủy quyền" width="101" />
+        <el-table-column prop="telegramGroup" label="Nhóm Telegram" width="158" show-overflow-tooltip />
+        <el-table-column prop="gender" label="Giới tính" width="79" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.gender === 'Nam' ? 'primary' : 'danger'" effect="light" size="small" round>{{ scope.row.gender }}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column label="Ngày sinh" width="130">
+        <el-table-column label="Ngày sinh" width="94">
           <template #default="scope"><span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(scope.row.dob) }}</span></template>
         </el-table-column>
-        <el-table-column prop="phone" label="SĐT" width="140" />
-        <el-table-column prop="email" label="Email" width="240" show-overflow-tooltip />
-        <el-table-column prop="address" label="Địa chỉ" width="320" show-overflow-tooltip />
-        <el-table-column prop="idNumber" label="CCCD/CMND" width="160" />
-        <el-table-column prop="idPlace" label="Nơi cấp" width="160" />
-        <el-table-column prop="nationality" label="Quốc tịch" width="125" />
-        <el-table-column prop="maritalStatus" label="Tình trạng hôn nhân" width="170" />
-        <el-table-column prop="education" label="Trình độ học vấn" width="165" />
-        <el-table-column prop="major" label="Chuyên ngành" width="160" />
-        <el-table-column prop="certificate" label="Chứng chỉ" width="160" />
-        <el-table-column prop="experience" label="Kinh nghiệm" width="140" />
-        <el-table-column prop="department" label="Phòng ban" width="180" />
-        <el-table-column prop="position" label="Chức vụ" width="180" />
-        <el-table-column prop="contractType" label="Loại hợp đồng" width="150" />
-        <el-table-column prop="photoUrl" label="Ảnh nhân viên" width="160" show-overflow-tooltip />
-        <el-table-column label="Giờ vào ca" width="120" align="center">
+        <el-table-column prop="phone" label="SĐT" width="101" />
+        <el-table-column prop="email" label="Email" width="173" show-overflow-tooltip />
+        <el-table-column prop="address" label="Địa chỉ" width="230" show-overflow-tooltip />
+        <el-table-column prop="idNumber" label="CCCD/CMND" width="115" />
+        <el-table-column prop="idPlace" label="Nơi cấp" width="115" />
+        <el-table-column prop="nationality" label="Quốc tịch" width="90" />
+        <el-table-column prop="maritalStatus" label="Tình trạng hôn nhân" width="122" />
+        <el-table-column prop="education" label="Trình độ học vấn" width="119" />
+        <el-table-column prop="major" label="Chuyên ngành" width="115" />
+        <el-table-column prop="certificate" label="Chứng chỉ" width="115" />
+        <el-table-column prop="experience" label="Kinh nghiệm" width="101" />
+        <el-table-column prop="department" label="Phòng ban" width="130" />
+        <el-table-column prop="position" label="Chức vụ" width="130" />
+        <el-table-column prop="contractType" label="Loại hợp đồng" width="108" />
+        <el-table-column prop="photoUrl" label="Ảnh nhân viên" width="115" show-overflow-tooltip />
+        <el-table-column label="Giờ vào ca" width="86" align="center">
           <template #default="scope">{{ scope.row.shiftStartStr || '07:00' }}</template>
         </el-table-column>
-        <el-table-column label="Giờ tan ca" width="120" align="center">
+        <el-table-column label="Giờ tan ca" width="86" align="center">
           <template #default="scope">{{ scope.row.shiftEndStr || '16:00' }}</template>
         </el-table-column>
-        <el-table-column label="Vào ca T7" width="120" align="center">
+        <el-table-column label="Vào ca T7" width="86" align="center">
           <template #default="scope">{{ scope.row.satShiftStartStr || '07:00' }}</template>
         </el-table-column>
-        <el-table-column label="Tan ca T7" width="120" align="center">
+        <el-table-column label="Tan ca T7" width="86" align="center">
           <template #default="scope">{{ scope.row.satShiftEndStr || '11:30' }}</template>
         </el-table-column>
-        <el-table-column label="Số giờ làm/ngày" width="150" align="center">
+        <el-table-column label="Số giờ làm/ngày" width="108" align="center">
           <template #default="scope"><span class="font-medium">{{ scope.row.workHoursPerDay }}h</span></template>
         </el-table-column>
-        <el-table-column label="Lương cơ bản" width="170" align="right">
-          <template #default="scope"><span class="font-medium">{{ formatCurrency(scope.row.baseSalary) }}</span></template>
+        <el-table-column label="Lương cơ bản" width="122" align="right">
+          <template #default="scope"><span class="font-medium" :class="mauSo(scope.row.baseSalary)">{{ formatCurrency(scope.row.baseSalary) }}</span></template>
         </el-table-column>
-        <el-table-column label="Lương tháng" width="170" align="right">
-          <template #default="scope"><span class="font-bold text-green-500">{{ formatCurrency(scope.row.monthlySalary) }}</span></template>
+        <el-table-column label="Lương tháng" width="122" align="right">
+          <template #default="scope"><span :class="mauSoDam(scope.row.monthlySalary)">{{ formatCurrency(scope.row.monthlySalary) }}</span></template>
         </el-table-column>
-        <el-table-column label="Lương tuần" width="160" align="right">
+        <el-table-column label="Lương tuần" width="115" align="right">
           <template #default="scope">{{ formatCurrency(scope.row.weeklySalary) }}</template>
         </el-table-column>
-        <el-table-column label="Lương ngày" width="160" align="right">
+        <el-table-column label="Lương ngày" width="115" align="right">
           <template #default="scope">{{ formatCurrency(scope.row.dailySalary) }}</template>
         </el-table-column>
-        <el-table-column label="Lương giờ" width="150" align="right">
+        <el-table-column label="Lương giờ" width="108" align="right">
           <template #default="scope">{{ formatCurrency(scope.row.hourlySalary) }}</template>
         </el-table-column>
-        <el-table-column label="Lương làm thêm giờ" width="185" align="right">
-          <template #default="scope"><span class="text-orange-500 font-medium">{{ formatCurrency(scope.row.overtimeSalary) }}</span></template>
+        <el-table-column label="Lương làm thêm giờ" width="133" align="right">
+          <template #default="scope"><span class="font-medium" :class="mauSo(scope.row.overtimeSalary)">{{ formatCurrency(scope.row.overtimeSalary) }}</span></template>
         </el-table-column>
-        <el-table-column label="Tiền thưởng" width="160" align="right">
+        <el-table-column label="Tiền thưởng" width="115" align="right">
           <template #default="scope">{{ formatCurrency(scope.row.bonus) }}</template>
         </el-table-column>
-        <el-table-column label="Tiền ăn trưa" width="160" align="right">
+        <el-table-column label="Tiền ăn trưa" width="115" align="right">
           <template #default="scope">{{ formatCurrency(scope.row.lunchAllowance) }}</template>
         </el-table-column>
-        <el-table-column label="Năng suất" width="150" align="right">
+        <el-table-column label="Năng suất" width="108" align="right">
           <template #default="scope">{{ formatCurrency(scope.row.productivity) }}</template>
         </el-table-column>
-        <el-table-column label="Phụ cấp khác" width="160" align="right">
+        <el-table-column label="Phụ cấp khác" width="115" align="right">
           <template #default="scope">{{ formatCurrency(scope.row.otherAllowance) }}</template>
         </el-table-column>
-        <el-table-column prop="benefit" label="Phúc lợi" width="160" show-overflow-tooltip />
-        <el-table-column label="Số ngày phép năm" width="165" align="center">
+        <el-table-column prop="benefit" label="Phúc lợi" width="115" show-overflow-tooltip />
+        <el-table-column label="Số ngày phép năm" width="119" align="center">
           <template #default="scope"><span class="font-medium">{{ scope.row.annualLeaveDays }}</span></template>
         </el-table-column>
-        <el-table-column prop="insurance" label="Bảo hiểm" width="175" show-overflow-tooltip />
-        <el-table-column label="Bảo hiểm XH" width="160" align="right">
+        <el-table-column prop="insurance" label="Bảo hiểm" width="126" show-overflow-tooltip />
+        <el-table-column label="Bảo hiểm XH" width="115" align="right">
           <template #default="scope">{{ formatCurrency(scope.row.socialInsurance) }}</template>
         </el-table-column>
-        <el-table-column prop="careerGoal" label="Mục tiêu nghề nghiệp" width="230" show-overflow-tooltip />
-        <el-table-column prop="performanceReview" label="Đánh giá hiệu suất" width="180" />
-        <el-table-column prop="bankName" label="Ngân hàng" width="170" />
-        <el-table-column prop="bankAccount" label="Số tài khoản" width="180" />
-        <el-table-column prop="paymentCode" label="Mã thanh toán" width="150" />
-        <el-table-column prop="emergencyPhone" label="SĐT khẩn cấp" width="160" />
-        <el-table-column prop="emergencyContact" label="Người liên hệ khẩn cấp" width="220" show-overflow-tooltip />
-        <el-table-column label="Auto chấm công" width="150" align="center">
+        <el-table-column prop="careerGoal" label="Mục tiêu nghề nghiệp" width="166" show-overflow-tooltip />
+        <el-table-column prop="performanceReview" label="Đánh giá hiệu suất" width="130" />
+        <el-table-column prop="bankName" label="Ngân hàng" width="122" />
+        <el-table-column prop="bankAccount" label="Số tài khoản" width="130" />
+        <el-table-column prop="paymentCode" label="Mã thanh toán" width="108" />
+        <el-table-column prop="emergencyPhone" label="SĐT khẩn cấp" width="115" />
+        <el-table-column prop="emergencyContact" label="Người liên hệ khẩn cấp" width="158" show-overflow-tooltip />
+        <el-table-column label="Auto chấm công" width="108" align="center">
           <template #default="scope">
             <el-tag :type="scope.row.autoAttendance ? 'success' : 'info'" effect="light" size="small" round>
               {{ scope.row.autoAttendance ? 'Có' : 'Không' }}
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="workType" label="Loại công" width="110" align="center" />
+        <el-table-column prop="workType" label="Loại công" width="79" align="center" />
 
         <!-- Thao tác -->
-        <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+        <el-table-column label="Thao tác" width="60" align="center">
           <template #default="scope">
             <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, scope.row)">
               <el-button link type="info" class="p-1">
@@ -160,14 +179,127 @@
         </el-table-column>
       </el-table>
 
-      <!-- Phân trang -->
-      <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 391 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+           🔴 THẺ CHỈ HIỆN 12 TRƯỜNG, KHÔNG PHẢI CẢ 47.
+           Khác với màn Đối tác (13 cột, thẻ hiện đủ). Đổ 47 dòng vào
+           một thẻ thì mỗi nhân viên chiếm ba màn hình, cuộn tìm còn lâu
+           hơn bảng cũ. 35 trường còn lại KHÔNG mất — chúng nằm đủ trong
+           hộp thoại "Chi tiết" ở menu ba chấm, hộp đó đang hiện 53
+           trường.
+           ══════════════════════════════════════════════════════════ -->
+      <div v-if="hienThe" v-loading="loading" class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div v-if="paginatedData.length > 0" class="grid grid-cols-1 gap-4">
+          <div
+            v-for="nv in paginatedData"
+            :key="nv.id"
+            class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+          >
+            <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <div class="min-w-0">
+                <div class="font-mono font-bold text-blue-600 dark:text-blue-400 text-base select-all">{{ nv.code }}</div>
+                <div class="mt-1 font-semibold text-gray-800 dark:text-gray-100 break-words">
+                  {{ nv.lastName }} {{ nv.firstName }}
+                </div>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <el-tag :type="nv.gender === 'Nam' ? 'primary' : 'danger'" effect="light" size="small" round>
+                  {{ nv.gender }}
+                </el-tag>
+                <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, nv)">
+                  <el-button link type="info" class="p-1">
+                    <el-icon class="text-xl"><MoreFilled /></el-icon>
+                  </el-button>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                      <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
+                      <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+            </div>
+
+            <div class="space-y-2 text-sm text-left">
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Chức vụ:</span>
+                <span class="text-gray-700 dark:text-gray-300 text-right break-words">{{ nv.position || '—' }}</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Phòng ban:</span>
+                <span class="text-gray-700 dark:text-gray-300 text-right break-words">{{ nv.department || '—' }}</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">SĐT:</span>
+                <span class="text-gray-700 dark:text-gray-300 font-mono text-right">{{ nv.phone || '—' }}</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Địa chỉ:</span>
+                <span class="text-gray-700 dark:text-gray-300 text-right break-words">{{ nv.address || '—' }}</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Username:</span>
+                <span class="text-blue-500 text-right break-all">{{ nv.username || '—' }}</span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nhóm Telegram:</span>
+                <span class="text-gray-700 dark:text-gray-300 text-right break-words">{{ nv.telegramGroup || '—' }}</span>
+              </div>
+
+              <div class="pt-2 mt-1 border-t border-dashed border-gray-200 dark:border-gray-700/60 space-y-2">
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ca làm:</span>
+                  <span class="text-gray-700 dark:text-gray-300 font-mono text-right">
+                    {{ nv.shiftStartStr }} – {{ nv.shiftEndStr }} · {{ nv.workHoursPerDay }}h
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ca thứ 7:</span>
+                  <span class="text-gray-700 dark:text-gray-300 font-mono text-right">
+                    {{ nv.satShiftStartStr }} – {{ nv.satShiftEndStr }}
+                  </span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Auto chấm công:</span>
+                  <el-tag :type="nv.autoAttendance ? 'success' : 'info'" effect="light" size="small" round>
+                    {{ nv.autoAttendance ? 'Có' : 'Không' }}
+                  </el-tag>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Lương cơ bản:</span>
+                  <span class="font-mono text-right" :class="mauSo(nv.baseSalary)">{{ formatCurrency(nv.baseSalary) }}</span>
+                </div>
+                <div class="flex justify-between gap-3">
+                  <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Lương tháng:</span>
+                  <span class="font-mono text-right" :class="mauSoDam(nv.monthlySalary)">{{ formatCurrency(nv.monthlySalary) }}</span>
+                </div>
+              </div>
+
+              <!-- ⚠️ Nói thẳng tại chỗ là thẻ không hiện hết, để người
+                   đọc không tưởng hệ thống thiếu dữ liệu. -->
+              <div class="pt-1 text-xs text-gray-400 dark:text-gray-500 italic">
+                Còn 35 mục khác (CCCD, học vấn, bảo hiểm, ngân hàng…) — bấm ba chấm ▸ Chi tiết.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+          <p class="text-base font-medium">Không có nhân viên nào khớp bộ lọc</p>
+        </div>
+      </div>
+
+      <!-- Phân trang — DÙNG CHUNG cho cả bảng lẫn thẻ. -->
+      <div class="mt-auto shrink-0 p-4 flex flex-wrap justify-end gap-4 border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
         <el-pagination
           v-model:current-page="currentPage"
           v-model:page-size="pageSize"
           :page-sizes="[10, 20, 50, 100]"
           :background="true"
-          layout="total, sizes, prev, pager, next, jumper"
+          :small="laManHep"
+          :layout="laManHep ? 'total, prev, pager, next' : 'total, sizes, prev, pager, next, jumper'"
           :total="filteredData.length"
         />
       </div>
@@ -987,7 +1119,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, watch, onMounted } from 'vue'
+import { ref, computed, reactive, watch, onMounted, onBeforeUnmount } from 'vue'
+// MỤC 392 — dùng hàm chung, không viết hàm thứ hai cho cùng một việc.
+import { dinhDangSo } from '@/utils/dinhDangSo'
+import { mauSo, mauSoDam } from '@/utils/mauSo'
 import { MoreFilled, Search } from '@element-plus/icons-vue'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import { employeeService } from '@/api/employeeService'
@@ -1222,7 +1357,43 @@ const submitForm = async () => {
 }
 
 // Helpers
-const formatCurrency = (v: number) => new Intl.NumberFormat('vi-VN').format(v)
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 392 (29/08/2026) — GỌI HÀM CHUNG THAY VÌ TỰ ĐỊNH DẠNG
+//
+// Bản cũ `new Intl.NumberFormat('vi-VN').format(v)` KHÔNG cắt phần lẻ,
+// nên cùng một số lương hiện ở màn này khác với các màn đã đi qua
+// `dinhDangSo` từ MỤC 355. Giữ nguyên tên hàm để không phải sửa hơn 20
+// chỗ gọi trong bảng và hộp thoại.
+const formatCurrency = (v: number) => dinhDangSo(v)
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 391 (29/08/2026) — ĐIỆN THOẠI DÙNG THẺ, MÁY TÍNH DÙNG BẢNG
+//
+// ⚠️ Ngưỡng 768px trùng `md:` của Tailwind mà cả dự án đang dùng. Đặt
+// một con số khác là có hai ngưỡng cho cùng một việc, và chúng sẽ lệch.
+const NGUONG_MAN_HEP = 768
+
+const laManHep = ref(false)
+
+const doBeRong = () => {
+  laManHep.value = typeof window !== 'undefined'
+    && window.innerWidth < NGUONG_MAN_HEP
+}
+
+// Không bao giờ hiện cả hai, không bao giờ hiện rỗng.
+const hienBang = computed(() => !laManHep.value)
+const hienThe = computed(() => laManHep.value)
+
+// ⚠️ Phải gỡ ở `onBeforeUnmount`. Không gỡ thì mỗi lần vào lại màn này
+// là chồng thêm một người nghe `resize`, và không có gì báo lỗi.
+onMounted(() => {
+  doBeRong()
+  window.addEventListener('resize', doBeRong)
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', doBeRong)
+})
 const formatDate = (d: string) => { if (!d) return ''; const [y, m, dd] = d.split('-'); return `${dd}/${m}/${y}` }
 
 const allData = ref<any[]>([])

@@ -125,13 +125,23 @@
 
           <!-- Table View (List Mode) -->
           <div v-if="displayMode === 'list'" v-loading="loading" class="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700/80 overflow-hidden flex flex-col flex-1 min-h-0">
-            <el-table :data="paginatedMembers" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
-              <el-table-column label="STT" width="70" align="center" fixed>
+            <!-- ══════════════════════════════════════════════════════════════
+                 MỤC 398 (29/08/2026) — BỎ CỘT GHIM, BẢNG CHỈ HIỆN TỪ 768px
+
+                 Cột ghim `fixed` chiếm chỗ CỐ ĐỊNH và không co theo màn hình.
+                 Trên màn 390px, mấy cột ghim cộng lại đã hết chỗ, nên vùng
+                 cuộn còn lại bằng 0 và vuốt ngang không có tác dụng — người
+                 dùng vuốt mà màn hình không nhúc nhích.
+
+                 Đã bỏ 0 cột ghim ở bảng này.
+                 ══════════════════════════════════════════════════════════ -->
+            <el-table v-if="hienBang" :data="paginatedMembers" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
+              <el-table-column label="STT" width="70" align="center">
                 <template #default="{ $index }">
                   {{ (currentPage - 1) * pageSize + $index + 1 }}
                 </template>
               </el-table-column>
-              <el-table-column prop="rosca_code" label="Mã dây hụi" min-width="130" sortable="custom" fixed>
+              <el-table-column prop="rosca_code" label="Mã dây hụi" min-width="130" sortable="custom">
                 <template #default="{ row }">
                   <span class="font-mono font-bold text-blue-600 dark:text-blue-400 select-all">{{ row.rosca_code }}</span>
                 </template>
@@ -188,14 +198,14 @@
                   <span class="text-xs text-gray-600 dark:text-gray-300 font-mono">{{ row.telegram_group || '—' }}</span>
                 </template>
               </el-table-column>
-              <el-table-column prop="status" label="Trạng thái" min-width="140" align="center" fixed="right">
+              <el-table-column prop="status" label="Trạng thái" min-width="140" align="center">
                 <template #default="{ row }">
                   <el-tag :type="getStatusTagType(row.status)" size="small" effect="plain" class="font-semibold">
                     {{ getStatusLabel(row.status) }}
                   </el-tag>
                 </template>
               </el-table-column>
-              <el-table-column fixed="right" label="Thao tác" width="90" align="center">
+              <el-table-column label="Thao tác" width="90" align="center">
                 <template #default="{ row }">
                   <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
                     <el-button link type="info" class="p-1">
@@ -213,6 +223,125 @@
                 </template>
               </el-table-column>
             </el-table>
+
+<!-- ══════════════════════════════════════════════════════════════
+                 MỤC 398 (29/08/2026) — THẺ DỌC CHO MÀN HẸP
+
+                 🔴 SINH RA TỪ CHÍNH ĐỊNH NGHĨA CỘT CỦA BẢNG Ở TRÊN.
+                 Mỗi ô dưới đây là NGUYÊN VĂN phần hiển thị của cột tương
+                 ứng, chỉ đổi chỗ đặt. Nên thẻ và bảng không thể lệch nhau về
+                 màu, định dạng số hay nhãn trạng thái — chúng là cùng một
+                 đoạn mã.
+
+                 ⚠️ Sửa cách hiển thị một cột thì phải sửa CẢ HAI chỗ. Sửa mỗi
+                 bảng là điện thoại và máy tính hiện hai kiểu khác nhau cho
+                 cùng một con số.
+                 ══════════════════════════════════════════════════════════ -->
+            <div v-if="hienThe" class="flex-1 min-h-0 overflow-y-auto p-3">
+              <div v-if="paginatedMembers.length > 0" class="grid grid-cols-1 gap-4">
+                <div
+                  v-for="(row, i) in paginatedMembers"
+                  :key="row.id || row.contract_id || i"
+                  class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
+                >
+                  <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                    <div class="min-w-0 break-words">
+                      <span class="font-mono font-bold text-blue-600 dark:text-blue-400 select-all">{{ row.rosca_code }}</span>
+                    </div>
+                    <div class="shrink-0">
+                      <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
+                                          <el-button link type="info" class="p-1">
+                                            <el-icon class="text-xl"><MoreFilled /></el-icon>
+                                          </el-button>
+                                          <template #dropdown>
+                                            <el-dropdown-menu>
+                                              <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                                              <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
+                                              <el-dropdown-item command="schedule">Lên lịch hẹn</el-dropdown-item>
+                                              <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
+                                            </el-dropdown-menu>
+                                          </template>
+                                        </el-dropdown>
+                    </div>
+                  </div>
+                  <div class="space-y-2 text-sm text-left">
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Mã chân hụi:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono text-xs font-bold text-amber-600 dark:text-amber-400 select-all">{{ row.id }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Mã người chơi:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono font-bold text-gray-700 dark:text-gray-300 select-all">{{ row.user_id }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên người chơi:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-bold text-gray-800 dark:text-gray-100 select-all">{{ row.player_name || 'N/A' }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số chân sở hữu:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-bold text-gray-800 dark:text-gray-200">{{ row.parts_count || 1 }} chân</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số kỳ đã đóng:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono font-bold text-blue-500">
+                                            {{ (row as any).paid_rounds_count ?? (row as any).rounds_paid ?? (row as any).contributed_rounds ?? 0 }} kỳ
+                                          </span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tổng đã đóng:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono font-semibold text-gray-800 dark:text-gray-200">{{ formatCurrency(row.total_contributed) }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tổng đã nhận:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ formatCurrency(row.total_received) }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tổng lợi nhuận:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span 
+                                            class="font-mono font-bold" 
+                                            :class="(row.total_profit || 0) >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-500'"
+                                          >
+                                            {{ formatCurrency(row.total_profit) }}
+                                          </span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Telegram:</span>
+                      <span class="text-right break-words min-w-0">
+                        <span class="text-xs text-gray-600 dark:text-gray-300 font-mono">{{ row.telegram_group || '—' }}</span>
+                      </span>
+                    </div>
+                    <div class="flex justify-between gap-3">
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Trạng thái:</span>
+                      <span class="text-right break-words min-w-0">
+                        <el-tag :type="getStatusTagType(row.status)" size="small" effect="plain" class="font-semibold">
+                                            {{ getStatusLabel(row.status) }}
+                                          </el-tag>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div v-else class="flex flex-col items-center justify-center py-16 text-gray-400 dark:text-gray-500">
+                <p class="text-base font-medium">Không có dòng nào khớp bộ lọc</p>
+              </div>
+            </div>
 
             <!-- Table Pagination -->
             <div class="p-4 flex justify-between items-center border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
@@ -660,6 +789,11 @@ import { User, Search, Refresh, Plus, MoreFilled } from '@element-plus/icons-vue
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { roscaService, type RoscaMember, type UserRosca, type Rosca } from '@/api/roscaService'
 import ScheduledNotificationModal from '@/components/ScheduledNotification/ScheduledNotificationModal.vue'
+// MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
+// resize vào từng file. Xem `src/composables/manHep.ts`.
+import { dungManHep } from '@/composables/manHep'
+
+const { laManHep, hienBang, hienThe } = dungManHep()
 
 // Schedule Notification State
 const scheduleModalVisible = ref(false)
