@@ -32,6 +32,11 @@ export interface HoSoCuaToi {
     username: string | null
     ma_nhan_vien: string | null
     ho_ten: string | null
+    // MỤC 407 — khai kiểu cho cột MỤC 406. Thiếu dòng này thì `vue-tsc`
+    // báo `Property 'anh_dai_dien' does not exist` và HỎNG CẢ BẢN DỰNG —
+    // đúng loại lỗi đã làm hỏng lần đẩy trước (MỤC 402).
+    // `null` = tài khoản chưa đặt ảnh; frontend hiện chữ cái đầu của tên.
+    anh_dai_dien: string | null
     vai_tro: string | null
     la_admin: boolean
   }
@@ -60,6 +65,26 @@ export const hoSoService = {
    * token. Thêm tham số `employee_id` vào đây là mở đường cho việc xem
    * hồ sơ người khác.
    */
+  /**
+   * MỤC 406 (29/08/2026) — đặt ảnh đại diện cho CHÍNH mình.
+   *
+   * 🔴 Không có tham số mã tài khoản — cùng lý do như `layHoSoCuaToi`.
+   * Máy chủ lấy người gọi từ token. Nhận mã từ ngoài vào là mở cửa cho
+   * người này đổi ảnh người kia.
+   *
+   * ⚠️ `anh` phải là chuỗi `data:image/png;base64,...` ĐÃ THU NHỎ.
+   * Máy chủ chặn cứng ở 200 KB và chỉ nhận PNG / JPG / WEBP — ảnh SVG bị
+   * từ chối vì SVG là XML có thể chứa mã chạy được.
+   */
+  async datAnhDaiDien(anh: string): Promise<any> {
+    return await goiHoSo('anh-dai-dien', { anh })
+  },
+
+  /** MỤC 406 — gỡ ảnh, quay về chữ cái đầu của tên. */
+  async xoaAnhDaiDien(): Promise<any> {
+    return await goiHoSo('xoa-anh-dai-dien', {})
+  },
+
   async layHoSoCuaToi(): Promise<HoSoCuaToi> {
     const baseUrl = await getApiUrl()
     const response = await fetch(`${baseUrl}/auth/ho-so-cua-toi`, {
@@ -81,4 +106,28 @@ export const hoSoService = {
 
     return await response.json()
   },
+}
+
+/**
+ * Phần chung của hai lời gọi ghi ở trên. Tách ra để không có hai bản xử
+ * lý lỗi cho cùng một việc — hai bản thì sớm muộn một bản quên đọc
+ * `detail`, và người dùng nhận "có lỗi xảy ra" thay vì câu máy chủ đã
+ * viết sẵn (400 ảnh sai loại / 400 ảnh quá nặng / 500 chưa migration).
+ */
+async function goiHoSo(duong: string, than: any): Promise<any> {
+  const baseUrl = await getApiUrl()
+  const response = await fetch(`${baseUrl}/auth/${duong}`, {
+    method: 'POST',
+    headers: getApiHeaders(),
+    body: JSON.stringify(than),
+  })
+
+  if (!response.ok) {
+    const chiTiet = await response.json().catch(() => ({}))
+    const loi: any = new Error(chiTiet?.detail || 'Không lưu được ảnh.')
+    loi.status = response.status
+    throw loi
+  }
+
+  return await response.json()
 }

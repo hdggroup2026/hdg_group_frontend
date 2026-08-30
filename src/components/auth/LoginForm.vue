@@ -1,8 +1,17 @@
 <template>
     <div class="bg-white/3 backdrop-blur-lg border border-white/40 p-10 rounded-[40px] shadow-2xl w-[400px] text-center">
+        <!-- ══ MỤC 407 (29/08/2026) — LOGO HDG THAY BIỂU TƯỢNG NGƯỜI ══
+             s68: *"vòng tròn lấy avatar trên trang chủ gắn vào luôn"*.
+             Logo đã có sẵn ở `public/logo-hdg.png`, cùng file thanh điều
+             hướng đang dùng — KHÔNG thêm ảnh thứ hai cho cùng một logo.
+
+             ⚠️ Nền trắng chứ không phải `#004274` như biểu tượng cũ:
+             logo HDG là hình tròn viền vàng nền xanh lá đậm, đặt trên
+             nền xanh navy thì viền chìm mất. -->
         <div class="flex justify-center mb-2">
-            <div class="bg-[#004274] p-3 rounded-full text-white">
-                <el-icon :size="40"><User /></el-icon>
+            <div class="bg-white p-2 rounded-full shadow-lg">
+                <img src="/logo-hdg.png" alt="HDG Group"
+                     class="w-16 h-16 object-contain rounded-full" />
             </div>
         </div>
 
@@ -67,7 +76,8 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { User } from '@element-plus/icons-vue'
+// MỤC 407 — bỏ import `User`: biểu tượng đó không còn dùng ở màn
+// này nữa. Để lại là `vue-tsc` báo biến khai mà không dùng.
 import { ElMessage } from 'element-plus'
 import FormInput from './FormInput.vue'
 import PrimaryButton from './PrimaryButton.vue'

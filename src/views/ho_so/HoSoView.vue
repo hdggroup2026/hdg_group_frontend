@@ -49,6 +49,68 @@
           <h2 class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-3">
             Tài khoản
           </h2>
+
+          <!-- ══════════════════════════════════════════════════════════
+               MỤC 407 (29/08/2026) — ẢNH ĐẠI DIỆN, ĐỔI ĐƯỢC
+
+               🔴 THU NHỎ Ở TRÌNH DUYỆT TRƯỚC KHI GỬI.
+               Ảnh điện thoại chụp thường 3–5 MB; mã hoá base64 còn phình
+               thêm 33%. Gửi thẳng là máy chủ từ chối (giới hạn 200 KB) và
+               người dùng chỉ nhận một câu "ảnh quá nặng" mà không biết
+               phải làm gì. Thu về 256×256 rồi nén JPEG thì ảnh nào cũng
+               lọt, không cần bắt ai đi cắt ảnh.
+
+               ⚠️ 256px là đủ: ô lớn nhất hiện ảnh này rộng 80px, màn hình
+               2× thì cần 160px. Để 512 chỉ làm nặng gấp bốn mà mắt không
+               thấy khác.
+               ══════════════════════════════════════════════════════ -->
+          <div class="flex items-center gap-4 pb-4 mb-4 border-b border-gray-100 dark:border-gray-700">
+            <div class="shrink-0">
+              <img v-if="anhHienTai" :src="anhHienTai" alt="Ảnh đại diện"
+                   class="w-20 h-20 rounded-full object-cover border border-gray-200 dark:border-gray-700" />
+              <div v-else
+                   class="w-20 h-20 rounded-full bg-[#004274] text-white flex items-center justify-center text-2xl font-semibold">
+                {{ chuDauTen }}
+              </div>
+            </div>
+
+            <div class="min-w-0">
+              <!-- ⚠️ Ô chọn file bị giấu, bấm qua nhãn. Ô `input file`
+                   nguyên bản mỗi trình duyệt vẽ một kiểu và không tô màu
+                   được. -->
+              <input ref="oChonFile" type="file"
+                     accept="image/png,image/jpeg,image/webp"
+                     class="hidden" @change="chonAnh" />
+
+              <div class="flex flex-wrap gap-2">
+                <el-button size="small" type="primary" :loading="dangLuuAnh"
+                           @click="oChonFile?.click()">
+                  {{ anhHienTai ? 'Đổi ảnh' : 'Chọn ảnh' }}
+                </el-button>
+                <!-- 🔴 Phải có đường quay lại. Đặt được mà không gỡ được
+                     thì người lỡ tải nhầm ảnh phải đi tìm ảnh khác đè
+                     lên — không phải cách sửa. -->
+                <el-button v-if="anhHienTai" size="small" :loading="dangLuuAnh"
+                           @click="xoaAnh">
+                  Gỡ ảnh
+                </el-button>
+              </div>
+
+              <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
+                PNG, JPG hoặc WEBP. Ảnh được thu nhỏ tự động.
+              </p>
+
+              <!-- Hỏng thì nói ra NGAY CẠNH nút, không nuốt. -->
+              <p v-if="loiAnh"
+                 class="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                {{ loiAnh }}
+              </p>
+              <p v-else-if="daLuuAnh"
+                 class="mt-1.5 text-xs text-green-600 dark:text-green-400">
+                Đã lưu ảnh.
+              </p>
+            </div>
+          </div>
           <dl class="space-y-2.5 text-sm">
             <div class="flex justify-between gap-3">
               <dt class="text-gray-500 dark:text-gray-400 shrink-0">Tên đăng nhập</dt>
@@ -217,7 +279,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+// MỤC 407 — thêm `computed` cho `chuDauTen`. Quên tên ở đây là màn
+// trắng, `vue-tsc` báo ngay lúc dựng.
+import { computed, ref, onMounted } from 'vue'
 import { hoSoService, type HoSoCuaToi } from '@/api/hoSo'
 
 const chuaCo = '—'
@@ -225,6 +289,99 @@ const chuaCo = '—'
 const dangTai = ref(true)
 const loi = ref('')
 const hoSo = ref<HoSoCuaToi | null>(null)
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 407 (29/08/2026) — ẢNH ĐẠI DIỆN
+// ══════════════════════════════════════════════════════════════════════
+const oChonFile = ref<HTMLInputElement | null>(null)
+const anhHienTai = ref<string>('')
+const dangLuuAnh = ref(false)
+const loiAnh = ref('')
+const daLuuAnh = ref(false)
+
+const chuDauTen = computed(() => {
+  const tk: any = hoSo.value?.tai_khoan || {}
+  const ten = String(tk.ho_ten || tk.username || '').trim()
+  return ten ? ten.charAt(0).toUpperCase() : '?'
+})
+
+const CANH_ANH = 256          // xem lời ghi ở phần template
+
+/**
+ * Thu ảnh về ô vuông 256×256, cắt giữa, xuất JPEG chất lượng 0,82.
+ *
+ * ⚠️ CẮT GIỮA chứ không bóp méo. Ảnh chân dung 3:4 mà kéo cho vừa ô
+ * vuông thì mặt bị dẹt — người dùng tưởng web hỏng.
+ *
+ * 🔴 `URL.revokeObjectURL` ở CẢ HAI nhánh. Quên ở nhánh lỗi thì mỗi lần
+ * chọn nhầm file là rò một vùng nhớ, và không có gì báo.
+ */
+const thuNhoAnh = (file: File): Promise<string> =>
+  new Promise((giaiQuyet, tuChoi) => {
+    const duongDan = URL.createObjectURL(file)
+    const anh = new Image()
+    anh.onload = () => {
+      URL.revokeObjectURL(duongDan)
+      try {
+        const canh = Math.min(anh.width, anh.height)
+        const x = (anh.width - canh) / 2
+        const y = (anh.height - canh) / 2
+        const khung = document.createElement('canvas')
+        khung.width = CANH_ANH
+        khung.height = CANH_ANH
+        const ctx = khung.getContext('2d')
+        if (!ctx) return tuChoi(new Error('Trình duyệt không vẽ được ảnh.'))
+        ctx.drawImage(anh, x, y, canh, canh, 0, 0, CANH_ANH, CANH_ANH)
+        giaiQuyet(khung.toDataURL('image/jpeg', 0.82))
+      } catch (e) {
+        tuChoi(e as Error)
+      }
+    }
+    anh.onerror = () => {
+      URL.revokeObjectURL(duongDan)
+      tuChoi(new Error('Không đọc được file ảnh này.'))
+    }
+    anh.src = duongDan
+  })
+
+const chonAnh = async (su: Event) => {
+  const o = su.target as HTMLInputElement
+  const file = o.files && o.files[0]
+  // ⚠️ Xoá giá trị ô chọn NGAY. Không xoá thì chọn lại đúng file vừa
+  // chọn sẽ không kích hoạt `change`, và người dùng tưởng nút hỏng.
+  o.value = ''
+  if (!file) return
+
+  loiAnh.value = ''
+  daLuuAnh.value = false
+  dangLuuAnh.value = true
+  try {
+    const anh = await thuNhoAnh(file)
+    await hoSoService.datAnhDaiDien(anh)
+    anhHienTai.value = anh
+    daLuuAnh.value = true
+  } catch (e: any) {
+    // 🔴 In NGUYÊN VĂN câu máy chủ trả. Nó đã phân biệt sẵn 400 sai loại
+    // ảnh / 400 quá nặng / 500 chưa chạy migration.
+    loiAnh.value = e?.message || 'Không lưu được ảnh.'
+  } finally {
+    dangLuuAnh.value = false
+  }
+}
+
+const xoaAnh = async () => {
+  loiAnh.value = ''
+  daLuuAnh.value = false
+  dangLuuAnh.value = true
+  try {
+    await hoSoService.xoaAnhDaiDien()
+    anhHienTai.value = ''
+  } catch (e: any) {
+    loiAnh.value = e?.message || 'Không gỡ được ảnh.'
+  } finally {
+    dangLuuAnh.value = false
+  }
+}
 
 /**
  * Đổi chuỗi ISO của máy chủ sang ngày giờ đọc được.
@@ -246,6 +403,9 @@ const ngayGio = (iso: string | null | undefined): string => {
 onMounted(async () => {
   try {
     hoSo.value = await hoSoService.layHoSoCuaToi()
+    // MỤC 407 — ảnh đi kèm trong chính gói hồ sơ, không gọi thêm lượt
+    // nữa. Máy chủ đã trả `tai_khoan.anh_dai_dien`.
+    anhHienTai.value = (hoSo.value as any)?.tai_khoan?.anh_dai_dien || ''
   } catch (e: any) {
     // Phân biệt hết phiên với máy chủ hỏng — hai việc phải làm khác nhau.
     loi.value = e?.status === 401

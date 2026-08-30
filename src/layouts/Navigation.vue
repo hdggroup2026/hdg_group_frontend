@@ -36,8 +36,24 @@
 
         <!-- Nút User Avatar (Dropdown) -->
         <el-dropdown trigger="click">
+          <!-- ══ MỤC 407 (29/08/2026) — ẢNH ĐẠI DIỆN THẬT ══
+               🔴 Bản cũ nạp ảnh từ `cube.elemecdn.com` — máy chủ CDN của
+               Element Plus bên Trung Quốc, và là ảnh MẪU trong tài liệu
+               của họ. Nghĩa là:
+                 · mạng công ty chặn hoặc CDN đó chết là ô này trống
+                 · mỗi lần mở trang là báo cho một máy chủ ngoài biết có
+                   người vừa vào hệ thống
+               Không ai chọn thế cả — nó là ảnh mẫu chép từ tài liệu rồi
+               quên đổi.
+
+               Nay: ảnh của chính tài khoản (MỤC 406), chưa đặt thì hiện
+               chữ cái đầu của tên. Không gọi ra ngoài internet nữa. -->
           <span class="flex items-center cursor-pointer outline-none">
-            <el-avatar :size="32" src="https://cube.elemecdn.com/3/7c/3ea6beec64369c2642b92c6726f1epng.png" />
+            <el-avatar v-if="anhDaiDien" :size="32" :src="anhDaiDien" />
+            <el-avatar v-else :size="32"
+                       class="!bg-[#004274] !text-white font-semibold">
+              {{ chuDauTen }}
+            </el-avatar>
           </span>
           <template #dropdown>
             <el-dropdown-menu>
@@ -151,6 +167,31 @@ import { Moon, Sunny, User, SwitchButton } from '@element-plus/icons-vue'
 import { authService } from '@/api/auth'
 // MỤC 255 (23/08/2026) — bảng dự án dùng chung, xem src/constants/duAn.ts
 import { layQuyen, danhSachDuocVao, xoaBoNhoQuyen } from '@/constants/duAn'
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 407 (29/08/2026) — ẢNH ĐẠI DIỆN TRÊN THANH ĐIỀU HƯỚNG
+//
+// ⚠️ Đọc MỘT LẦN lúc mở trang, không đọc lại mỗi khi chuyển màn. Ảnh
+// base64 nặng vài chục KB; gọi lại mỗi lần đổi tab là tốn băng thông cho
+// một thứ không đổi.
+//
+// 🔴 Hỏng thì im lặng và hiện chữ cái đầu. Đây là ô trang trí — không
+// đáng để một lỗi mạng làm hiện dòng đỏ trên mọi màn.
+const anhDaiDien = ref<string>('')
+const chuDauTen = ref<string>('?')
+
+onMounted(async () => {
+  try {
+    const { hoSoService } = await import('@/api/hoSo')
+    const tt: any = await hoSoService.layHoSoCuaToi()
+    const tk = tt?.tai_khoan || {}
+    anhDaiDien.value = tk.anh_dai_dien || ''
+    const ten = (tk.ho_ten || tk.username || '').trim()
+    chuDauTen.value = ten ? ten.charAt(0).toUpperCase() : '?'
+  } catch (e) {
+    // im lặng có chủ ý — xem lời ghi trên
+  }
+})
 
 const router = useRouter()
 const selectedProject = defineModel('project', { type: String, default: 'Trang Chủ' })
