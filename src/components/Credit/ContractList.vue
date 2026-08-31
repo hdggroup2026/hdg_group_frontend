@@ -129,6 +129,35 @@
             <span class="font-mono font-bold text-blue-600 dark:text-blue-400 whitespace-nowrap">{{ row.contract_id }}</span>
           </template>
         </el-table-column>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 418 (30/08/2026) — HIỆN MÃ KHÁCH HÀNG
+
+             s68 nêu: *"mã HĐ khi tạo chưa liên kết đến mã KH mà liên kết
+             đến tên Khách hàng. Quy hoạch lại liên kết đến mã KH."*
+
+             🔴 ĐO LẠI THÌ LIÊN KẾT ĐÃ ĐÚNG SẴN, chỉ là màn không hiện:
+
+               · `app/models/credit.py` dòng 50 — `Credit.customer_id` là
+                 khoá ngoại UUID trỏ `credit_customers.id`. Nối bằng BẢN
+                 GHI khách hàng, không phải bằng chuỗi tên.
+               · Ô chọn khách lúc thêm hợp đồng đã hiện
+                 `"mã KH - tên KH"` và lưu `c.id`.
+               · `app/schemas/credit.py` dòng 99 đã trả sẵn
+                 `customer_code`.
+
+             Chỉ thiếu đúng một việc: BẢNG không in mã ra, nên nhìn vào
+             tưởng hợp đồng gắn theo tên.
+
+             ⚠️ KHÔNG đổi mô hình dữ liệu, KHÔNG migration. Đổi cột nối
+             của bảng `credits` là việc dính tiền — mà nó vốn đã đúng.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="customer_code" label="Mã KH" width="104" sortable="custom" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span class="font-mono font-bold text-blue-600 dark:text-blue-400">
+              {{ row.customer_code || '—' }}
+            </span>
+          </template>
+        </el-table-column>
         <el-table-column prop="customer_name" label="Tên khách hàng" width="144" sortable="custom" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
@@ -258,6 +287,14 @@
             </div>
             <div class="space-y-2 text-sm text-left">
               <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Mã KH:</span>
+                <span class="text-right break-words min-w-0">
+                  <span class="font-mono font-bold text-blue-600 dark:text-blue-400">
+                    {{ row.customer_code || '—' }}
+                  </span>
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
                 <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên khách hàng:</span>
                 <span class="text-right break-words min-w-0">
                   <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
@@ -375,15 +412,30 @@
             </h4>
             <el-row :gutter="20">
               <el-col :span="12">
+                <!-- ══════════════════════════════════════════════════
+                     MỤC 419 (30/08/2026) — NÚT + THÊM KHÁCH HÀNG TẠI CHỖ
+
+                     s68: *"thêm dấu + là thêm khách hàng: hiện form nhập
+                     vào luôn."*
+
+                     ⚠️ Trước đây phải: thoát form hợp đồng (mất hết những
+                     gì đã gõ) → sang tab Khách hàng → thêm → quay lại →
+                     gõ lại từ đầu.
+                     ══════════════════════════════════════════════════ -->
                 <el-form-item label="Khách hàng" prop="customer_id">
-                  <el-select v-model="form.customer_id" placeholder="Chọn khách hàng..." style="width: 100%" class="highlight-select" filterable>
-                    <el-option
-                      v-for="c in customersList"
-                      :key="c.id"
-                      :label="`${c.customer_id} - ${c.customer_name}`"
-                      :value="c.id"
-                    />
-                  </el-select>
+                  <div class="flex items-center gap-2 w-full">
+                    <el-select v-model="form.customer_id" placeholder="Chọn khách hàng..." class="highlight-select flex-1 min-w-0" :filterable="choLocDuoc">
+                      <el-option
+                        v-for="c in customersList"
+                        :key="c.id"
+                        :label="`${c.customer_id} - ${c.customer_name}`"
+                        :value="c.id"
+                      />
+                    </el-select>
+                    <el-button type="primary" :icon="Plus" class="shrink-0"
+                               title="Thêm khách hàng mới"
+                               @click="moThemKhachNhanh" />
+                  </div>
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -425,7 +477,7 @@
                   <el-select
                     v-model="form.classification"
                     placeholder="Chọn hoặc nhập phân loại..."
-                    filterable
+                    :filterable="choLocDuoc"
                     allow-create
                     default-first-option
                     clearable
@@ -717,18 +769,61 @@
       @saved="scheduleModalVisible = false"
     />
   </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         MỤC 419 (30/08/2026) — HỘP THÊM KHÁCH HÀNG NHANH
+         Chỉ 4 ô. Form đầy đủ (hạn mức, dư nợ, tên nhóm) ở màn Khách hàng.
+         ══════════════════════════════════════════════════════════ -->
+    <el-dialog v-model="hienThemKhach" title="THÊM KHÁCH HÀNG NHANH"
+               width="520px" destroy-on-close align-center
+               class="custom-dark-dialog">
+      <el-form label-width="140px" class="mt-2">
+        <el-form-item label="Mã khách hàng" required>
+          <el-input v-model="formKhach.customer_id" placeholder="VD: KH-CR-001" />
+        </el-form-item>
+        <el-form-item label="Tên khách hàng" required>
+          <el-input v-model="formKhach.customer_name" placeholder="Nhập tên khách hàng..." />
+        </el-form-item>
+        <el-form-item label="Liên hệ (Telegram)">
+          <el-input v-model="formKhach.contact_info" placeholder="VD: @telegram_username" />
+        </el-form-item>
+        <el-form-item label="Phân loại">
+          <el-select v-model="formKhach.classification" placeholder="Chọn phân loại..."
+                     style="width: 100%" clearable :filterable="choLocDuoc">
+            <el-option v-for="item in classifications" :key="item"
+                       :label="item" :value="item" />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <p class="text-xs text-gray-400 dark:text-gray-500 px-2">
+        Hạn mức tín dụng và dư nợ khai ở màn <b>Khách hàng</b>. Ở đây chỉ tạo
+        nhanh để chọn được vào hợp đồng đang làm dở.
+      </p>
+      <template #footer>
+        <el-button @click="hienThemKhach = false">Hủy</el-button>
+        <el-button type="primary" :loading="dangLuuKhach" @click="luuKhachNhanh">
+          Thêm và chọn
+        </el-button>
+      </template>
+    </el-dialog>
 </template>
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { mauSo } from '@/utils/mauSo'
-import { Search, MoreFilled, Files } from '@element-plus/icons-vue'
+import { Search, MoreFilled, Files, Plus } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { creditService } from '@/api/creditService'
 import ScheduledNotificationModal from '@/components/ScheduledNotification/ScheduledNotificationModal.vue'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 417 — trên máy bảng/điện thoại KHÔNG cho gõ lọc, để iOS
+// không bật bàn phím; bấm ẩn bàn phím thì droplist ở nguyên đó.
+// Xem `src/composables/chonDuoc.ts`.
+import { dungChonDuoc } from '@/composables/chonDuoc'
+
+const { choLocDuoc } = dungChonDuoc()
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 
@@ -798,6 +893,78 @@ const pageSize = ref(10)
 
 // Customers list for the add/edit dropdown (fetched from API)
 const customersList = ref<any[]>([])
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 419 (30/08/2026) — THÊM KHÁCH HÀNG NHANH NGAY TRONG FORM HỢP ĐỒNG
+//
+// 🔴 ĐÂY LÀ FORM RÚT GỌN, CỐ Ý. Màn Khách hàng có form đầy đủ với hạn mức,
+// dư nợ, tên nhóm… Ở đây chỉ 4 ô: mã, tên, liên hệ, phân loại — vừa đủ để
+// tạo rồi quay lại việc đang làm dở.
+//
+// ⚠️ Vì sao KHÔNG tách form đầy đủ ra component dùng chung: form đó ~300
+// dòng và dính hạn mức tín dụng — tức dính tiền. Tách nó ra trong lúc đang
+// sửa nhiều thứ khác là rủi ro không cần thiết. Đánh đổi: có HAI đoạn
+// markup form, nhưng CHỈ MỘT đường ghi (`creditService.addCreditCustomers`).
+//
+// ⚠️ Ai sửa về sau: hai ô `customer_id` và `customer_name` là BẮT BUỘC —
+// giống hệt `rules` của màn Khách hàng. Bỏ ràng buộc ở đây là tạo được
+// khách hàng thiếu mã, và màn kia sẽ không sửa nổi.
+const hienThemKhach = ref(false)
+const dangLuuKhach = ref(false)
+const formKhach = reactive({
+  customer_id: '',
+  customer_name: '',
+  contact_info: '',
+  classification: '',
+})
+
+const moThemKhachNhanh = () => {
+  formKhach.customer_id = ''
+  formKhach.customer_name = ''
+  formKhach.contact_info = ''
+  formKhach.classification = ''
+  hienThemKhach.value = true
+}
+
+const luuKhachNhanh = async () => {
+  const ma = (formKhach.customer_id || '').trim()
+  const ten = (formKhach.customer_name || '').trim()
+  if (!ma || !ten) {
+    ElMessage.warning('Phải có Mã khách hàng và Tên khách hàng.')
+    return
+  }
+  // ⚠️ Chặn trùng mã NGAY TRÊN MÀN. Để máy chủ báo thì người dùng mất một
+  // lượt gửi và nhận một câu lỗi kỹ thuật.
+  if (customersList.value.some((c: any) => (c.customer_id || '') === ma)) {
+    ElMessage.warning(`Mã khách hàng ${ma} đã có rồi.`)
+    return
+  }
+
+  dangLuuKhach.value = true
+  try {
+    const themVao = await creditService.addCreditCustomers([{
+      customer_id: ma,
+      customer_name: ten,
+      contact_info: (formKhach.contact_info || '').trim() || null,
+      classification: formKhach.classification || null,
+    }])
+    if (!themVao || !themVao.length) {
+      ElMessage.error('Máy chủ không trả về khách hàng vừa tạo.')
+      return
+    }
+    const moi = themVao[0]
+    customersList.value.push(moi)
+    // 🔴 Chọn luôn khách vừa tạo. Không chọn thì người dùng phải tự đi tìm
+    // trong danh sách — mà lý do họ bấm nút này là vì chưa có khách đó.
+    form.customer_id = moi.id
+    hienThemKhach.value = false
+    ElMessage.success(`Đã thêm khách hàng ${ma} và chọn sẵn.`)
+  } catch (e: any) {
+    ElMessage.error(e?.message || 'Lỗi khi thêm khách hàng.')
+  } finally {
+    dangLuuKhach.value = false
+  }
+}
 
 const contracts = ref<Contract[]>([])
 

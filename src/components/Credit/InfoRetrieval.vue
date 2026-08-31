@@ -237,7 +237,11 @@
             <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="group_name" label="Tên nhóm" width="101" show-overflow-tooltip>
+        <!-- MỤC 420 (30/08/2026) — tên nhóm không còn bị cắt.
+             `width` cố định + `show-overflow-tooltip` nghĩa là cắt rồi
+             hiện lại khi rê chuột — mà trên iPad không rê chuột được.
+             Đổi sang `min-width` co giãn + cho xuống dòng. -->
+        <el-table-column prop="group_name" label="Tên nhóm" min-width="150">
           <template #default="{ row }">
             <span class="text-gray-600 dark:text-gray-400 font-medium">{{ row.group_name || '—' }}</span>
           </template>

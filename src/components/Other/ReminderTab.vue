@@ -10,7 +10,7 @@
             v-model="filterDocumentId"
             placeholder="Tất cả"
             clearable
-            filterable
+            :filterable="choLocDuoc"
             class="w-72 custom-dark-input"
             style="width: 200px"
             @change="handleFilterChange"
@@ -303,7 +303,7 @@
             <el-row :gutter="20">
               <el-col :span="24">
                 <el-form-item label="Tài liệu liên kết" prop="document_id">
-                  <el-select v-model="form.document_id" placeholder="Chọn tài liệu muốn cài đặt lịch..." filterable class="w-full">
+                  <el-select v-model="form.document_id" placeholder="Chọn tài liệu muốn cài đặt lịch..." :filterable="choLocDuoc" class="w-full">
                     <el-option
                       v-for="doc in documentList"
                       :key="doc.id"
@@ -500,6 +500,12 @@ import { documentService } from '@/api/documentService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 417 — trên máy bảng/điện thoại KHÔNG cho gõ lọc, để iOS
+// không bật bàn phím; bấm ẩn bàn phím thì droplist ở nguyên đó.
+// Xem `src/composables/chonDuoc.ts`.
+import { dungChonDuoc } from '@/composables/chonDuoc'
+
+const { choLocDuoc } = dungChonDuoc()
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 

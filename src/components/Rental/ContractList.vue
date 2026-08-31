@@ -67,7 +67,11 @@
           </template>
         </el-table-column>
         <el-table-column prop="customer_code" label="Mã khách" width="94" sortable="custom" />
-        <el-table-column prop="group_name" label="Tên nhóm" min-width="202" show-overflow-tooltip />
+        <!-- MỤC 420 (30/08/2026) — tên nhóm không còn bị cắt.
+             `width` cố định + `show-overflow-tooltip` nghĩa là cắt rồi
+             hiện lại khi rê chuột — mà trên iPad không rê chuột được.
+             Đổi sang `min-width` co giãn + cho xuống dòng. -->
+        <el-table-column prop="group_name" label="Tên nhóm" min- min-width="150" />
         <el-table-column prop="contact_info" label="Liên hệ" width="115" />
         <el-table-column prop="number_phone" label="Số điện thoại" width="101" />
         <el-table-column prop="type_contract" label="Loại HĐ" min-width="130" show-overflow-tooltip />
@@ -298,7 +302,7 @@
                   <el-select
                     v-model="form.real_estate_id"
                     placeholder="Chọn BĐS thuê..."
-                    filterable
+                    :filterable="choLocDuoc"
                     clearable
                     style="width: 100%"
                     class="highlight-select"
@@ -351,7 +355,7 @@
                   <el-select
                     v-model="form.customer_code"
                     placeholder="Chọn hoặc nhập mã KH..."
-                    filterable
+                    :filterable="choLocDuoc"
                     allow-create
                     default-first-option
                     clearable
@@ -480,6 +484,12 @@ import ScheduledNotificationModal from '@/components/ScheduledNotification/Sched
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 417 — trên máy bảng/điện thoại KHÔNG cho gõ lọc, để iOS
+// không bật bàn phím; bấm ẩn bàn phím thì droplist ở nguyên đó.
+// Xem `src/composables/chonDuoc.ts`.
+import { dungChonDuoc } from '@/composables/chonDuoc'
+
+const { choLocDuoc } = dungChonDuoc()
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 

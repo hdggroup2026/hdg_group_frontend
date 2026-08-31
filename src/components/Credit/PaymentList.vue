@@ -265,7 +265,7 @@
             <el-row :gutter="20">
               <el-col :span="24">
                 <el-form-item label="Mã Hợp đồng" prop="contract_id">
-                  <el-select v-model="addForm.contract_id" placeholder="Chọn hợp đồng..." style="width: 100%" class="highlight-select" filterable>
+                  <el-select v-model="addForm.contract_id" placeholder="Chọn hợp đồng..." style="width: 100%" class="highlight-select" :filterable="choLocDuoc">
                     <el-option
                       v-for="c in contractsList"
                       :key="c.contract_id"
@@ -500,6 +500,12 @@ import { creditService } from '@/api/creditService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 417 — trên máy bảng/điện thoại KHÔNG cho gõ lọc, để iOS
+// không bật bàn phím; bấm ẩn bàn phím thì droplist ở nguyên đó.
+// Xem `src/composables/chonDuoc.ts`.
+import { dungChonDuoc } from '@/composables/chonDuoc'
+
+const { choLocDuoc } = dungChonDuoc()
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 

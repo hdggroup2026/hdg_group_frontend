@@ -59,9 +59,24 @@
             {{ (currentPage - 1) * pageSize + $index + 1 }}
           </template>
         </el-table-column>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 420 (30/08/2026) — BẤM MÃ KH XEM HỢP ĐỒNG CỦA KHÁCH ĐÓ
+
+             s68: *"bấm vào mã Khách hàng thì hiện ra danh sách tất cả mã
+             HĐ liên quan đến mã khách hàng."*
+
+             ⚠️ Dùng thẻ `<button>`, KHÔNG dùng `<span @click>`. Thẻ button
+             mới có tiêu điểm bàn phím và mới được trình đọc màn hình gọi
+             là nút — `span` chỉ là chữ có gắn sự kiện.
+             ══════════════════════════════════════════════════════════ -->
         <el-table-column prop="customer_id" label="Mã KH" width="94" sortable="custom">
           <template #default="{ row }">
-            <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.customer_id }}</span>
+            <button type="button"
+                    class="font-mono font-bold text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300"
+                    :title="`Xem hợp đồng của ${row.customer_id}`"
+                    @click.stop="moHopDongCuaKhach(row)">
+              {{ row.customer_id }}
+            </button>
           </template>
         </el-table-column>
         <el-table-column prop="customer_name" label="Tên khách hàng" width="144" sortable="custom" show-overflow-tooltip>
@@ -69,9 +84,25 @@
             <span class="font-bold text-gray-800 dark:text-gray-100">{{ row.customer_name }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="group_name" label="Tên nhóm" width="115" show-overflow-tooltip>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 420 — TÊN NHÓM KHÔNG CÒN BỊ CẮT
+
+             s68: *"mục tên nhóm xử lý không bị … luôn."* Ảnh chụp cho thấy
+             `KCredit - K…` — cụt đúng chỗ cần đọc.
+
+             🔴 `width="115"` là bề rộng CỐ ĐỊNH. Tên thật dạng
+             "KCredit - KK03", "PQCredit - AMBH" cần ~150px. Cộng với
+             `show-overflow-tooltip` (cắt rồi hiện khi rê chuột) thì trên
+             iPad không rê chuột được — nghĩa là không đọc được.
+
+             ➜ Đổi sang `min-width` (co giãn được) + cho XUỐNG DÒNG, bỏ
+             `show-overflow-tooltip`. Không cắt thì không cần mẹo hiện lại.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="group_name" label="Tên nhóm" min-width="150">
           <template #default="{ row }">
-            <span class="text-gray-600 dark:text-gray-400 font-medium">{{ row.group_name || '—' }}</span>
+            <span class="text-gray-600 dark:text-gray-400 font-medium break-words leading-snug">
+              {{ row.group_name || '—' }}
+            </span>
           </template>
         </el-table-column>
         <el-table-column prop="contact_info" label="Liên hệ (Telegram)" min-width="158" show-overflow-tooltip>
@@ -281,7 +312,7 @@
                   <el-select
                     v-model="form.classification"
                     placeholder="Chọn hoặc nhập phân loại..."
-                    filterable
+                    :filterable="choLocDuoc"
                     allow-create
                     default-first-option
                     clearable
@@ -446,6 +477,74 @@
       </template>
     </el-dialog>
   </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         MỤC 420 (30/08/2026) — DANH SÁCH HỢP ĐỒNG CỦA MỘT KHÁCH HÀNG
+         ══════════════════════════════════════════════════════════ -->
+    <el-dialog v-model="hienHopDong" width="760px" destroy-on-close align-center
+               class="custom-dark-dialog">
+      <template #header>
+        <span class="font-bold">
+          HỢP ĐỒNG CỦA
+          <span class="font-mono text-blue-600 dark:text-blue-400">
+            {{ khachDangXem?.customer_id }}
+          </span>
+          <span v-if="khachDangXem?.customer_name" class="font-normal">
+            — {{ khachDangXem.customer_name }}
+          </span>
+        </span>
+      </template>
+
+      <div v-loading="dangTaiHopDong" class="min-h-[120px]">
+        <!-- 🔴 Không có hợp đồng thì NÓI THẲNG. Hộp trống làm người xem
+             tưởng màn hỏng, và họ sẽ bấm lại mãi. -->
+        <p v-if="!dangTaiHopDong && hopDongCuaKhach.length === 0"
+           class="py-8 text-center text-gray-500 dark:text-gray-400">
+          Khách hàng này chưa có hợp đồng nào.
+        </p>
+
+        <div v-else class="max-h-[60vh] overflow-y-auto">
+          <div v-for="hd in hopDongCuaKhach" :key="hd.id || hd.contract_id"
+               class="rounded-xl border border-gray-200 dark:border-gray-700 p-3 mb-2">
+            <div class="flex items-start justify-between gap-3 mb-2">
+              <span class="font-mono font-bold text-gray-800 dark:text-gray-100 break-all">
+                {{ hd.contract_id || '—' }}
+              </span>
+              <el-tag v-if="hd.credit_status" size="small" effect="plain" class="shrink-0">
+                {{ hd.credit_status }}
+              </el-tag>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
+              <div class="flex justify-between gap-2">
+                <span class="text-gray-400 dark:text-gray-500">Loại vay</span>
+                <span class="text-right">{{ hd.loan_type || '—' }}</span>
+              </div>
+              <div class="flex justify-between gap-2">
+                <span class="text-gray-400 dark:text-gray-500">Lãi / tháng</span>
+                <span class="text-right">{{ hd.monthly_interest_rate ?? '—' }}%</span>
+              </div>
+              <div class="flex justify-between gap-2">
+                <span class="text-gray-400 dark:text-gray-500">Gốc ban đầu</span>
+                <span class="text-right tabular-nums">{{ tienGon(hd.initial_principal) }}</span>
+              </div>
+              <div class="flex justify-between gap-2">
+                <span class="text-gray-400 dark:text-gray-500">Gốc còn lại</span>
+                <span class="text-right tabular-nums font-semibold">
+                  {{ tienGon(hd.remaining_principal) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="text-sm text-gray-500 dark:text-gray-400 mr-auto">
+          Tổng: <b>{{ hopDongCuaKhach.length }}</b> hợp đồng
+        </span>
+        <el-button @click="hienHopDong = false">Đóng</el-button>
+      </template>
+    </el-dialog>
 </template>
 
 <script setup lang="ts">
@@ -457,6 +556,12 @@ import { creditService } from '@/api/creditService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 417 — trên máy bảng/điện thoại KHÔNG cho gõ lọc, để iOS
+// không bật bàn phím; bấm ẩn bàn phím thì droplist ở nguyên đó.
+// Xem `src/composables/chonDuoc.ts`.
+import { dungChonDuoc } from '@/composables/chonDuoc'
+
+const { choLocDuoc } = dungChonDuoc()
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 
@@ -543,6 +648,44 @@ const paginatedData = computed(() => {
 
 // Add/Edit Dialog State
 const dialogVisible = ref(false)
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 420 (30/08/2026) — XEM HỢP ĐỒNG CỦA MỘT KHÁCH HÀNG
+//
+// ⚠️ Gọi máy chủ MỖI LẦN bấm, không nhớ lại kết quả cũ. Hợp đồng đổi
+// thường xuyên (thêm mới, tất toán); hiện lại danh sách cũ là nói sai.
+//
+// 🔴 Lọc bằng `customer_id` — đây là MÃ khách hàng (chuỗi, ví dụ `KK03`),
+// KHÔNG phải `row.id` (UUID của bản ghi). Hai thứ này khác nhau và cùng
+// tên biến; nhầm là danh sách trống mà không hiểu vì sao.
+const hienHopDong = ref(false)
+const dangTaiHopDong = ref(false)
+const khachDangXem = ref<any>(null)
+const hopDongCuaKhach = ref<any[]>([])
+
+const moHopDongCuaKhach = async (row: any) => {
+  khachDangXem.value = row
+  hopDongCuaKhach.value = []
+  hienHopDong.value = true
+  dangTaiHopDong.value = true
+  try {
+    hopDongCuaKhach.value =
+      await creditService.getCredits({ customer_id: row.customer_id })
+  } catch (e: any) {
+    // Hỏng thì NÓI RA trong chính hộp thoại, không nuốt — người dùng đang
+    // chờ xem một danh sách, hộp trống mà im lặng là hiểu nhầm "không có
+    // hợp đồng nào".
+    ElMessage.error(e?.message || 'Không đọc được danh sách hợp đồng.')
+    hienHopDong.value = false
+  } finally {
+    dangTaiHopDong.value = false
+  }
+}
+
+const tienGon = (v: any) => {
+  const n = Number(v || 0)
+  return isNaN(n) ? '—' : n.toLocaleString('vi-VN') + ' VNĐ'
+}
 const isEdit = ref(false)
 const formRef = ref<any>(null)
 

@@ -1,8 +1,16 @@
 <template>
   <div class="rental-container h-full flex flex-col">
-    <!-- Filter Bar -->
-    <div class="flex flex-wrap justify-between items-center mb-6 shrink-0 gap-3">
-      <div class="flex flex-wrap items-center gap-4">
+    <!-- ══════════════════════════════════════════════════════════════
+         MỤC 416 (30/08/2026) — DỜI THANH CÔNG CỤ LÊN SÁT
+
+         s68 vẽ mũi tên: dời khối "Hiển thị / Tìm kiếm / Thêm bất động sản"
+         lên trên. Nó đang cách khối số bên dưới 24px (`mb-6`) mà chỉ cao
+         khoảng 40px — khoảng trống bằng hơn nửa chính nó.
+
+         `mb-6` -> `mb-3`, `gap-4` -> `gap-3`. Cộng với phần thu gọn bốn
+         thẻ số bên dưới, bảng lấy lại được khoảng 120px chiều cao. -->
+    <div class="flex flex-wrap justify-between items-center mb-3 shrink-0 gap-3">
+      <div class="flex flex-wrap items-center gap-3">
         <!-- Display Mode Select -->
         <!-- MỤC 400 — giấu ở màn hẹp: dưới 768px chỉ còn một chế độ dùng
              được, để ô chọn ở đó là người dùng chọn rồi không thấy gì
@@ -68,21 +76,44 @@
 
     <!-- LIST VIEW (Default) -->
     <template v-if="displayMode === 'list'">
-      <!-- Stat Metrics Row -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6 shrink-0">
-        <div 
-          v-for="(stat, idx) in stats" 
-          :key="idx" 
-          class="p-5 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-4 transition-all duration-300 hover:shadow-md"
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 416 (30/08/2026) — THU GỌN KHỐI BỐN THẺ SỐ
+
+           s68 chỉ trên ảnh: *"Thu gọn nội dung lại để bảng có thể hiện
+           thêm nhiều dòng hơn."*
+
+           🔴 KHỐI NÀY ĂN HẾT NỬA MÀN HÌNH. Đo trên ảnh s68 chụp
+           (máy tính bảng nằm ngang): bốn thẻ chiếm ~200px chiều cao, còn
+           bảng chỉ hiện được **1 dòng** trong khi có 27 bất động sản.
+
+           Đã đổi ba thứ, không đổi con số nào:
+             · `p-5` -> `p-3`            (đệm trong thẻ)
+             · `gap-6 mb-6` -> `gap-3 mb-3`
+             · `text-xl` -> `text-base`  (cỡ chữ con số)
+             · biểu tượng 40px -> 32px, `:size="20"` -> `16`
+           Ước tính: ~200px -> ~92px, tức bảng hiện thêm khoảng 3 dòng.
+
+           ⚠️ KHÔNG bỏ hẳn khối này và KHÔNG cho thu vào/mở ra. Bốn con số
+           tổng là thứ đầu tiên người mở màn cần thấy; giấu đi là phải bấm
+           thêm một nút mới biết tổng đầu tư bao nhiêu.
+
+           ⚠️ Giữ nguyên `sm:grid-cols-2 lg:grid-cols-4` — trên điện thoại
+           vẫn xếp dọc một cột, đúng quy tắc "mọi thay đổi frontend phải áp
+           cho tất cả cỡ màn". -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3 shrink-0">
+        <div
+          v-for="(stat, idx) in stats"
+          :key="idx"
+          class="p-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 shadow-sm flex items-center gap-3 transition-all duration-300 hover:shadow-md"
         >
-          <div class="p-3 rounded-lg text-white flex items-center justify-center" :style="{ backgroundColor: stat.color }">
-            <el-icon :size="20">
+          <div class="p-2 rounded-lg text-white flex items-center justify-center shrink-0" :style="{ backgroundColor: stat.color }">
+            <el-icon :size="16">
               <component :is="stat.icon" />
             </el-icon>
           </div>
-          <div class="text-left">
-            <p class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">{{ stat.title }}</p>
-            <p class="text-xl font-bold text-gray-800 dark:text-gray-100 mt-1">{{ stat.value }}</p>
+          <div class="text-left min-w-0">
+            <p class="text-[11px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider truncate">{{ stat.title }}</p>
+            <p class="text-base font-bold text-gray-800 dark:text-gray-100 leading-tight">{{ stat.value }}</p>
           </div>
         </div>
       </div>

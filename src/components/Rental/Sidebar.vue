@@ -66,6 +66,33 @@ const handleSelect = (index: string) => {
 </script>
 
 <style scoped>
+/* ══════════════════════════════════════════════════════════════════════
+   MỤC 416 (30/08/2026) — CHỮ MENU KHÔNG BỊ CẮT NỮA
+
+   s68 khoanh trên ảnh: ô đầu hiện "Quản lý Bất động s…", cụt chữ.
+
+   🔴 Element Plus đặt sẵn `white-space: nowrap` + `text-overflow: ellipsis`
+   cho `.el-menu-item`. Nhãn dài nhất ở đây là "Quản lý Bất động sản" —
+   20 ký tự — không vừa bề rộng cột, nên bị cắt.
+
+   ➜ Cho XUỐNG DÒNG thay vì cắt, và giảm đệm hai bên để có thêm chỗ.
+
+   ⚠️ Phải mở `height: auto` cùng lúc. Element Plus khoá chiều cao
+   `el-menu-item` ở 56px; chỉ đổi `white-space` mà không mở chiều cao thì
+   dòng thứ hai bị cắt mất — cụt y như cũ, chỉ khác chỗ cụt.
+
+   ⚠️ Chỉ áp khi menu ĐANG MỞ (`:not(.el-menu--collapse)`). Lúc thu gọn
+   còn 64px thì nhãn vốn đã ẩn, cho xuống dòng ở đó là hỏng bố cục.
+   ══════════════════════════════════════════════════════════════════════ */
+.custom-menu:not(.el-menu--collapse) :deep(.el-menu-item) {
+  white-space: normal;
+  line-height: 1.35;
+  height: auto;
+  min-height: 44px;
+  padding-left: 14px !important;
+  padding-right: 10px !important;
+}
+
 /* Tùy chỉnh màu sắc nổi bật khi active hoặc hover */
 .custom-menu:not(.el-menu--collapse) .el-menu-item,
 .custom-menu:not(.el-menu--collapse) :deep(.el-sub-menu__title) {

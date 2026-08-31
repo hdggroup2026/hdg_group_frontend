@@ -20,7 +20,7 @@
                   v-model="filters.project_id" 
                   placeholder="Tất cả dự án" 
                   clearable 
-                  filterable
+                  :filterable="choLocDuoc"
                   class="custom-dark-input"
                   style="width: 180px"
                   @change="handleFilterChange"
@@ -520,6 +520,12 @@ import { tienNgaService } from '@/api/tienNgaService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 417 — trên máy bảng/điện thoại KHÔNG cho gõ lọc, để iOS
+// không bật bàn phím; bấm ẩn bàn phím thì droplist ở nguyên đó.
+// Xem `src/composables/chonDuoc.ts`.
+import { dungChonDuoc } from '@/composables/chonDuoc'
+
+const { choLocDuoc } = dungChonDuoc()
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 

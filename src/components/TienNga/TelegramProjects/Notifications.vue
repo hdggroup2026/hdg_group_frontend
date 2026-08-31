@@ -22,7 +22,7 @@
                   v-model="filtersConfig.project_name" 
                   placeholder="Tất cả dự án" 
                   clearable 
-                  filterable
+                  :filterable="choLocDuoc"
                   class="custom-dark-input"
                   style="width: 200px"
                   @change="handleConfigFilterChange"
@@ -285,7 +285,7 @@
                   v-model="filtersLog.project_name" 
                   placeholder="Tất cả dự án" 
                   clearable 
-                  filterable
+                  :filterable="choLocDuoc"
                   class="custom-dark-input"
                   style="width: 180px"
                   @change="handleLogFilterChange"
@@ -818,7 +818,7 @@
                     v-model="configForm.module_key" 
                     placeholder="Chọn module hoặc tự nhập" 
                     allow-create 
-                    filterable
+                    :filterable="choLocDuoc"
                     class="w-full custom-dark-input"
                     @change="handleFormModuleChange"
                   >
@@ -848,7 +848,7 @@
                     v-model="configForm.project_name" 
                     placeholder="Chọn dự án" 
                     clearable
-                    filterable
+                    :filterable="choLocDuoc"
                     class="w-full custom-dark-input"
                   >
                     <el-option 
@@ -1043,7 +1043,7 @@
                     v-model="mappingForm.mapping_type" 
                     placeholder="Chọn hoặc tự nhập loại mapping" 
                     allow-create 
-                    filterable
+                    :filterable="choLocDuoc"
                     class="w-full custom-dark-input"
                   >
                     <el-option 
@@ -1189,6 +1189,12 @@ import { tienNgaService } from '@/api/tienNgaService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 417 — trên máy bảng/điện thoại KHÔNG cho gõ lọc, để iOS
+// không bật bàn phím; bấm ẩn bàn phím thì droplist ở nguyên đó.
+// Xem `src/composables/chonDuoc.ts`.
+import { dungChonDuoc } from '@/composables/chonDuoc'
+
+const { choLocDuoc } = dungChonDuoc()
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 

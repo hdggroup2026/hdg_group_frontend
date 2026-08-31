@@ -254,7 +254,7 @@
                     placeholder="Chọn hộ dân"
                     style="width: 100%"
                     @change="handleHouseholdChange"
-                    filterable
+                    :filterable="choLocDuoc"
                   >
                     <el-option
                       v-for="hh in availableHouseholds"
@@ -414,6 +414,12 @@ import { harvestService } from '@/api/harvestService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 417 — trên máy bảng/điện thoại KHÔNG cho gõ lọc, để iOS
+// không bật bàn phím; bấm ẩn bàn phím thì droplist ở nguyên đó.
+// Xem `src/composables/chonDuoc.ts`.
+import { dungChonDuoc } from '@/composables/chonDuoc'
+
+const { choLocDuoc } = dungChonDuoc()
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 

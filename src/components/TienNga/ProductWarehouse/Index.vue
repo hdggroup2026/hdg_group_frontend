@@ -68,7 +68,7 @@
                   <el-select 
                     v-model="form.material_name" 
                     placeholder="Chọn hoặc nhập..." 
-                    filterable 
+                    :filterable="choLocDuoc" 
                     allow-create 
                     default-first-option
                     class="w-full"
@@ -130,6 +130,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import ProductWarehouseList from './ProductWarehouseList.vue'
 import ProductWarehouseDetail from './ProductWarehouseDetail.vue'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 417 — trên máy bảng/điện thoại KHÔNG cho gõ lọc, để iOS
+// không bật bàn phím; bấm ẩn bàn phím thì droplist ở nguyên đó.
+// Xem `src/composables/chonDuoc.ts`.
+import { dungChonDuoc } from '@/composables/chonDuoc'
+
+const { choLocDuoc } = dungChonDuoc()
 
 // Types
 export interface ProductWarehouse {
