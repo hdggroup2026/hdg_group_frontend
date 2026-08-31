@@ -176,8 +176,30 @@
             class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
           >
             <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+              <!-- ══════════════════════════════════════════════════════
+                   MỤC 424 (31/08/2026) — THẺ CŨNG BẤM ĐƯỢC NHƯ BẢNG
+
+                   s68: *"Dạng thẻ thì bấm không được? Dạng list thì bấm
+                   đã đúng."*
+
+                   🔴 VÌ SAO SÓT: khối thẻ này sinh ra ở MỤC 398 (29/08).
+                   Nút bấm mã KH thêm vào cột của BẢNG ở MỤC 420 (30/08) —
+                   sau đó một ngày. Không ai sinh lại thẻ, nên thẻ giữ
+                   nguyên `<span>` chữ trơn.
+
+                   Chữ vẫn xanh đậm y như bảng, nên nhìn thì tưởng bấm
+                   được. Đó là kiểu hỏng tệ nhất: trông như còn dùng được.
+
+                   ⚠️ Đây là NGUYÊN VĂN nội dung cột "Mã KH" của bảng ở
+                   dòng 74–79. Sửa một chỗ thì phải sửa cả hai.
+                   ══════════════════════════════════════════════════ -->
               <div class="min-w-0 break-words">
-                <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.customer_id }}</span>
+                <button type="button"
+                        class="font-mono font-bold text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2 hover:text-blue-800 dark:hover:text-blue-300"
+                        :title="`Xem hợp đồng của ${row.customer_id}`"
+                        @click.stop="moHopDongCuaKhach(row)">
+                  {{ row.customer_id }}
+                </button>
               </div>
               <div class="shrink-0">
                 <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
@@ -510,8 +532,10 @@
               <span class="font-mono font-bold text-gray-800 dark:text-gray-100 break-all">
                 {{ hd.contract_id || '—' }}
               </span>
+              <!-- MỤC 425 — trước đây in thẳng `bad_debt`, `paid`. s68 đã
+                   chốt 28/08 là trạng thái phải hiện bằng tiếng Việt. -->
               <el-tag v-if="hd.credit_status" size="small" effect="plain" class="shrink-0">
-                {{ hd.credit_status }}
+                {{ chuTrangThai(hd.credit_status) }}
               </el-tag>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 text-sm">
@@ -531,6 +555,16 @@
                 <span class="text-gray-400 dark:text-gray-500">Gốc còn lại</span>
                 <span class="text-right tabular-nums font-semibold">
                   {{ tienGon(hd.remaining_principal) }}
+                </span>
+              </div>
+              <!-- MỤC 425 (31/08/2026) — THÁNG ĐÓNG LÃI GẦN NHẤT -->
+              <div class="flex justify-between gap-2">
+                <span class="text-gray-400 dark:text-gray-500">Đóng lãi gần nhất</span>
+                <span class="text-right"
+                      :class="hd.credit_status === 'paid'
+                                ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                                : ''">
+                  {{ thangDongLai(hd) }}
                 </span>
               </div>
             </div>
@@ -564,6 +598,45 @@ import { dungChonDuoc } from '@/composables/chonDuoc'
 const { choLocDuoc } = dungChonDuoc()
 
 const { laManHep, hienBang, hienThe } = dungManHep()
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 425 (31/08/2026) — THÁNG ĐÓNG LÃI GẦN NHẤT
+//
+// s68: *"Đối với các HĐ còn đang nợ thì thêm thông tin Tháng đóng lãi
+// gần nhất. Đối với HĐ đã tất toán thì cột này thể hiện Đã Tất Toán."*
+//
+// 🔴 Ba trường hợp, và trường hợp thứ ba là chỗ dễ nói sai nhất:
+//   ① đã tất toán           -> "Đã tất toán"
+//   ② còn nợ, đã từng đóng  -> "MM/YYYY"
+//   ③ còn nợ, CHƯA đóng lần nào -> "Chưa đóng lần nào"
+//
+// ⚠️ Trường hợp ③ KHÔNG được in dấu gạch "—". Dấu gạch nghĩa là "không
+// có dữ liệu / chưa biết", còn đây là một sự thật đã biết và là thông
+// tin cần chú ý nhất trong ba cái.
+//
+// Số liệu lấy từ khoá `last_interest_paid_date` do backend thêm ở cùng
+// MỤC (`app/crud/credit.py` hàm `get_credits_detailed`). KHÔNG phải
+// `last_interest_charged_date` — cột đó là ngày bot TÍNH lãi.
+// ══════════════════════════════════════════════════════════════════════
+const thangDongLai = (hd: any) => {
+  if (hd?.credit_status === 'paid') return 'Đã tất toán'
+  const ngay = hd?.last_interest_paid_date
+  if (!ngay) return 'Chưa đóng lần nào'
+  const phan = String(ngay).split('-')
+  if (phan.length < 2) return String(ngay)
+  return `${phan[1]}/${phan[0]}`
+}
+
+// MỤC 425 — trạng thái bằng tiếng Việt. Giữ cùng bộ chữ với
+// `ContractList.vue` hàm `getStatusText` (dòng 1126) để hai màn không
+// gọi cùng một trạng thái bằng hai cái tên.
+const chuTrangThai = (tt: string) => {
+  if (tt === 'active') return 'Đang vay'
+  if (tt === 'paid') return 'Đã tất toán'
+  if (tt === 'cancelled') return 'Đã hủy'
+  if (tt === 'bad_debt') return 'Nợ xấu'
+  return 'Chưa rõ'
+}
 
 interface Customer {
   id: string

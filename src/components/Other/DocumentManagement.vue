@@ -479,6 +479,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { Document, Refresh, Plus, MoreFilled, Calendar } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { documentService } from '@/api/documentService'
@@ -489,7 +490,7 @@ import { dungManHep } from '@/composables/manHep'
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 
-const activeTab = ref('document')
+const activeTab = refTabBenVung('other/document', 'document')  // MỤC 423
 
 // Search, Status filters
 const searchQuery = ref('')

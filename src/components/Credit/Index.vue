@@ -5,10 +5,9 @@
       <Sidebar v-model:activeMenu="activeMenu" />
     </el-splitter-panel>
     <el-splitter-panel :min="200" v-loading="loading">
-      <component :is="activeView" v-if="activeView" />
-      <div v-else class="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg">
-        Tính năng đang phát triển
-      </div>
+      <!-- MỤC 429 — chỗ ĐẶT nội dung, không phải nội dung. Xem lời ghi
+           dưới cùng template. -->
+      <div id="hdg-noi-dung-credit" class="h-full"></div>
     </el-splitter-panel>
   </el-splitter>
  
@@ -90,13 +89,8 @@
           </div>
         </Transition>
  
-        <!-- Content area -->
-        <div class="h-full overflow-hidden" v-loading="loading">
-          <component :is="activeView" v-if="activeView" />
-          <div v-else class="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg">
-            Tính năng đang phát triển
-          </div>
-        </div>
+        <!-- Content area — MỤC 429: chỗ ĐẶT nội dung -->
+        <div id="hdg-noi-dung-credit" class="h-full overflow-hidden" v-loading="loading"></div>
       </div>
     </template>
  
@@ -109,15 +103,50 @@
         <Sidebar v-model:activeMenu="activeMenu" :force-collapsed="true" />
       </div>
  
-      <!-- Nội dung chính -->
-      <div class="flex-1 overflow-hidden" v-loading="loading">
-        <component :is="activeView" v-if="activeView" />
-        <div v-else class="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg">
-          Tính năng đang phát triển
-        </div>
-      </div>
+      <!-- Nội dung chính — MỤC 429: chỗ ĐẶT nội dung -->
+      <div id="hdg-noi-dung-credit" class="flex-1 overflow-hidden" v-loading="loading"></div>
     </template>
   </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       MỤC 429 (31/08/2026) — XOAY MÁY KHÔNG MẤT GÌ NỮA, VÀ VẪN GIỮ
+       THANH KÉO GIÃN TRÊN MÁY TÍNH
+
+       s68 hỏi 31/08: *"Vẫn giữ thanh kéo giãn trên máy tính, nếu vậy thì
+       sao?"*
+
+       🔴 VẤN ĐỀ. Ba nhánh bố cục ở trên (`el-splitter` / mobile / tablet)
+       trước đây mỗi nhánh chứa MỘT bản `<component :is="activeView">`.
+       Xoay máy đổi bề rộng -> Vue gỡ nhánh cũ, dựng nhánh mới -> màn con
+       là thực thể hoàn toàn mới -> mất sạch tab, bộ lọc, ô tìm kiếm, số
+       trang. MỤC 423 mới vá được phần tab.
+
+       🔴 CÁCH LÀM. Nội dung nay chỉ khai MỘT LẦN, ở đây, và `<Teleport>`
+       chuyển nó vào ô trống của nhánh đang hiện. Đổi nhánh thì Teleport
+       DỜI các nút DOM sang chỗ mới — nó KHÔNG gỡ và dựng lại. Thực thể
+       component sống nguyên, nên mọi `ref` bên trong giữ nguyên giá trị.
+
+       ⚠️ `defer` LÀ BẮT BUỘC. Không có nó, Teleport đi tìm
+       `#hdg-noi-dung-credit` ngay khi được xử lý — mà lúc đó ô trống nằm
+       trong nhánh phía trên có thể chưa gắn vào DOM. Teleport không tìm
+       thấy đích thì báo lỗi và KHÔNG hiện gì: màn trắng. `defer` bảo nó
+       chờ hết lượt dựng rồi mới tìm. Có từ Vue 3.5; dự án đang dùng
+       ^3.5.32 (`package.json`).
+
+       ⚠️ Ô trống ở cả ba nhánh dùng CHUNG một `id`. Không sao vì mỗi lúc
+       chỉ một nhánh tồn tại — nhưng nếu sau này có ai cho hai nhánh cùng
+       hiện thì phải đổi thành id riêng, vì hai phần tử trùng id thì
+       Teleport luôn chọn cái đầu tiên.
+
+       ⚠️ `id` mang tên mảng (`-credit`). Trùng id giữa hai mảng là nội
+       dung mảng này nhảy vào khung mảng kia.
+       ══════════════════════════════════════════════════════════════════ -->
+  <Teleport defer to="#hdg-noi-dung-credit">
+    <component :is="activeView" v-if="activeView" />
+    <div v-else class="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg">
+      Tính năng đang phát triển
+    </div>
+  </Teleport>
 </template>
  
 <script setup lang="ts">

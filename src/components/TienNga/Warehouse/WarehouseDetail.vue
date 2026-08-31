@@ -1464,6 +1464,7 @@
 <script setup lang="ts">
 import { dinhDangSo, dinhDangSoLe } from '@/utils/dinhDangSo'
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { mauSo } from '@/utils/mauSo'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -1538,7 +1539,7 @@ const emit = defineEmits<{
 
 const submitting = ref(false)
 
-const activeTab = ref('purchase')
+const activeTab = refTabBenVung('tienga/warehouse-detail', 'purchase')  // MỤC 423
 
 // ========== 1. THU MUA ==========
 const purchaseFilters = reactive({

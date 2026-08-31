@@ -856,6 +856,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, reactive, computed } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { mauSo, mauSoDam } from '@/utils/mauSo'
 import { List, Search, Refresh, Plus, MoreFilled, User } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
@@ -866,7 +867,7 @@ import InfoRetrieval from './InfoRetrieval.vue'
 import ScheduledNotificationModal from '@/components/ScheduledNotification/ScheduledNotificationModal.vue'
 
 // State
-const activeTab = ref('roscas-grid')
+const activeTab = refTabBenVung('rosca/list', 'roscas-grid')  // MỤC 423
 const roscas = ref<Rosca[]>([])
 const owners = ref<UserRosca[]>([])
 const loading = ref(false)

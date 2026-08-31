@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { User, ShoppingCart, DataAnalysis, CreditCard, Warning, Wallet } from '@element-plus/icons-vue'
 import Households from './Households.vue'
 import Purchasing from './Purchasing.vue'
@@ -69,7 +69,7 @@ import InformationLookup from './InformationLookup.vue'
 import Payment from './Payment.vue'
 import CashAdvance from './CashAdvance.vue'
 
-const activeTab = ref('farmer')
+const activeTab = refTabBenVung('tienga/rubber-purching', 'farmer')  // MỤC 423
 </script>
 
 <style scoped>

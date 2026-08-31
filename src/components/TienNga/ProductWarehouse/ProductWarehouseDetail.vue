@@ -908,6 +908,7 @@
 <script setup lang="ts">
 import { dinhDangSo, dinhDangSoLe } from '@/utils/dinhDangSo'
 import { ref, reactive, computed, watch, onMounted } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { mauSo } from '@/utils/mauSo'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -963,7 +964,7 @@ const emit = defineEmits<{
   (e: 'refresh-transactions'): void
 }>()
 
-const activeTab = ref('transaction')
+const activeTab = refTabBenVung('tienga/product-warehouse-detail', 'transaction')  // MỤC 423
 
 const capacityPercentValue = computed(() => {
   const capNum = parseInt(props.warehouse.capacity.replace(/[^0-9]/g, ''))

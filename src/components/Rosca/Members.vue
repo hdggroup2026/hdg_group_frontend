@@ -785,6 +785,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { User, Search, Refresh, Plus, MoreFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { roscaService, type RoscaMember, type UserRosca, type Rosca } from '@/api/roscaService'
@@ -810,7 +811,7 @@ const openScheduleDialog = (row: RoscaMember) => {
 }
 
 // State
-const activeTab = ref('members-grid')
+const activeTab = refTabBenVung('rosca/members', 'members-grid')  // MỤC 423
 const members = ref<RoscaMember[]>([])
 const players = ref<UserRosca[]>([])
 const roscasList = ref<Rosca[]>([])

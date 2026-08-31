@@ -33,13 +33,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { User, ShoppingCart, DataAnalysis } from '@element-plus/icons-vue'
 import PartnerList from './PartnerList.vue'
 import Transaction from './Transaction.vue'
 import InformationLookup from './InformationLookup.vue'
 
-const activeTab = ref('list')
+const activeTab = refTabBenVung('tienga/partner', 'list')  // MỤC 423
 </script>
 
 <style scoped>

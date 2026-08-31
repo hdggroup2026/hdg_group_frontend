@@ -50,6 +50,8 @@
             <el-option label="Đã tất toán" value="paid" />
             <el-option label="Đã hủy" value="cancelled" />
             <el-option label="Nợ xấu" value="bad_debt" />
+            <!-- MỤC 428 — trạng thái mới, xem `bot/utils/credit_nhap_sai.py` -->
+            <el-option label="Nhập sai" value="nhap_sai" />
           </el-select>
         </div>
 
@@ -200,6 +202,25 @@
             </span>
           </template>
         </el-table-column>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 425 (31/08/2026) — THÁNG ĐÓNG LÃI GẦN NHẤT
+
+             s68: *"Đối với các HĐ còn đang nợ thì thêm thông tin Tháng
+             đóng lãi gần nhất. Đối với HĐ đã tất toán thì cột này thể
+             hiện thông tin Đã Tất Toán luôn."*
+
+             ⚠️ Không có cột `fixed` — xem `tai_lieu_ai/quy_uoc_bo_cuc_the.md`
+             phần MỤC 391.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="last_interest_paid_date" label="Đóng lãi gần nhất" width="116" align="center">
+          <template #default="{ row }">
+            <span :class="row.credit_status === 'paid'
+                            ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                            : (row.last_interest_paid_date ? '' : 'text-amber-600 dark:text-amber-400')">
+              {{ thangDongLai(row) }}
+            </span>
+          </template>
+        </el-table-column>
         <el-table-column prop="start_date" label="Ngày bắt đầu" width="94" align="center">
           <template #default="{ row }">
             <span>{{ formatDate(row.start_date) }}</span>
@@ -237,6 +258,14 @@
                   <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
                   <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
                   <el-dropdown-item command="schedule">Lên lịch hẹn</el-dropdown-item>
+                  <!-- ⚠️ MỤC 428 — MỤC NÀY HIỆN VỚI MỌI NGƯỜI, CÓ CHỦ Ý.
+                       Frontend hiện KHÔNG lưu `role` của tài khoản (chỉ lưu
+                       `user_permissions`, xem `src/constants/duAn.ts` dòng
+                       143), nên không biết ai là owner để ẩn đi.
+                       Backend mới là cửa thật: bấm mà không phải owner thì
+                       nhận đúng câu "Chỉ tài khoản owner mới đánh dấu được".
+                       Ẩn ở đây dù có làm được cũng KHÔNG phải lớp bảo vệ. -->
+                  <el-dropdown-item command="nhap_sai" divided class="!text-amber-600">Đánh dấu nhập sai</el-dropdown-item>
                   <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -279,7 +308,15 @@
                                   <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
                                   <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
                                   <el-dropdown-item command="schedule">Lên lịch hẹn</el-dropdown-item>
-                                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
+                                  <!-- ⚠️ MỤC 428 — MỤC NÀY HIỆN VỚI MỌI NGƯỜI, CÓ CHỦ Ý.
+                       Frontend hiện KHÔNG lưu `role` của tài khoản (chỉ lưu
+                       `user_permissions`, xem `src/constants/duAn.ts` dòng
+                       143), nên không biết ai là owner để ẩn đi.
+                       Backend mới là cửa thật: bấm mà không phải owner thì
+                       nhận đúng câu "Chỉ tài khoản owner mới đánh dấu được".
+                       Ẩn ở đây dù có làm được cũng KHÔNG phải lớp bảo vệ. -->
+                  <el-dropdown-item command="nhap_sai" divided class="!text-amber-600">Đánh dấu nhập sai</el-dropdown-item>
+                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
                                 </el-dropdown-menu>
                               </template>
                             </el-dropdown>
@@ -355,6 +392,18 @@
                   <span>{{ formatDate(row.due_date) }}</span>
                 </span>
               </div>
+              <!-- MỤC 425 — NGUYÊN VĂN nội dung cột "Đóng lãi gần nhất"
+                   của bảng ở trên. Sửa một chỗ là phải sửa cả hai. -->
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Đóng lãi gần nhất:</span>
+                <span class="text-right break-words min-w-0">
+                  <span :class="row.credit_status === 'paid'
+                                  ? 'text-emerald-600 dark:text-emerald-400 font-semibold'
+                                  : (row.last_interest_paid_date ? '' : 'text-amber-600 dark:text-amber-400')">
+                    {{ thangDongLai(row) }}
+                  </span>
+                </span>
+              </div>
               <div class="flex justify-between gap-3">
                 <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">SMS tự động:</span>
                 <span class="text-right break-words min-w-0">
@@ -424,7 +473,18 @@
                      ══════════════════════════════════════════════════ -->
                 <el-form-item label="Khách hàng" prop="customer_id">
                   <div class="flex items-center gap-2 w-full">
-                    <el-select v-model="form.customer_id" placeholder="Chọn khách hàng..." class="highlight-select flex-1 min-w-0" :filterable="choLocDuoc">
+                    <!-- 🔴 MỤC 426 — KHOÁ KHI SỬA, theo s68 chốt 31/08/2026:
+                         *"số tiền, mã KH, Mã HĐ thì không thay đổi khi edit
+                         hợp đồng được."*
+
+                         Trước đây ô này KHÔNG khoá — sửa được thoải mái, và
+                         đổi khách hàng của một hợp đồng đang chạy thì hạn mức
+                         và tổng dư nợ của CẢ HAI khách đều sai, vì
+                         `update-credits` không dời tiền giữa hai khách
+                         (`app/api/v1/credit.py` dòng 529–632).
+
+                         Nhập sai thì xoá hợp đồng rồi tạo lại, không sửa đè. -->
+                    <el-select v-model="form.customer_id" placeholder="Chọn khách hàng..." class="highlight-select flex-1 min-w-0" :filterable="choLocDuoc" :disabled="isEdit">
                       <el-option
                         v-for="c in customersList"
                         :key="c.id"
@@ -432,22 +492,56 @@
                         :value="c.id"
                       />
                     </el-select>
-                    <el-button type="primary" :icon="Plus" class="shrink-0"
+                    <!-- MỤC 426 — ẩn khi đang sửa. Ô chọn khách đã khoá thì
+                         nút thêm khách bên cạnh không dẫn tới đâu; để lại là
+                         một nút bấm không làm gì. -->
+                    <el-button v-if="!isEdit" type="primary" :icon="Plus" class="shrink-0"
                                title="Thêm khách hàng mới"
                                @click="moThemKhachNhanh" />
                   </div>
                 </el-form-item>
               </el-col>
               <el-col :span="12">
+                <!-- 🔴 MỤC 426 — Ô NÀY CỐ Ý CÒN KHOÁ, KHÔNG PHẢI BỎ SÓT.
+
+                     Bảng `credit_interests` nối với hợp đồng bằng CHUỖI
+                     `contract_id`, không phải bằng khoá ngoại
+                     (`app/models/credit.py` dòng 76). Đổi mã HĐ ở đây là
+                     toàn bộ lịch sử đóng lãi của hợp đồng đó thành mồ
+                     côi — không xoá, không báo lỗi, chỉ là không ai tìm
+                     thấy nữa.
+
+                     Đổi mã HĐ phải đổi kèm ở bảng kia trong cùng một
+                     giao dịch. Đã có sẵn công cụ hai bước cho việc đó:
+                     `HDG_379_DOI_MA_HOP_DONG.py`.
+                     ═════════════════════════════════════════════════ -->
                 <el-form-item label="Mã Hợp đồng" prop="contract_id">
                   <el-input v-model="form.contract_id" placeholder="VD: HĐ-TD-001..." :disabled="isEdit" />
+                  <span v-if="isEdit" class="text-xs text-gray-400 dark:text-gray-500">
+                    Không sửa được ở đây — đổi mã HĐ phải đổi kèm lịch sử đóng lãi.
+                  </span>
                 </el-form-item>
               </el-col>
             </el-row>
             <el-row :gutter="20">
               <el-col :span="12">
+                <!-- ══════════════════════════════════════════════════
+                     MỤC 426 (31/08/2026) — SỬA ĐƯỢC LOẠI VAY
+
+                     s68: *"Loại hợp đồng tín chấp và muốn đổi sang thế
+                     chấp vào mục chỉnh sửa không có."*
+
+                     Đã bỏ `:disabled="isEdit"`. An toàn về tiền: đã soi
+                     toàn bộ backend, `loan_type` chỉ dùng để HIỂN THỊ
+                     (`app/services/credit_notify.py` dòng 34), để LỌC
+                     (`app/crud/credit.py` dòng 181), và để kiểm hạn mức
+                     LÚC TẠO MỚI (`app/api/v1/credit.py` dòng 483–493).
+                     Không có công thức tính lãi hay tính nợ nào đọc nó.
+                     Nên đổi loại vay của một hợp đồng đã có KHÔNG làm
+                     xê dịch đồng nào.
+                     ══════════════════════════════════════════════════ -->
                 <el-form-item label="Loại vay" prop="loan_type">
-                  <el-select v-model="form.loan_type" placeholder="Chọn loại vay" style="width: 100%" class="highlight-select" :disabled="isEdit">
+                  <el-select v-model="form.loan_type" placeholder="Chọn loại vay" style="width: 100%" class="highlight-select">
                     <el-option label="Thế chấp (Collateral)" value="Collateral" />
                     <el-option label="Tín chấp (Unsecured)" value="Unsecured" />
                   </el-select>
@@ -503,8 +597,24 @@
             </h4>
             <el-row :gutter="20">
               <el-col :span="12">
+                <!-- 🔴 MỤC 426 — Ô NÀY CÒN KHOÁ, ĐANG CHỜ s68 TRẢ LỜI.
+
+                     Lúc TẠO hợp đồng, `add-credits` trừ số gốc vào "Hạn
+                     mức còn lại" và cộng vào "Tổng dư nợ gốc" của khách
+                     (`app/api/v1/credit.py` dòng 495–497). Nhưng
+                     `update-credits` KHÔNG làm điều ngược lại — nó chỉ
+                     chỉnh hạn mức khi đổi TRẠNG THÁI (dòng 570–600).
+
+                     Mở khoá ô này mà không sửa backend thì sửa gốc từ
+                     250.000 lên 400.000 sẽ ghi vào hợp đồng, còn hạn mức
+                     và dư nợ của khách giữ nguyên số cũ — sai lệch 150.000
+                     mà không có gì báo.
+                     ═════════════════════════════════════════════════ -->
                 <el-form-item label="Gốc ban đầu">
                   <el-input v-model="form.initial_principal_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'initial_principal')" :disabled="isEdit" />
+                  <span v-if="isEdit" class="text-xs text-gray-400 dark:text-gray-500">
+                    Chưa mở sửa — đổi gốc phải tính lại hạn mức của khách.
+                  </span>
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -806,6 +916,54 @@
         </el-button>
       </template>
     </el-dialog>
+    <!-- ══════════════════════════════════════════════════════════════
+         MỤC 428 (31/08/2026) — ĐÁNH DẤU HỢP ĐỒNG NHẬP SAI
+         ══════════════════════════════════════════════════════════════ -->
+    <el-dialog v-model="hienNhapSai" width="460px" align-center destroy-on-close
+               class="custom-dark-dialog">
+      <template #header>
+        <span class="font-bold text-amber-600">⚠️ ĐÁNH DẤU HỢP ĐỒNG NHẬP SAI</span>
+      </template>
+
+      <div class="space-y-3 text-sm">
+        <p>
+          Hợp đồng
+          <b class="font-mono">{{ hopDongNhapSai?.contract_id }}</b>
+          của <b>{{ hopDongNhapSai?.customer_name }}</b>
+          sẽ chuyển sang trạng thái <b>Nhập sai</b>.
+        </p>
+
+        <!-- 🔴 Nói TRƯỚC hậu quả, không để người dùng phát hiện sau. -->
+        <ul class="list-disc pl-5 text-gray-600 dark:text-gray-400 space-y-1">
+          <li>Hợp đồng không còn được tính vào dư nợ của khách.</li>
+          <li>Hạn mức đã trừ sẽ được hoàn lại cho khách.</li>
+          <li>Dòng dữ liệu vẫn giữ nguyên để truy lại — không bị xoá.</li>
+        </ul>
+
+        <el-form label-position="top">
+          <el-form-item label="Mã xác nhận">
+            <el-input v-model="maXacNhan" type="password" show-password
+                      placeholder="Nhập mã xác nhận" />
+          </el-form-item>
+          <el-form-item label="Lý do (không bắt buộc)">
+            <el-input v-model="lyDoNhapSai" type="textarea" :rows="2"
+                      placeholder="VD: nhập nhầm số tiền gốc" />
+          </el-form-item>
+        </el-form>
+
+        <p class="text-xs text-gray-400 dark:text-gray-500">
+          Chỉ tài khoản owner đánh dấu được. Mã xác nhận do máy chủ giữ.
+        </p>
+      </div>
+
+      <template #footer>
+        <el-button @click="hienNhapSai = false">Hủy</el-button>
+        <el-button type="warning" :loading="dangGuiNhapSai"
+                   :disabled="!maXacNhan"
+                   @click="guiDanhDauNhapSai">Xác nhận</el-button>
+      </template>
+    </el-dialog>
+
 </template>
 
 <script setup lang="ts">
@@ -1089,6 +1247,48 @@ const handlePriceInput = (val: string, field: string) => {
   }
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 428 (31/08/2026) — ĐÁNH DẤU HỢP ĐỒNG NHẬP SAI
+//
+// 🔴 Frontend KHÔNG giữ và KHÔNG so mã xác nhận. Nó chỉ chuyển tiếp mã
+// người dùng gõ lên backend và hiện nguyên văn câu trả lời.
+//
+// ⚠️ Ô nhập để `type="password"`: nút này bấm trong văn phòng, có người
+// đứng sau lưng.
+// ══════════════════════════════════════════════════════════════════════
+const hienNhapSai = ref(false)
+const hopDongNhapSai = ref<Contract | null>(null)
+const maXacNhan = ref('')
+const lyDoNhapSai = ref('')
+const dangGuiNhapSai = ref(false)
+
+const moHopThoaiNhapSai = (row: Contract) => {
+  hopDongNhapSai.value = row
+  // Xoá mã cũ mỗi lần mở. Giữ lại là lần sau bấm nhầm Xác nhận cũng chạy.
+  maXacNhan.value = ''
+  lyDoNhapSai.value = ''
+  hienNhapSai.value = true
+}
+
+const guiDanhDauNhapSai = async () => {
+  if (!hopDongNhapSai.value || !maXacNhan.value) return
+  dangGuiNhapSai.value = true
+  try {
+    await creditService.danhDauNhapSai(
+      hopDongNhapSai.value.id, maXacNhan.value, lyDoNhapSai.value)
+    ElMessage.success('Đã đánh dấu hợp đồng nhập sai.')
+    hienNhapSai.value = false
+    maXacNhan.value = ''
+    await fetchCredits()
+  } catch (e: any) {
+    // Hiện NGUYÊN VĂN lý do backend trả về — nó đã cân nhắc nói gì và
+    // giấu gì.
+    ElMessage.error(e?.message || 'Không đánh dấu được.')
+  } finally {
+    dangGuiNhapSai.value = false
+  }
+}
+
 const handleCommand = (cmd: string, row: Contract) => {
   if (cmd === 'detail') {
     openDetailDialog(row)
@@ -1098,6 +1298,8 @@ const handleCommand = (cmd: string, row: Contract) => {
     handleDelete(row)
   } else if (cmd === 'schedule') {
     openScheduleDialog(row)
+  } else if (cmd === 'nhap_sai') {
+    moHopThoaiNhapSai(row)
   }
 }
 
@@ -1120,7 +1322,33 @@ const getStatusTag = (status: string) => {
   if (status === 'paid') return 'info'
   if (status === 'cancelled') return 'warning'
   if (status === 'bad_debt') return 'danger'
+  if (status === 'nhap_sai') return 'warning'   // MỤC 428
   return 'info'
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 425 (31/08/2026) — THÁNG ĐÓNG LÃI GẦN NHẤT
+//
+// Ba trường hợp:
+//   ① đã tất toán              -> "Đã tất toán"   (xanh lá)
+//   ② còn nợ, đã từng đóng     -> "MM/YYYY"
+//   ③ còn nợ, chưa đóng lần nào -> "Chưa đóng lần nào"  (hổ phách)
+//
+// 🔴 Trường hợp ③ KHÔNG in dấu gạch "—". Dấu gạch nghĩa là "chưa có dữ
+// liệu", còn đây là sự thật đã biết, và là dòng đáng chú ý nhất trong
+// ba dòng — hợp đồng đang nợ mà chưa đóng lãi lần nào.
+//
+// Số liệu lấy từ `last_interest_paid_date` (backend cùng MỤC). KHÔNG
+// phải `last_interest_charged_date` — cột đó là ngày bot TÍNH lãi phát
+// sinh, hợp đồng nợ lãi ba tháng vẫn có giá trị của tháng này.
+// ══════════════════════════════════════════════════════════════════════
+const thangDongLai = (row: any) => {
+  if (row?.credit_status === 'paid') return 'Đã tất toán'
+  const ngay = row?.last_interest_paid_date
+  if (!ngay) return 'Chưa đóng lần nào'
+  const phan = String(ngay).split('-')
+  if (phan.length < 2) return String(ngay)
+  return `${phan[1]}/${phan[0]}`
 }
 
 const getStatusText = (status: string) => {
@@ -1128,6 +1356,7 @@ const getStatusText = (status: string) => {
   if (status === 'paid') return 'Đã tất toán'
   if (status === 'cancelled') return 'Đã hủy'
   if (status === 'bad_debt') return 'Nợ xấu'
+  if (status === 'nhap_sai') return 'Nhập sai'   // MỤC 428
   return 'Chưa rõ'
 }
 

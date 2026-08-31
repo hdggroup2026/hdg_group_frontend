@@ -256,6 +256,51 @@ export const creditService = {
     return await response.json();
   },
 
+  // ══════════════════════════════════════════════════════════════════
+  // MỤC 428 (31/08/2026) — ĐÁNH DẤU HỢP ĐỒNG NHẬP SAI
+  //
+  // 🔴 MÃ XÁC NHẬN CHỈ ĐI MỘT CHIỀU: gửi lên, backend so rồi trả đúng/sai.
+  // Frontend KHÔNG giữ, KHÔNG so, KHÔNG nhớ mã này ở bất cứ đâu.
+  //
+  // s68 lúc đầu muốn để mã ngay trong mã nguồn frontend. Không được:
+  // frontend chạy trong trình duyệt của người dùng, nên mọi hằng số trong
+  // đó nằm sẵn trong file JavaScript máy chủ gửi về — mở công cụ nhà phát
+  // triển tìm chuỗi là thấy, không cần biết lập trình. Thêm nữa nó sẽ nằm
+  // vĩnh viễn trong lịch sử commit GitHub, kể cả sau khi xoá.
+  //
+  // Nay mã nằm ở `appsettings.json` trên máy chủ và không bao giờ rời khỏi
+  // đó. s68 chốt cách này ngày 31/08/2026.
+  // ══════════════════════════════════════════════════════════════════
+  async danhDauNhapSai(id: string, maXacNhan: string, lyDo?: string): Promise<any> {
+    const BASE_URL = await getApiUrl();
+    const token = authService.getToken();
+    const tokenType = localStorage.getItem('token_type') || 'Bearer';
+    const authHeader = `${tokenType} ${token}`;
+
+    const response = await fetch(`${BASE_URL}/credit/danh-dau-nhap-sai`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': authHeader,
+        'ngrok-skip-browser-warning': 'true'
+      },
+      body: JSON.stringify({ id, ma_xac_nhan: maXacNhan, ly_do: lyDo || null })
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      if (response.status === 401) {
+        authService.handle401();
+      }
+      // ⚠️ Hiện NGUYÊN VĂN lý do backend trả về. Backend đã cân nhắc nói
+      // gì và giấu gì — nó cố ý KHÔNG nói cửa nào hỏng khi sai mã, để
+      // không chỉ đường cho người dò.
+      throw new Error(errorData.detail || `Error ${response.status}: Không đánh dấu được`);
+    }
+
+    return await response.json();
+  },
+
   async updateCredits(credits: any[]): Promise<any[]> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();

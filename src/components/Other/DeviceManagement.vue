@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { Cpu, Iphone, Notebook, Monitor, VideoCamera, More, Switch } from '@element-plus/icons-vue'
 import PhoneTab from './PhoneTab.vue'
 import LaptopTab from './LaptopTab.vue'
@@ -94,7 +94,7 @@ import CameraTab from './CameraTab.vue'
 import OtherDeviceTab from './OtherDeviceTab.vue'
 import AssignmentTab from './AssignmentTab.vue'
 
-const activeTab = ref('phone')
+const activeTab = refTabBenVung('other/device', 'phone')  // MỤC 423
 </script>
 
 <style scoped>

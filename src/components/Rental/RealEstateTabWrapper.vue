@@ -387,6 +387,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, inject, watch } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { OfficeBuilding, Search, Location } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import RealEstateCards from './RealEstateCards.vue'
@@ -417,7 +418,7 @@ interface Property {
   current_estimated: number
 }
 
-const activeTab = ref('cards')
+const activeTab = refTabBenVung('rental/realestate', 'cards')  // MỤC 423
 
 // Shared reactive properties list state
 const properties = ref<Property[]>([])

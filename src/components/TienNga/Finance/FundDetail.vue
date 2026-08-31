@@ -1057,6 +1057,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, watch } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { mauSo } from '@/utils/mauSo'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
@@ -1169,7 +1170,7 @@ const handleAmountInput = (val: string) => {
   }
 }
 
-const activeTab = ref('fund-info')
+const activeTab = refTabBenVung('tienga/fund-detail', 'fund-info')  // MỤC 423
 
 // 1. Quản lý Bộ Lọc & Phân Trang Thu Chi Hằng Ngày (Tab 2)
 const cashflowFilters = reactive({

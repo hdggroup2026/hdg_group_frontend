@@ -531,6 +531,7 @@
 
 <script setup lang="ts">
 import { ref, computed, reactive, onMounted } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { Lock, Search, Plus, Edit, Delete, InfoFilled, MoreFilled } from '@element-plus/icons-vue'
 import { useWindowSize } from '@vueuse/core'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
@@ -543,7 +544,7 @@ const { laManHep, hienBang, hienThe } = dungManHep()
 
 const loading = ref(false)
 const submitLoading = ref(false)
-const activeTab = ref('credentials')
+const activeTab = refTabBenVung('authorization/index', 'credentials')  // MỤC 423
 
 // Viewport sizes
 const { width: windowWidth } = useWindowSize()

@@ -27,16 +27,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { Bell, Document } from '@element-plus/icons-vue'
 import ScheduledNotificationManagement from './ScheduledNotificationManagement.vue'
 import ScheduledNotificationLogs from './ScheduledNotificationLogs.vue'
 
-defineProps<{
+const props = defineProps<{
   moduleKey: string
 }>()
 
-const activeTab = ref('configs')
+// MỤC 423 — khoá kèm `moduleKey` vì màn này dùng chung cho nhiều mảng
+// (Credit, Tiến Nga…). Dùng một khoá tĩnh là bấm tab bên Credit thì tab
+// bên Tiến Nga đổi theo.
+const activeTab = refTabBenVung(`scheduled-notification/${props.moduleKey}`, 'configs')
 </script>
 
 <style scoped>

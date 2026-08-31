@@ -24,12 +24,12 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { User, ShoppingCart } from '@element-plus/icons-vue'
 import Customers from './Customers.vue'
 import Purchasing from './Purchasing.vue'
 
-const activeTab = ref('customers')
+const activeTab = refTabBenVung('tienga/material-purchasing', 'customers')  // MỤC 423
 </script>
 
 <style scoped>

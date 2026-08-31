@@ -514,6 +514,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { ChatLineRound, Refresh, Delete } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox, ElNotification } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
@@ -554,7 +555,7 @@ interface Member {
 }
 
 // State
-const activeTab = ref('info')
+const activeTab = refTabBenVung('tienga/telegram-groups', 'info')  // MỤC 423
 const projects = ref<Project[]>([])
 const members = ref<Member[]>([])
 const loading = ref(false)

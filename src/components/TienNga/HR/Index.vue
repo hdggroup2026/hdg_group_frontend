@@ -42,14 +42,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { UserFilled, Calendar, Wallet, Document } from '@element-plus/icons-vue'
 import EmployeeList from './EmployeeList.vue'
 import AttendanceList from './AttendanceList.vue'
 import SalaryList from './SalaryList.vue'
 import SalaryExport from './SalaryExport.vue'
 
-const activeTab = ref('employees')
+const activeTab = refTabBenVung('tienga/hr', 'employees')  // MỤC 423
 </script>
 
 <style scoped>

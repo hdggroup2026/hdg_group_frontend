@@ -1182,6 +1182,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { Setting, Bell, Refresh, Plus, MoreFilled, Connection } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { telegramService } from '@/api/telegramService'
@@ -1234,7 +1235,7 @@ interface NotifyLog {
 }
 
 // Tabs state
-const activeTab = ref('config')
+const activeTab = refTabBenVung('tienga/telegram-notifications', 'config')  // MỤC 423
 
 // ── Tab 1: Cấu hình thông báo ──
 const configs = ref<NotifyConfig[]>([])

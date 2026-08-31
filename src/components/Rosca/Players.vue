@@ -513,6 +513,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, reactive, computed } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { User, Search, Refresh, Plus, ChatLineRound, MoreFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { roscaService, type UserRosca } from '@/api/roscaService'
@@ -524,7 +525,7 @@ import { dungManHep } from '@/composables/manHep'
 const { laManHep, hienBang, hienThe } = dungManHep()
 
 // State
-const activeTab = ref('players-list')
+const activeTab = refTabBenVung('rosca/players', 'players-list')  // MỤC 423
 const players = ref<UserRosca[]>([])
 const loading = ref(false)
 const submitting = ref(false)

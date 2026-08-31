@@ -431,6 +431,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { Van, Refresh, Plus, MoreFilled } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { vehicleService } from '@/api/vehicleService'
@@ -440,7 +441,7 @@ import { dungManHep } from '@/composables/manHep'
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 
-const activeTab = ref('vehicle')
+const activeTab = refTabBenVung('other/vehicle', 'vehicle')  // MỤC 423
 
 // Search, Status filters
 const searchLicensePlate = ref('')

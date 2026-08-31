@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { User, Location, Calendar, Search, Box } from '@element-plus/icons-vue'
 import LandList from './LandList.vue'
 import HouseholdList from './HouseholdList.vue'
@@ -72,7 +72,7 @@ defineProps<{
   cropType: 'cao_su' | 'sau_rieng'
 }>()
 
-const activeTab = ref('lands')
+const activeTab = refTabBenVung('harvest/tabs', 'lands')  // MỤC 423
 </script>
 
 <style scoped>
