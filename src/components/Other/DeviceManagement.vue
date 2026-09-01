@@ -68,7 +68,34 @@
         <OtherDeviceTab />
       </el-tab-pane>
 
-      <!-- Tab 7: Bàn giao -->
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 441 · 442 (01/09/2026) — HAI TAB MỚI
+
+           Đặt TRƯỚC tab Bàn giao, có chủ ý: Bàn giao là việc cuối cùng
+           trong luồng (có máy -> có phụ kiện -> có SIM -> giao cho ai).
+           Xếp theo luồng việc thì người dùng không phải nhảy tới nhảy lui.
+           ══════════════════════════════════════════════════════════════ -->
+      <el-tab-pane name="accessory">
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><Headset /></el-icon>
+            <span>Phụ kiện</span>
+          </span>
+        </template>
+        <AccessoryTab />
+      </el-tab-pane>
+
+      <el-tab-pane name="sim">
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><Postcard /></el-icon>
+            <span>SIM</span>
+          </span>
+        </template>
+        <SimTab />
+      </el-tab-pane>
+
+      <!-- Tab cuối: Bàn giao -->
       <el-tab-pane name="assignment">
         <template #label>
           <span class="custom-tabs-label">
@@ -85,7 +112,7 @@
 
 <script setup lang="ts">
 import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
-import { Cpu, Iphone, Notebook, Monitor, VideoCamera, More, Switch } from '@element-plus/icons-vue'
+import { Cpu, Iphone, Notebook, Monitor, VideoCamera, More, Switch, Headset, Postcard } from '@element-plus/icons-vue'   // MỤC 441, 442
 import PhoneTab from './PhoneTab.vue'
 import LaptopTab from './LaptopTab.vue'
 import TabletTab from './TabletTab.vue'
@@ -93,6 +120,8 @@ import ScreenTab from './ScreenTab.vue'
 import CameraTab from './CameraTab.vue'
 import OtherDeviceTab from './OtherDeviceTab.vue'
 import AssignmentTab from './AssignmentTab.vue'
+import AccessoryTab from './AccessoryTab.vue'   // MỤC 441
+import SimTab from './SimTab.vue'               // MỤC 442
 
 const activeTab = refTabBenVung('other/device', 'phone')  // MỤC 423
 </script>

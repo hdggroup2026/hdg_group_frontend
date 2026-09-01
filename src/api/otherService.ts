@@ -2,6 +2,149 @@ import { authService } from './auth';
 import { getApiUrl } from './apiConfig';
 
 export const otherService = {
+  // ══════════════════════════════════════════════════════════════════
+  // MỤC 436 (31/08/2026) — QUẢN LÝ APP VÀ LIÊN KẾT APP ↔ THIẾT BỊ
+  //
+  // Hai bảng `applications` và `installed_apps` đã có trong database từ
+  // lâu nhưng chưa có đường API nào. MỤC 436 mở ra, đây là phía web gọi.
+  // ══════════════════════════════════════════════════════════════════
+  async _goi(duong: string, tuyChon: any = {}): Promise<any> {
+    // Gom phần lặp lại của 6 hàm bên dưới. Sáu bản chép tay của cùng một
+    // đoạn là sáu chỗ có thể lệch nhau ở lần sửa sau.
+    const BASE_URL = await getApiUrl();
+    const token = authService.getToken();
+    const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+    const response = await fetch(`${BASE_URL}${duong}`, {
+      ...tuyChon,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${tokenType} ${token}`,
+        'ngrok-skip-browser-warning': 'true'
+      }
+    });
+
+    if (!response.ok) {
+      const loi = await response.json().catch(() => ({}));
+      if (response.status === 401) authService.handle401();
+      // Hiện nguyên văn lý do backend trả về.
+      throw new Error(loi.detail || `Error ${response.status}`);
+    }
+    return await response.json();
+  },
+
+  // ══════════════════════════════════════════════════════════════════
+  // MỤC 440 (01/09/2026) — PHỤ KIỆN VÀ SIM
+  //
+  // ⚠️ `deviceId = '__kho__'` để lấy riêng thứ đang trong kho. Chuỗi
+  // rỗng bị backend hiểu là "không lọc" — hai ý nghĩa khác hẳn nhau.
+  // ══════════════════════════════════════════════════════════════════
+  async getAccessories(deviceId?: string, status?: string): Promise<any[]> {
+    const q = new URLSearchParams()
+    if (deviceId) q.append('device_id', deviceId)
+    if (status) q.append('status', status)
+    const duoi = q.toString() ? `?${q.toString()}` : ''
+    return await this._goi(`/other/get-accessories${duoi}`, { method: 'GET' });
+  },
+
+  async addAccessories(items: any[]): Promise<any[]> {
+    return await this._goi('/other/add-accessories',
+      { method: 'POST', body: JSON.stringify(items) });
+  },
+
+  async updateAccessories(items: any[]): Promise<any[]> {
+    return await this._goi('/other/update-accessories',
+      { method: 'POST', body: JSON.stringify(items) });
+  },
+
+  async deleteAccessories(ids: string[]): Promise<any> {
+    return await this._goi('/other/delete-accessories',
+      { method: 'DELETE', body: JSON.stringify(ids) });
+  },
+
+  /** Gắn phụ kiện vào máy. `deviceId` để trống = trả về kho. */
+  async ganPhuKien(maPhuKien: string[], deviceId?: string, deviceType?: string): Promise<any> {
+    return await this._goi('/other/gan-phu-kien', {
+      method: 'POST',
+      body: JSON.stringify({
+        ma_phu_kien: maPhuKien,
+        device_id: deviceId || null,
+        device_type: deviceType || null,
+      })
+    });
+  },
+
+  async getSimCards(deviceId?: string): Promise<any[]> {
+    const duoi = deviceId ? `?device_id=${encodeURIComponent(deviceId)}` : ''
+    return await this._goi(`/other/get-sim-cards${duoi}`, { method: 'GET' });
+  },
+
+  async addSimCards(items: any[]): Promise<any[]> {
+    return await this._goi('/other/add-sim-cards',
+      { method: 'POST', body: JSON.stringify(items) });
+  },
+
+  async updateSimCards(items: any[]): Promise<any[]> {
+    return await this._goi('/other/update-sim-cards',
+      { method: 'POST', body: JSON.stringify(items) });
+  },
+
+  async deleteSimCards(ids: string[]): Promise<any> {
+    return await this._goi('/other/delete-sim-cards',
+      { method: 'DELETE', body: JSON.stringify(ids) });
+  },
+
+  /** Phụ kiện THƯỜNG và SIM của một máy, gộp cùng khuôn (MỤC 441). */
+  async getPhuKienCuaMay(deviceId: string): Promise<any[]> {
+    return await this._goi(
+      `/other/get-phu-kien-cua-may?device_id=${encodeURIComponent(deviceId)}`,
+      { method: 'GET' });
+  },
+
+  async getApplications(): Promise<any[]> {
+    return await this._goi('/other/get-applications', { method: 'GET' });
+  },
+
+  async addApplications(apps: any[]): Promise<any[]> {
+    return await this._goi('/other/add-applications',
+      { method: 'POST', body: JSON.stringify(apps) });
+  },
+
+  async updateApplications(apps: any[]): Promise<any[]> {
+    return await this._goi('/other/update-applications',
+      { method: 'POST', body: JSON.stringify(apps) });
+  },
+
+  async deleteApplications(ids: string[]): Promise<any> {
+    return await this._goi('/other/delete-applications',
+      { method: 'DELETE', body: JSON.stringify(ids) });
+  },
+
+  /** Hồ sơ đầy đủ của mọi app đang gắn vào MỘT thiết bị (MỤC 438). */
+  async getAppsOfDevice(deviceId: string): Promise<any[]> {
+    return await this._goi(
+      `/other/get-apps-of-device?device_id=${encodeURIComponent(deviceId)}`,
+      { method: 'GET' });
+  },
+
+  /** Danh sách máy đang gắn một app (dùng để tick sẵn lúc mở form gán). */
+  async getInstalledAppsByApp(appId: string): Promise<any[]> {
+    return await this._goi(
+      `/other/get-installed-apps?app_id=${encodeURIComponent(appId)}`,
+      { method: 'GET' });
+  },
+
+  /**
+   * ĐẶT LẠI danh sách thiết bị của một app.
+   *
+   * ⚠️ Gửi lên trạng thái CUỐI CÙNG người dùng muốn, không phải phần
+   * thêm. Bỏ tick một máy trên web là máy đó bị gỡ ở máy chủ.
+   */
+  async setDevicesOfApp(appId: string, thietBi: any[]): Promise<any> {
+    return await this._goi('/other/set-devices-of-app',
+      { method: 'POST', body: JSON.stringify({ app_id: appId, thiet_bi: thietBi }) });
+  },
+
   // ===================== SMARTPHONES =====================
   async getSmartphones(params?: { classification?: string }): Promise<any[]> {
     const BASE_URL = await getApiUrl();
