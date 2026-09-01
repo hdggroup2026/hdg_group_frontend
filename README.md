@@ -31,3 +31,4 @@ Dự án này kết nối với hệ thống Backend FastAPI thông qua proxy c�
 * 💳 **Tín dụng (Credit)**: Quản lý hồ sơ vay vốn, tính toán gốc lãi và quản trị nhắc nợ.
 * 📦 **Ggomoosin / Thu hoạch / Khác**: Các phân hệ quản lý sản xuất, tài sản thiết bị bổ trợ.
 * 🔐 **Phân quyền (Authorization)**: Kiểm soát và quản lý phân quyền chi tiết cho quản trị viên và nhân viên.
+<!-- MUC 449 -->
