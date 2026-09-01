@@ -166,9 +166,29 @@
         </el-table-column>
 
         <!-- Ngày mua -->
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 433 (31/08/2026) — NGÀY MUA XUỐNG HÀNG CHO CÂN ĐỐI
+
+             s68 (ảnh 31/08): *"Ngày mua thì cho 2025 xuống hàng luôn cho
+             cân đối."*
+
+             🔴 Trước đây cột rộng 86px, `30/05/2025` là 10 ký tự chữ đều
+             nên không vừa — trình duyệt tự ngắt GIỮA CON SỐ thành
+             `30/05/2` rồi `025`. Nhìn như dữ liệu hỏng.
+
+             Nay tự tách chủ động: ngày/tháng một dòng, NĂM một dòng.
+             Chỗ ngắt do mình chọn, không để trình duyệt chọn.
+
+             ⚠️ `whitespace-nowrap` ở cả hai dòng con là bắt buộc — thiếu
+             nó thì trình duyệt vẫn có quyền ngắt tiếp giữa số.
+             ══════════════════════════════════════════════════════════ -->
         <el-table-column prop="purchase_date" label="Ngày mua" width="86" align="center">
           <template #default="{ row }">
-            <span class="font-mono text-xs">{{ formatDate(row.purchase_date) }}</span>
+            <div v-if="row.purchase_date" class="font-mono text-xs leading-tight">
+              <div class="whitespace-nowrap">{{ ngayThang(row.purchase_date) }}</div>
+              <div class="whitespace-nowrap">{{ namMua(row.purchase_date) }}</div>
+            </div>
+            <span v-else class="text-gray-400">—</span>
           </template>
         </el-table-column>
 
@@ -961,6 +981,24 @@ const handleDelete = async (row: any) => {
 }
 
 // Helpers
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 433 (31/08/2026) — TÁCH NGÀY MUA THÀNH HAI DÒNG
+//
+// ⚠️ Cắt bằng dấu "/" của chuỗi `formatDate` trả về, KHÔNG tự dựng lại
+// từ đối tượng Date. Dựng lại là có hai chỗ quyết định định dạng ngày,
+// và hai chỗ đó sẽ lệch nhau ở lần sửa sau.
+// ══════════════════════════════════════════════════════════════════════
+const ngayThang = (d: any) => {
+  const chu = formatDate(d)
+  const phan = String(chu).split('/')
+  return phan.length >= 3 ? `${phan[0]}/${phan[1]}` : chu
+}
+
+const namMua = (d: any) => {
+  const phan = String(formatDate(d)).split('/')
+  return phan.length >= 3 ? phan[2] : ''
+}
+
 const formatDate = (val: string) => {
   if (!val) return '—'
   const parts = val.split('-')

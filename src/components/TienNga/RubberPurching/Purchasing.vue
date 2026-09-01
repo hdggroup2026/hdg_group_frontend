@@ -708,8 +708,27 @@
             </h4>
             <el-row :gutter="20">
               <el-col :span="12">
+                <!-- ══════════════════════════════════════════════════
+                     MỤC 446 (01/09/2026) — SỬA MÃ HỘ DÂN GHI NHẦM
+
+                     s68 01/09: *"cập nhật phiếu thu mua mủ hộ dân là do
+                     kế toán ghi nhầm mã hộ dân. Nên việc sửa mã hộ dân
+                     là SỬA chứ thực tế không phải chuyển tiền giữa 2 hộ
+                     dân."*
+
+                     ⚠️ Ô Mã Hộ VẪN KHOÁ. Sửa mã hộ không phải là gõ đè
+                     lên ô này — nó kéo theo cả công nợ và cần owner
+                     duyệt. Phải đi qua nút riêng, để không ai sửa nhầm
+                     khi đang định sửa số cân.
+                     ══════════════════════════════════════════════════ -->
                 <el-form-item label="Mã Hộ">
-                  <el-input v-model="editForm.code" disabled />
+                  <div class="flex gap-2 w-full">
+                    <el-input v-model="editForm.code" disabled class="flex-1 min-w-0" />
+                    <el-button type="warning" plain class="shrink-0"
+                               @click="moSuaMaHo">
+                      Cập nhật hộ dân
+                    </el-button>
+                  </div>
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -1030,6 +1049,56 @@
       </template>
     </el-dialog>
   </div>
+    <!-- ══════════════════════════════════════════════════════════════
+         MỤC 446 (01/09/2026) — SỬA MÃ HỘ DÂN GHI NHẦM
+         ══════════════════════════════════════════════════════════════ -->
+    <el-dialog v-model="hienSuaMaHo" width="560px" align-center destroy-on-close>
+      <template #header>
+        <span class="font-bold text-amber-600">SỬA MÃ HỘ DÂN GHI NHẦM</span>
+      </template>
+
+      <div class="space-y-3 text-sm">
+        <p>
+          Phiếu này đang thuộc hộ
+          <b class="font-mono">{{ editForm.code }}</b> — {{ editForm.name }}.
+        </p>
+
+        <!-- 🔴 Nói TRƯỚC hậu quả, đừng để người dùng phát hiện sau. -->
+        <ul class="list-disc pl-5 text-gray-600 dark:text-gray-400 space-y-1">
+          <li>Phiếu và phần công nợ sẽ chuyển sang hộ mới <b>ngay lập tức</b>.</li>
+          <li>Hộ ghi nhầm sẽ <b>sạch hoàn toàn</b> — không còn dấu vết nào trong sổ của họ.</li>
+          <li>Bot gửi tin xin duyệt lên nhóm main. <b>Không duyệt thì phiếu tự quay về hộ cũ.</b></li>
+          <li>Chưa ai duyệt thì bot <b>nhắc lại mỗi ngày</b>.</li>
+        </ul>
+
+        <el-form label-position="top">
+          <el-form-item label="Hộ dân đúng">
+            <el-select v-model="hoMoiChon" filterable clearable style="width: 100%"
+                       placeholder="Gõ mã hộ hoặc tên để tìm...">
+              <el-option v-for="h in dsHoDanChon" :key="h.hoursehold_id"
+                         :value="h.hoursehold_id"
+                         :label="`${h.hoursehold_id} — ${h.fullname} (${h.collection_name || 'chưa rõ điểm'})`" />
+            </el-select>
+            <!-- s68 chốt 01/09: cho chuyển chéo giữa hai điểm thu mua,
+                 *"vì đã nhầm thì đã không xác định mã nào với mã nào"*. -->
+            <span class="text-xs text-gray-400 dark:text-gray-500">
+              Chọn được hộ ở điểm thu mua khác.
+            </span>
+          </el-form-item>
+          <el-form-item label="Lý do (không bắt buộc)">
+            <el-input v-model="lyDoSuaMaHo" type="textarea" :rows="2"
+                      placeholder="VD: gõ nhầm P031 thay vì P013" />
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <template #footer>
+        <el-button @click="hienSuaMaHo = false">Hủy</el-button>
+        <el-button type="warning" :loading="dangSuaMaHo" :disabled="!hoMoiChon"
+                   @click="guiSuaMaHo">Chuyển và xin duyệt</el-button>
+      </template>
+    </el-dialog>
+
 </template>
 
 <script setup lang="ts">
@@ -1512,6 +1581,71 @@ const handleEditSavedAmountInput = (val: string) => {
   const saved = parseNumberString(val)
   const total = rawEditTotalAmount.value
   editForm.paidAmount = String(Math.max(0, total - saved))
+}
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 446 (01/09/2026) — SỬA MÃ HỘ DÂN GHI NHẦM
+//
+// s68 01/09: *"việc sửa mã hộ dân là SỬA chứ thực tế không phải chuyển
+// tiền giữa 2 hộ dân. Và không để vết trong hộ dân mà không phát sinh
+// giao dịch. Để hộ dân không thắc mắc và phải giải thích lằn nhằn."*
+//
+// 🔴 Phiếu chuyển NGAY, chưa cần duyệt (s68: "sang tạm luôn đích đến").
+// Không duyệt thì backend tự hoàn về hộ cũ.
+//
+// ⚠️ Frontend KHÔNG tự trừ cộng công nợ. Toàn bộ phần tiền do backend
+// làm trong một giao dịch — làm ở đây là hai nguồn cùng ghi vào một cột.
+// ══════════════════════════════════════════════════════════════════════
+const hienSuaMaHo = ref(false)
+const hoMoiChon = ref('')
+const lyDoSuaMaHo = ref('')
+const dangSuaMaHo = ref(false)
+const dsHoDanChon = ref<any[]>([])
+
+const moSuaMaHo = async () => {
+  // `editingRow` đã giữ nguyên dòng đang sửa (dòng 1747), dùng `id`
+  // ở đó chứ KHÔNG thêm trường `id` vào `editForm` — thêm vào là nó bị
+  // gửi kèm trong mọi lần cập nhật bình thường.
+  if (!editingRow.value?.id) {
+    ElMessage.warning('Chưa chọn phiếu thu mua.')
+    return
+  }
+  hoMoiChon.value = ''
+  lyDoSuaMaHo.value = ''
+  hienSuaMaHo.value = true
+  try {
+    const kh = await tienNgaService.getCustomers('cao su')
+    // ⚠️ Bỏ chính hộ đang giữ phiếu khỏi danh sách. Để lại là người dùng
+    // chọn trúng nó rồi nhận lỗi "trùng hộ cũ" — chặn trước thì đỡ một
+    // lượt bấm.
+    dsHoDanChon.value = (kh || []).filter(
+      (c: any) => (c.hoursehold_id || '') !== editForm.code)
+  } catch (e: any) {
+    ElMessage.error(e?.message || 'Không tải được danh sách hộ dân.')
+  }
+}
+
+const guiSuaMaHo = async () => {
+  if (!hoMoiChon.value) return
+  dangSuaMaHo.value = true
+  try {
+    const kq = await tienNgaService.suaMaHoDan(
+      editingRow.value.id, hoMoiChon.value, lyDoSuaMaHo.value)
+    ElNotification({
+      title: 'Đã chuyển phiếu',
+      message: `Phiếu chuyển từ ${kq.ho_cu} sang ${kq.ho_moi}. `
+        + 'Bot đã gửi tin xin duyệt lên nhóm main.',
+      type: 'success',
+      duration: 6000,
+    })
+    hienSuaMaHo.value = false
+    editDialogVisible.value = false
+    await fetchDailyPurchases()
+  } catch (e: any) {
+    ElMessage.error(e?.message || 'Không chuyển được.')
+  } finally {
+    dangSuaMaHo.value = false
+  }
 }
 
 const submitEditForm = async () => {

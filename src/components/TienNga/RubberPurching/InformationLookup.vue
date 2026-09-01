@@ -679,6 +679,7 @@ const exportBookSavedInvoice = async () => {
           const unitPrice = r.unitPrice || (supportPrice > 0 ? Math.max(0, supportPrice - subsidize) : 0)
           return {
             ngay: formatDayMonth(r.date),
+            ngay_iso: r.date || null,   // MỤC 444 — để backend ghép tiền ứng vào đúng ngày
             tuan: '—',
             tro_gia: subsidize,
             kl: r.weight || 0,
@@ -700,7 +701,25 @@ const exportBookSavedInvoice = async () => {
         tong_thanh_toan,
         tong_thanh_tien_kht,
         tong_luu_so,
-        tien_da_ung: customer.cash_advance || 0
+        tien_da_ung: customer.cash_advance || 0,
+        // ══════════════════════════════════════════════════════════════
+        // MỤC 444 (01/09/2026) — CHỈ GỬI HAI MỐC NGÀY
+        //
+        // 🔴 KHÔNG gửi danh sách giao dịch ứng tiền lên. Backend tự đọc
+        // `cash_advance_logs`. Gửi từ đây là hai nguồn cho cùng một con
+        // số, mà hoá đơn là chứng từ đưa cho hộ dân xem — sai là sai vào
+        // đúng chỗ họ tin nhất.
+        //
+        // ⚠️ Không có `dateRange` thì lùi về ngày phiếu đầu/cuối. Để
+        // trống là backend không biết đâu là "kỳ trước", và ô Dư ứng sẽ
+        // ra 0 cho mọi hộ.
+        // ══════════════════════════════════════════════════════════════
+        ky_tu_ngay: (dateRange.value && dateRange.value.length === 2)
+          ? dateRange.value[0]
+          : (records.map(r => r.date).filter(Boolean).sort()[0] || null),
+        ky_den_ngay: (dateRange.value && dateRange.value.length === 2)
+          ? dateRange.value[1]
+          : (records.map(r => r.date).filter(Boolean).sort().slice(-1)[0] || null)
       }
 
       // Call API
@@ -808,6 +827,7 @@ const exportPaidInvoice = async () => {
           const unitPrice = r.unitPrice || (supportPrice > 0 ? Math.max(0, supportPrice - subsidize) : 0)
           return {
             ngay: formatDayMonth(r.date),
+            ngay_iso: r.date || null,   // MỤC 444 — để backend ghép tiền ứng vào đúng ngày
             tuan: '—',
             tro_gia: subsidize,
             kl: r.weight || 0,
@@ -825,7 +845,25 @@ const exportPaidInvoice = async () => {
         tong_kl_tt,
         tong_thanh_tien,
         tong_thanh_toan,
-        tien_da_ung: customer.cash_advance || 0
+        tien_da_ung: customer.cash_advance || 0,
+        // ══════════════════════════════════════════════════════════════
+        // MỤC 444 (01/09/2026) — CHỈ GỬI HAI MỐC NGÀY
+        //
+        // 🔴 KHÔNG gửi danh sách giao dịch ứng tiền lên. Backend tự đọc
+        // `cash_advance_logs`. Gửi từ đây là hai nguồn cho cùng một con
+        // số, mà hoá đơn là chứng từ đưa cho hộ dân xem — sai là sai vào
+        // đúng chỗ họ tin nhất.
+        //
+        // ⚠️ Không có `dateRange` thì lùi về ngày phiếu đầu/cuối. Để
+        // trống là backend không biết đâu là "kỳ trước", và ô Dư ứng sẽ
+        // ra 0 cho mọi hộ.
+        // ══════════════════════════════════════════════════════════════
+        ky_tu_ngay: (dateRange.value && dateRange.value.length === 2)
+          ? dateRange.value[0]
+          : (records.map(r => r.date).filter(Boolean).sort()[0] || null),
+        ky_den_ngay: (dateRange.value && dateRange.value.length === 2)
+          ? dateRange.value[1]
+          : (records.map(r => r.date).filter(Boolean).sort().slice(-1)[0] || null)
       }
 
       // Call API

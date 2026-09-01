@@ -2030,6 +2030,40 @@ export const tienNgaService = {
     return await response.blob();
   },
 
+  // ══════════════════════════════════════════════════════════════════
+  // MỤC 446 (01/09/2026) — SỬA MÃ HỘ DÂN GHI NHẦM TRÊN PHIẾU THU MUA
+  //
+  // ⚠️ Chỉ gửi ba thứ: id phiếu, mã hộ đúng, lý do. Backend tự tính phần
+  // công nợ phải chuyển và tự gửi tin xin duyệt — frontend không đụng
+  // vào tiền.
+  // ══════════════════════════════════════════════════════════════════
+  async suaMaHoDan(purchaseId: string, hoMoi: string, lyDo?: string): Promise<any> {
+    const BASE_URL = await getApiUrl();
+    const token = authService.getToken();
+    const tokenType = localStorage.getItem('token_type') || 'Bearer';
+
+    const response = await fetch(`${BASE_URL}/tien-nga/sua-ma-ho-dan`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `${tokenType} ${token}`,
+        'ngrok-skip-browser-warning': 'true'
+      },
+      body: JSON.stringify({
+        purchase_id: purchaseId,
+        ho_moi: hoMoi,
+        ly_do: lyDo || null
+      })
+    });
+
+    if (!response.ok) {
+      const loi = await response.json().catch(() => ({}));
+      if (response.status === 401) authService.handle401();
+      throw new Error(loi.detail || `Error ${response.status}: Không chuyển được`);
+    }
+    return await response.json();
+  },
+
   async exportSavedBill(payload: any): Promise<Blob> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();

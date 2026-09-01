@@ -97,15 +97,24 @@
       <div
         v-for="card in summaryCards"
         :key="card.label"
-        class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-l-4"
+        class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 border-l-4 cursor-pointer transition hover:shadow-lg"
         :class="card.borderClass"
         v-loading="summaryLoading"
+        role="button"
+        :title="`Xem lịch sử hình thành con số ${card.label}`"
+        @click="moLichSu(card.loai)"
       >
         <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
           {{ card.label }}
         </div>
-        <div class="mt-1 text-xl font-bold" :class="card.textClass">
+        <div class="mt-1 text-xl font-bold underline decoration-dotted underline-offset-4" :class="card.textClass">
           {{ card.value }}
+        </div>
+        <!-- ⚠️ MỤC 448 — chữ nhắc nhỏ. Ô bấm được mà không có dấu hiệu gì
+             thì không ai nghĩ tới việc bấm; gạch chân chấm ở con số và
+             dòng này là hai dấu hiệu, không phải một. -->
+        <div class="mt-1 text-[10px] text-gray-400 dark:text-gray-500">
+          Bấm để xem lịch sử
         </div>
       </div>
     </div>
@@ -550,6 +559,137 @@
       </template>
     </el-dialog>
   </div>
+    <!-- ══════════════════════════════════════════════════════════════
+         MỤC 448 (01/09/2026) — LỊCH SỬ HÌNH THÀNH CON SỐ
+
+         s68 (ảnh 3, 31/08): *"3 số liệu trên bấm vào phải hiện ra bảng
+         lịch sử liên kết hình thành các con số đấy luôn. Kể cả số 74 hộ
+         dân."*
+
+         🔴 Bốn con số này do BACKEND tính, nhưng tính từ ĐÚNG bảng
+         `cash_advance_logs` với ĐÚNG bộ lọc đang chọn
+         (`app/crud/cash_advance_log.py` hàm `get_cash_advance_summary`).
+         Nên dựng lại từ `allData` là ra đúng cùng con số — và hộp thoại
+         tự đối chiếu để chứng minh, xem dòng cuối.
+         ══════════════════════════════════════════════════════════════ -->
+    <el-dialog v-model="hienLichSu" width="900px" align-center destroy-on-close>
+      <template #header>
+        <span class="font-bold">LỊCH SỬ: {{ tieuDeLichSu }}</span>
+      </template>
+
+      <div class="space-y-3">
+        <!-- 🔴 Cảnh báo TRƯỚC bảng, không phải sau. Danh sách bị cắt mà
+             người đọc phát hiện sau khi đã cộng tay là mất công vô ích. -->
+        <el-alert v-if="thieuDong" type="warning" show-icon :closable="false"
+                  :title="`Chỉ tải được ${allData.length} trong ${serverTotal} giao dịch.`"
+                  description="Danh sách dưới đây CHƯA ĐỦ. Thu hẹp khoảng thời gian hoặc chọn một điểm thu mua để xem trọn vẹn." />
+
+        <!-- ══ Ba ô tiền: liệt kê từng giao dịch ══ -->
+        <el-table v-if="loaiLichSu !== 'ho'" :data="dongLichSu" size="small"
+                  border stripe max-height="440">
+          <el-table-column label="STT" width="52" align="center" type="index" />
+          <el-table-column prop="created_at" label="Thời gian" width="130">
+            <template #default="{ row }">
+              <span class="text-xs">{{ formatDateTime(row.created_at) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="hoursehold_id" label="Mã hộ" width="86">
+            <template #default="{ row }">
+              <span class="font-mono font-bold text-xs">{{ row.hoursehold_id }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="fullname" label="Tên hộ dân" min-width="130" show-overflow-tooltip />
+          <el-table-column prop="collection_name" label="Điểm thu mua" min-width="110" show-overflow-tooltip />
+          <el-table-column label="Loại" width="94" align="center">
+            <template #default="{ row }">
+              <el-tag size="small" :type="row.entry_type === 'ADVANCE' ? 'danger' : 'success'" effect="plain">
+                {{ row.entry_type === 'ADVANCE' ? 'Ứng' : 'Khấu trừ' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="Số tiền" width="120" align="right">
+            <template #default="{ row }">
+              <span class="font-mono text-xs font-bold"
+                    :class="row.entry_type === 'ADVANCE' ? 'text-red-600' : 'text-green-600'">
+                {{ row.entry_type === 'ADVANCE' ? '+' : '−' }}{{ formatCurrency(row.amount || 0) }}
+              </span>
+            </template>
+          </el-table-column>
+          <!-- Cột cộng dồn: nhìn là thấy con số lớn hình thành thế nào. -->
+          <el-table-column label="Cộng dồn" width="124" align="right">
+            <template #default="{ $index }">
+              <span class="font-mono text-xs">{{ formatCurrency(congDon[$index] || 0) }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <!-- ══ Ô số hộ dân: gộp theo hộ ══ -->
+        <el-table v-else :data="dongTheoHo" size="small" border stripe max-height="440">
+          <el-table-column label="STT" width="52" align="center" type="index" />
+          <el-table-column prop="hoursehold_id" label="Mã hộ" width="96">
+            <template #default="{ row }">
+              <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.hoursehold_id }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="fullname" label="Tên hộ dân" min-width="150" show-overflow-tooltip />
+          <el-table-column prop="collection_name" label="Điểm thu mua" min-width="120" show-overflow-tooltip />
+          <el-table-column label="Số giao dịch" width="110" align="center">
+            <template #default="{ row }">{{ row.so_gd }}</template>
+          </el-table-column>
+          <el-table-column label="Đã ứng" width="120" align="right">
+            <template #default="{ row }">
+              <span class="font-mono text-xs text-red-600">{{ formatCurrency(row.ung) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="Đã khấu trừ" width="120" align="right">
+            <template #default="{ row }">
+              <span class="font-mono text-xs text-green-600">{{ formatCurrency(row.khau_tru) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="Còn ứng" width="120" align="right">
+            <template #default="{ row }">
+              <span class="font-mono text-xs font-bold">{{ formatCurrency(row.con) }}</span>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <div v-if="soDongLichSu === 0" class="text-center text-gray-400 py-8 text-sm">
+          Không có giao dịch nào trong khoảng lọc hiện tại.
+        </div>
+
+        <!-- ══════════════════════════════════════════════════════════
+             🔴 DÒNG ĐỐI CHIẾU — phần quan trọng nhất của hộp thoại này.
+
+             Cộng lại danh sách trên rồi so với con số đang hiện ở ô
+             thống kê. Khớp thì nói khớp; lệch thì nói lệch và bao nhiêu.
+
+             Một bảng "lịch sử hình thành con số" mà không tự chứng minh
+             nó cộng ra đúng con số đó thì chỉ là một bảng nữa để nghi
+             ngờ.
+             ══════════════════════════════════════════════════════════ -->
+        <div class="text-sm border-t pt-3 border-gray-200 dark:border-gray-700">
+          <div class="flex justify-between">
+            <span class="text-gray-500 dark:text-gray-400">Cộng từ danh sách trên:</span>
+            <span class="font-mono font-bold">{{ chuTongTinh }}</span>
+          </div>
+          <div class="flex justify-between mt-1">
+            <span class="text-gray-500 dark:text-gray-400">Số đang hiện ở ô thống kê:</span>
+            <span class="font-mono font-bold">{{ chuTongO }}</span>
+          </div>
+          <div class="mt-2 font-semibold"
+               :class="khopNhau ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'">
+            {{ khopNhau ? '✅ Hai số khớp nhau.'
+                        : '⚠️ Hai số LỆCH NHAU — báo lại để kiểm, đừng dùng số này.' }}
+          </div>
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="text-sm text-gray-400 mr-3">{{ soDongLichSu }} dòng</span>
+        <el-button @click="hienLichSu = false">Đóng</el-button>
+      </template>
+    </el-dialog>
+
 </template>
 
 <script setup lang="ts">
@@ -636,27 +776,150 @@ const advanceTypeLabel = (value: string | null | undefined) => {
   return value || 'Chưa rõ'
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 448 (01/09/2026) — LỊCH SỬ HÌNH THÀNH BỐN CON SỐ THỐNG KÊ
+//
+// s68 (ảnh 3): *"3 số liệu trên bấm vào phải hiện ra bảng lịch sử liên kết
+// hình thành các con số đấy luôn. Kể cả số 74 hộ dân."*
+//
+// 🔴 DỰNG LẠI TỪ `allData`, KHÔNG GỌI THÊM API.
+//
+// Bốn con số do backend tính, nhưng tính từ ĐÚNG bảng `cash_advance_logs`
+// với ĐÚNG bộ lọc đang chọn (`app/crud/cash_advance_log.py` hàm
+// `get_cash_advance_summary`). `allData` chính là bộ dòng đó. Gọi thêm một
+// đường API nữa để lấy lại cùng dữ liệu là hai nguồn cho một con số — và
+// hai nguồn thì có ngày lệch nhau.
+//
+// ⚠️ ĐÁNH ĐỔI PHẢI NÓI RA: `allData` bị chặn ở `FETCH_LIMIT = 1000` dòng.
+// Vượt ngưỡng đó thì danh sách KHÔNG đủ, và hộp thoại hiện cảnh báo vàng
+// ngay đầu — trước bảng, không phải sau. Người đọc phát hiện thiếu sau khi
+// đã cộng tay là mất công vô ích.
+// ══════════════════════════════════════════════════════════════════════
+const hienLichSu = ref(false)
+const loaiLichSu = ref<'ung' | 'khau_tru' | 'du' | 'ho'>('ung')
+
+const moLichSu = (loai: 'ung' | 'khau_tru' | 'du' | 'ho') => {
+  loaiLichSu.value = loai
+  hienLichSu.value = true
+}
+
+const thieuDong = computed(() => serverTotal.value > allData.value.length)
+
+const tieuDeLichSu = computed(() => ({
+  ung: 'TỔNG ĐÃ ỨNG',
+  khau_tru: 'TỔNG ĐÃ KHẤU TRỪ',
+  du: 'DƯ NỢ ỨNG HIỆN TẠI',
+  ho: 'SỐ HỘ DÂN',
+}[loaiLichSu.value]))
+
+// ⚠️ Xếp theo thời gian TĂNG DẦN, ngược với bảng chính. Cột "Cộng dồn" chỉ
+// có nghĩa khi đọc từ giao dịch đầu tiên trở đi.
+const dongLichSu = computed(() => {
+  const ds = [...(allData.value || [])].sort(
+    (a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+  if (loaiLichSu.value === 'ung') return ds.filter((r: any) => r.entry_type === 'ADVANCE')
+  if (loaiLichSu.value === 'khau_tru') return ds.filter((r: any) => r.entry_type !== 'ADVANCE')
+  return ds   // 'du' — cả hai loại, vì dư nợ là hiệu của chúng
+})
+
+// Cột cộng dồn: nhìn là thấy con số lớn hình thành thế nào qua từng dòng.
+const congDon = computed(() => {
+  let tong = 0
+  return dongLichSu.value.map((r: any) => {
+    const so = Number(r.amount || 0)
+    if (loaiLichSu.value === 'du') {
+      tong += (r.entry_type === 'ADVANCE' ? so : -so)
+    } else {
+      tong += so
+    }
+    return tong
+  })
+})
+
+// Ô "Số hộ dân": gộp theo hộ, mỗi hộ một dòng.
+//
+// ⚠️ Gộp bằng `Map` một lượt, KHÔNG lọc lại mảng cho mỗi hộ — 74 hộ mà lọc
+// lại 74 lần trên 1000 dòng là 74.000 lượt so sánh.
+const dongTheoHo = computed(() => {
+  const gop = new Map<string, any>()
+  for (const r of (allData.value || []) as any[]) {
+    const ma = r.hoursehold_id || '(chưa rõ)'
+    if (!gop.has(ma)) {
+      gop.set(ma, {
+        hoursehold_id: ma, fullname: r.fullname || 'Chưa rõ',
+        collection_name: r.collection_name || 'Không rõ',
+        so_gd: 0, ung: 0, khau_tru: 0, con: 0,
+      })
+    }
+    const o = gop.get(ma)
+    const so = Number(r.amount || 0)
+    o.so_gd += 1
+    if (r.entry_type === 'ADVANCE') o.ung += so
+    else o.khau_tru += so
+    o.con = o.ung - o.khau_tru
+  }
+  // Ứng nhiều lên trên — cùng quy ước với MỤC 445.
+  return [...gop.values()].sort((a, b) => b.con - a.con)
+})
+
+const soDongLichSu = computed(() =>
+  loaiLichSu.value === 'ho' ? dongTheoHo.value.length : dongLichSu.value.length)
+
+// ── Đối chiếu: cộng từ danh sách vs con số ở ô thống kê ───────────────
+const tongTinh = computed(() => {
+  if (loaiLichSu.value === 'ho') return dongTheoHo.value.length
+  const cuoi = congDon.value.length
+  return cuoi ? congDon.value[cuoi - 1] : 0
+})
+
+const tongO = computed(() => {
+  const s = summary.value || ({} as any)
+  return {
+    ung: Number(s.total_advanced || 0),
+    khau_tru: Number(s.total_deducted || 0),
+    du: Number(s.total_outstanding || 0),
+    ho: Number(s.total_households || 0),
+  }[loaiLichSu.value]
+})
+
+const chuTongTinh = computed(() => loaiLichSu.value === 'ho'
+  ? `${tongTinh.value} hộ`
+  : `${formatCurrency(tongTinh.value)} VNĐ`)
+
+const chuTongO = computed(() => loaiLichSu.value === 'ho'
+  ? `${tongO.value} hộ`
+  : `${formatCurrency(tongO.value)} VNĐ`)
+
+// ⚠️ So với sai số 1 đồng. Backend cộng bằng NUMERIC, JavaScript cộng bằng
+// số thực — chênh vài phần nghìn đồng là chuyện của kiểu số, không phải
+// lệch sổ. Bắt lệch tuyệt đối là báo động giả mỗi lần mở.
+const khopNhau = computed(() => Math.abs(tongTinh.value - tongO.value) < 1)
+
 const summaryCards = computed(() => [
   {
     label: 'Tổng đã ứng',
+    loai: 'ung',   // MỤC 448
     value: `${formatCurrency(summary.value?.total_advanced || 0)} VNĐ`,
     borderClass: 'border-red-500',
     textClass: 'text-red-500'
   },
   {
     label: 'Tổng đã khấu trừ',
+    loai: 'khau_tru',   // MỤC 448
     value: `${formatCurrency(summary.value?.total_deducted || 0)} VNĐ`,
     borderClass: 'border-green-500',
     textClass: 'text-green-500'
   },
   {
     label: 'Dư nợ ứng hiện tại',
+    loai: 'du',   // MỤC 448
     value: `${formatCurrency(summary.value?.total_outstanding || 0)} VNĐ`,
     borderClass: 'border-orange-500',
     textClass: 'text-orange-500'
   },
   {
     label: 'Số hộ dân',
+    loai: 'ho',   // MỤC 448
     value: formatCurrency(summary.value?.total_households || 0),
     borderClass: 'border-blue-500',
     textClass: 'text-blue-600 dark:text-blue-400'

@@ -8,6 +8,7 @@
       <DeviceManagement v-if="activeMenu === '1-1'" />
       <VehicleManagement v-else-if="activeMenu === '1-2'" />
       <DocumentManagement v-else-if="activeMenu === '1-3'" />
+      <AppManagement v-else-if="activeMenu === '1-4'" />   <!-- MỤC 437 -->
       <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
         <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1 flex items-center gap-2">
           <el-icon class="text-blue-500"><component :is="currentMenuItem.icon" /></el-icon>
@@ -101,6 +102,7 @@
           <DeviceManagement v-if="activeMenu === '1-1'" />
           <VehicleManagement v-else-if="activeMenu === '1-2'" />
           <DocumentManagement v-else-if="activeMenu === '1-3'" />
+          <AppManagement v-else-if="activeMenu === '1-4'" />   <!-- MỤC 437 -->
           <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
             <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1 flex items-center gap-2">
               <el-icon class="text-blue-500"><component :is="currentMenuItem.icon" /></el-icon>
@@ -126,6 +128,7 @@
         <DeviceManagement v-if="activeMenu === '1-1'" />
         <VehicleManagement v-else-if="activeMenu === '1-2'" />
         <DocumentManagement v-else-if="activeMenu === '1-3'" />
+        <AppManagement v-else-if="activeMenu === '1-4'" />   <!-- MỤC 437 -->
         <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
           <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1 flex items-center gap-2">
             <el-icon class="text-blue-500"><component :is="currentMenuItem.icon" /></el-icon>
@@ -147,6 +150,7 @@ import Sidebar from './Sidebar.vue'
 import DeviceManagement from './DeviceManagement.vue'
 import VehicleManagement from './VehicleManagement.vue'
 import DocumentManagement from './DocumentManagement.vue'
+import AppManagement from './AppManagement.vue'   // MỤC 437
  
 const route = useRoute()
 const router = useRouter()
@@ -175,13 +179,15 @@ watch(
 const subviewMap: Record<string, string> = {
   'devices': '1-1',
   'vehicles': '1-2',
-  'documents': '1-3'
+  'documents': '1-3',
+  'apps': '1-4'   // MỤC 437
 }
  
 const indexMap: Record<string, string> = {
   '1-1': 'devices',
   '1-2': 'vehicles',
-  '1-3': 'documents'
+  '1-3': 'documents',
+  '1-4': 'apps'   // MỤC 437
 }
  
 const activeMenu = computed({

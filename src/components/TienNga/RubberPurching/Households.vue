@@ -64,6 +64,20 @@
         >
           Khấu trừ ứng tiền
         </el-button>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 445 (01/09/2026) — DANH SÁCH HỘ DÂN ĐANG ỨNG TIỀN
+
+             s68 (ảnh 31/08, ô số 4): *"thêm nút danh sách hộ dân đang
+             ứng tiền thì hiện danh sách và sắp theo thứ tự ứng nhiều ở
+             trên."*
+
+             ⚠️ Đặt TRƯỚC nút "Thêm Hộ dân" có chủ ý: đây là nút để XEM,
+             nút kia là để GHI. Nút ghi luôn đứng cuối cùng bên phải, để
+             không ai bấm nhầm khi đang định xem.
+             ══════════════════════════════════════════════════════════ -->
+        <el-button type="warning" plain @click="moDsDangUng">
+          Hộ dân đang ứng tiền
+        </el-button>
         <el-button type="primary" @click="dialogVisible = true">Thêm Hộ dân</el-button>
       </div>
     </div>
@@ -350,6 +364,70 @@
         />
       </div>
     </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         MỤC 445 (01/09/2026) — HỘ DÂN ĐANG ỨNG TIỀN
+         ══════════════════════════════════════════════════════════════ -->
+    <el-dialog v-model="hienDsDangUng" width="720px" align-center destroy-on-close>
+      <template #header>
+        <span class="font-bold">HỘ DÂN ĐANG ỨNG TIỀN</span>
+      </template>
+
+      <div v-loading="dangTaiDsUng">
+        <div class="mb-3 flex flex-wrap items-center gap-3 text-sm">
+          <el-input v-model="tuKhoaUng" placeholder="Tìm mã hộ hoặc tên..."
+                    clearable style="width: 220px" />
+          <div class="flex-1"></div>
+          <span class="text-gray-500 dark:text-gray-400">
+            <b>{{ dsDangUngLoc.length }}</b> hộ ·
+            tổng đang ứng
+            <b class="text-red-600 dark:text-red-400">{{ tienVn(tongDangUng) }}</b>
+          </span>
+        </div>
+
+        <el-table v-if="dsDangUngLoc.length" :data="dsDangUngLoc" size="small"
+                  border stripe max-height="420">
+          <el-table-column label="#" width="52" align="center" type="index" />
+          <el-table-column prop="hoursehold_id" label="Mã hộ" width="96">
+            <template #default="{ row }">
+              <span class="font-mono font-bold text-blue-600 dark:text-blue-400">
+                {{ row.hoursehold_id }}
+              </span>
+            </template>
+          </el-table-column>
+          <el-table-column prop="fullname" label="Họ và tên" min-width="140" show-overflow-tooltip />
+          <el-table-column prop="collection_point_name" label="Điểm thu mua" min-width="130" show-overflow-tooltip />
+          <el-table-column label="Ứng cuối mùa" width="130" align="right">
+            <template #default="{ row }">
+              <span class="font-mono text-xs">{{ tienVn(row.cash_advance) }}</span>
+            </template>
+          </el-table-column>
+          <el-table-column label="Ứng trong tháng" width="140" align="right">
+            <template #default="{ row }">
+              <span class="font-mono text-xs">{{ tienVn(row.cash_advance_monthly) }}</span>
+            </template>
+          </el-table-column>
+          <!-- Cột xếp thứ tự — s68 yêu cầu ứng nhiều lên trên. -->
+          <el-table-column label="Tổng đang ứng" width="140" align="right">
+            <template #default="{ row }">
+              <span class="font-mono font-bold text-red-600 dark:text-red-400">
+                {{ tienVn(row.tong_ung) }}
+              </span>
+            </template>
+          </el-table-column>
+        </el-table>
+
+        <!-- ⚠️ Rỗng thì nói rõ là KHÔNG CÓ AI ĐANG ỨNG, đừng để trống
+             trơn — người dùng sẽ tưởng màn hỏng hoặc chưa tải xong. -->
+        <div v-else-if="!dangTaiDsUng" class="text-center text-gray-400 py-8 text-sm">
+          Không có hộ dân nào đang ứng tiền.
+        </div>
+      </div>
+
+      <template #footer>
+        <el-button @click="hienDsDangUng = false">Đóng</el-button>
+      </template>
+    </el-dialog>
 
     <!-- Modal Thêm Hộ dân -->
     <el-dialog
@@ -2243,6 +2321,71 @@ const handleCommand = (command: string, row: any) => {
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('vi-VN').format(value)
 }
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 445 (01/09/2026) — HỘ DÂN ĐANG ỨNG TIỀN
+//
+// s68: *"thêm nút danh sách hộ dân đang ứng tiền thì hiện danh sách và
+// sắp theo thứ tự ứng nhiều ở trên."*
+//
+// 🔴 SỐ DƯ ỨNG NẰM Ở HAI CỘT: `cash_advance` (cuối mùa) và
+// `cash_advance_monthly` (trong tháng) — xem lời ghi ở
+// `app/models/business.py` lớp CashAdvanceLog. Chỉ xếp theo một cột là
+// hộ ứng 50 triệu trong tháng bị xếp dưới hộ ứng 1 triệu cuối mùa.
+// Phải CỘNG cả hai rồi mới xếp.
+//
+// ⚠️ Bỏ hộ có tổng ≤ 0. Danh sách này để đi đòi; hộ không nợ nằm trong
+// đó chỉ làm loãng.
+//
+// ⚠️ Đọc lại máy chủ mỗi lần mở, không dùng `allData` đang có sẵn trên
+// màn. Bảng ngoài kia đang phân trang và đang lọc theo điểm thu mua —
+// lấy nó là danh sách thiếu hộ mà không có gì báo.
+// ══════════════════════════════════════════════════════════════════════
+const hienDsDangUng = ref(false)
+const dangTaiDsUng = ref(false)
+const dsDangUng = ref<any[]>([])
+const tuKhoaUng = ref('')
+
+const tienVn = (v: any) => {
+  const so = Number(v || 0)
+  if (!so) return '0'
+  return new Intl.NumberFormat('vi-VN').format(Math.round(so))
+}
+
+const moDsDangUng = async () => {
+  hienDsDangUng.value = true
+  tuKhoaUng.value = ''
+  dangTaiDsUng.value = true
+  try {
+    const kh = await tienNgaService.getCustomers('cao su')
+    dsDangUng.value = (kh || [])
+      .map((c: any) => ({
+        hoursehold_id: c.hoursehold_id || c.id,
+        fullname: c.fullname || 'Chưa rõ',
+        collection_point_name: c.collection_name || 'Không rõ',
+        cash_advance: Number(c.cash_advance || 0),
+        cash_advance_monthly: Number(c.cash_advance_monthly || 0),
+        tong_ung: Number(c.cash_advance || 0) + Number(c.cash_advance_monthly || 0),
+      }))
+      .filter((c: any) => c.tong_ung > 0)
+      .sort((a: any, b: any) => b.tong_ung - a.tong_ung)
+  } catch (e: any) {
+    ElMessage.error(e?.message || 'Không tải được danh sách hộ dân đang ứng.')
+  } finally {
+    dangTaiDsUng.value = false
+  }
+}
+
+const dsDangUngLoc = computed(() => {
+  const k = tuKhoaUng.value.trim().toLowerCase()
+  if (!k) return dsDangUng.value
+  return dsDangUng.value.filter((c: any) =>
+    String(c.hoursehold_id).toLowerCase().includes(k) ||
+    String(c.fullname).toLowerCase().includes(k))
+})
+
+const tongDangUng = computed(() =>
+  dsDangUngLoc.value.reduce((t: number, c: any) => t + c.tong_ung, 0))
 
 const allData = ref<any[]>([])
 
