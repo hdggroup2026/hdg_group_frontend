@@ -795,22 +795,28 @@ const advanceTypeLabel = (value: string | null | undefined) => {
 // ngay đầu — trước bảng, không phải sau. Người đọc phát hiện thiếu sau khi
 // đã cộng tay là mất công vô ích.
 // ══════════════════════════════════════════════════════════════════════
-const hienLichSu = ref(false)
-const loaiLichSu = ref<'ung' | 'khau_tru' | 'du' | 'ho'>('ung')
+// ⚠️ MỤC 449 — KHAI RÕ KIỂU cho `loai`. Không khai thì TypeScript suy ra
+// `string`, mà `moLichSu()` chỉ nhận đúng bốn giá trị — `vue-tsc` báo
+// TS2345 và Cloudflare không dựng được.
+type LoaiLichSu = 'ung' | 'khau_tru' | 'du' | 'ho'
 
-const moLichSu = (loai: 'ung' | 'khau_tru' | 'du' | 'ho') => {
+const hienLichSu = ref(false)
+const loaiLichSu = ref<LoaiLichSu>('ung')
+
+const moLichSu = (loai: LoaiLichSu) => {
   loaiLichSu.value = loai
   hienLichSu.value = true
 }
 
 const thieuDong = computed(() => serverTotal.value > allData.value.length)
 
+// ⚠️ MỤC 449 — `?? ''` ở mọi chỗ tra khoá. Xem lời ghi ở `tongTinh`.
 const tieuDeLichSu = computed(() => ({
   ung: 'TỔNG ĐÃ ỨNG',
   khau_tru: 'TỔNG ĐÃ KHẤU TRỪ',
   du: 'DƯ NỢ ỨNG HIỆN TẠI',
   ho: 'SỐ HỘ DÂN',
-}[loaiLichSu.value]))
+}[loaiLichSu.value] ?? ''))
 
 // ⚠️ Xếp theo thời gian TĂNG DẦN, ngược với bảng chính. Cột "Cộng dồn" chỉ
 // có nghĩa khi đọc từ giao dịch đầu tiên trở đi.
@@ -866,20 +872,31 @@ const soDongLichSu = computed(() =>
   loaiLichSu.value === 'ho' ? dongTheoHo.value.length : dongLichSu.value.length)
 
 // ── Đối chiếu: cộng từ danh sách vs con số ở ô thống kê ───────────────
-const tongTinh = computed(() => {
+// ══════════════════════════════════════════════════════════════════════
+// ⚠️ MỤC 449 (01/09/2026) — MỌI CHỖ TRA KHOÁ PHẢI CÓ `?? 0` / `?? ''`
+//
+// Dự án bật `noUncheckedIndexedAccess`: `mang[i]` và `obj[khoa]` trả về
+// `X | undefined`, không phải `X`. Thiếu dấu này thì `vue-tsc --build`
+// (chạy trong `pnpm build`, `package.json` dòng 8) báo đỏ và **Cloudflare
+// không dựng được** — bản dựng hỏng, không phải một cảnh báo.
+//
+// 🔴 Lỗi này KHÔNG lộ ra lúc viết, chỉ lộ khi CI chạy. Đây là lý do gói
+// L27 dựng hỏng ngay lần đầu.
+// ══════════════════════════════════════════════════════════════════════
+const tongTinh = computed<number>(() => {
   if (loaiLichSu.value === 'ho') return dongTheoHo.value.length
   const cuoi = congDon.value.length
-  return cuoi ? congDon.value[cuoi - 1] : 0
+  return cuoi ? (congDon.value[cuoi - 1] ?? 0) : 0
 })
 
-const tongO = computed(() => {
+const tongO = computed<number>(() => {
   const s = summary.value || ({} as any)
   return {
     ung: Number(s.total_advanced || 0),
     khau_tru: Number(s.total_deducted || 0),
     du: Number(s.total_outstanding || 0),
     ho: Number(s.total_households || 0),
-  }[loaiLichSu.value]
+  }[loaiLichSu.value] ?? 0
 })
 
 const chuTongTinh = computed(() => loaiLichSu.value === 'ho'
@@ -895,7 +912,10 @@ const chuTongO = computed(() => loaiLichSu.value === 'ho'
 // lệch sổ. Bắt lệch tuyệt đối là báo động giả mỗi lần mở.
 const khopNhau = computed(() => Math.abs(tongTinh.value - tongO.value) < 1)
 
-const summaryCards = computed(() => [
+const summaryCards = computed<Array<{
+  label: string; value: string; borderClass: string; textClass: string;
+  loai: LoaiLichSu
+}>>(() => [
   {
     label: 'Tổng đã ứng',
     loai: 'ung',   // MỤC 448

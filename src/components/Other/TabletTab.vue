@@ -1286,7 +1286,12 @@ const tachOsVersion = (chuoi: string) => {
   const thuong = goc.toLowerCase()
   for (const ten of ['android', 'ipados', 'ios']) {
     if (thuong.startsWith(ten)) {
-      form.he_dieu_hanh = NHAN_OS[ten]
+      // ⚠️ MỤC 449 — `?? ''`. Dự án bật `noUncheckedIndexedAccess`, nên
+      // tra một khoá trong `Record<...>` trả về `string | undefined` chứ
+      // không phải `string`. Thiếu dấu này thì `vue-tsc --build` đỏ và
+      // Cloudflare KHÔNG dựng được — lỗi chỉ lộ lúc CI chạy, không lộ
+      // lúc viết.
+      form.he_dieu_hanh = NHAN_OS[ten] ?? ''
       form.phien_ban_os = goc.slice(ten.length).trim()
       form.os_version = goc
       return
