@@ -36,6 +36,17 @@ export const authService = {
     }
     if (data.employee_id) {
       localStorage.setItem('employee_id', data.employee_id);
+      // ══════════════════════════════════════════════════════════════
+      // MỤC 451 (01/09/2026) — LƯU VAI TRÒ ĐỂ ẨN/HIỆN NÚT
+      //
+      // 🔴 CHỈ ĐỂ ẨN CHO GỌN MẮT, KHÔNG PHẢI LỚP BẢO VỆ. Người dùng sửa
+      // được `localStorage` trong trình duyệt của họ. Cửa thật nằm ở
+      // backend (`bot/utils/credit_nhap_sai.py` hàm `kiem_hai_cua`), nó
+      // đọc vai trò từ database mỗi lần gọi.
+      //
+      // ⚠️ Đừng bao giờ dùng cờ này để quyết định chuyện tiền hay quyền.
+      // ══════════════════════════════════════════════════════════════
+      localStorage.setItem('user_role', (data.role || '').toLowerCase());
     }
     // MỤC 259 (23/08/2026) — máy chủ trả cờ này khi tài khoản chưa đổi
     // thông tin đăng nhập lần đầu. Router đọc nó để chặn ở màn đổi.
@@ -102,6 +113,7 @@ export const authService = {
     localStorage.removeItem('phai_doi_dang_nhap');
     localStorage.removeItem('employee_id');
     localStorage.removeItem('user_permissions');
+    localStorage.removeItem('user_role');   // MỤC 451
     // MỤC 260 — xoá dấu thời gian dùng cuối. Không xoá thì người đăng
     // nhập sau thừa hưởng đồng hồ của người trước, và có thể bị đá ra
     // ngay sau khi vừa vào.

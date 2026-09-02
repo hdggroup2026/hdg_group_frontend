@@ -5,11 +5,7 @@
       <Sidebar v-model:activeMenu="activeMenu" />
     </el-splitter-panel>
     <el-splitter-panel :min="200" v-loading="loading">
-      <HarvestTabWrapper v-slot="{ cropType }" v-if="activeMenu === 'rubber'" cropType="cao_su" />
-      <HarvestTabWrapper v-slot="{ cropType }" v-else-if="activeMenu === 'durian'" cropType="sau_rieng" />
-      <div v-else class="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg">
-        Tính năng đang phát triển
-      </div>
+<div id="hdg-noi-dung-harvest" class="h-full"></div>
     </el-splitter-panel>
   </el-splitter>
  
@@ -93,11 +89,7 @@
  
         <!-- Content area -->
         <div class="h-full overflow-hidden" v-loading="loading">
-          <HarvestTabWrapper v-if="activeMenu === 'rubber'" cropType="cao_su" />
-          <HarvestTabWrapper v-else-if="activeMenu === 'durian'" cropType="sau_rieng" />
-          <div v-else class="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg">
-            Tính năng đang phát triển
-          </div>
+<div id="hdg-noi-dung-harvest" class="h-full"></div>
         </div>
       </div>
     </template>
@@ -113,14 +105,38 @@
  
       <!-- Nội dung chính -->
       <div class="flex-1 overflow-hidden" v-loading="loading">
-        <HarvestTabWrapper v-slot="{ cropType }" v-if="activeMenu === 'rubber'" cropType="cao_su" />
-        <HarvestTabWrapper v-slot="{ cropType }" v-else-if="activeMenu === 'durian'" cropType="sau_rieng" />
-        <div v-else class="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg">
-          Tính năng đang phát triển
-        </div>
+<div id="hdg-noi-dung-harvest" class="h-full"></div>
       </div>
     </template>
   </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       MỤC 450 (01/09/2026) — XOAY MÁY KHÔNG MẤT GÌ, GIỮ THANH KÉO GIÃN
+
+       Rải cách làm của MỤC 429 (đã chạy thật trên mảng Credit) ra mảng
+       này. Nội dung khai MỘT LẦN ở đây, Teleport chuyển nó vào ô
+       trống của nhánh bố cục đang hiện — DỜI nút DOM, không gỡ và dựng
+       lại, nên thực thể component sống nguyên.
+
+       ⚠️ BA KHỐI CŨ KHÔNG GIỐNG HỆT NHAU: bản máy tính và máy tính bảng
+       có `v-slot="{ cropType }"`, bản điện thoại thì không. Thẻ đó là
+       thừa — không có nội dung slot nào bên trong nên nó chẳng làm gì.
+       Nay gộp làm một bản, giữ nguyên văn bản MÁY TÍNH để không đổi thứ
+       người dùng đang thấy.
+
+       ⚠️ `defer` LÀ BẮT BUỘC. Thiếu nó, Teleport tìm `#hdg-noi-dung-harvest` khi ô
+       trống chưa gắn vào DOM, và hỏng thành MÀN TRẮNG. Có từ Vue 3.5.
+
+       ⚠️ `id` mang tên mảng — trùng id giữa hai mảng là nội dung nhảy
+       nhầm khung.
+       ══════════════════════════════════════════════════════════════════ -->
+  <Teleport defer to="#hdg-noi-dung-harvest">
+    <HarvestTabWrapper v-slot="{ cropType }" v-if="activeMenu === 'rubber'" cropType="cao_su" />
+    <HarvestTabWrapper v-slot="{ cropType }" v-else-if="activeMenu === 'durian'" cropType="sau_rieng" />
+    <div v-else class="flex items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg">
+      Tính năng đang phát triển
+    </div>
+  </Teleport>
 </template>
  
 <script setup lang="ts">

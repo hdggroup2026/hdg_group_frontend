@@ -5,14 +5,7 @@
       <Sidebar v-model:activeMenu="activeMenu" />
     </el-splitter-panel>
     <el-splitter-panel :min="200" v-loading="loading">
-      <PlayersManagement v-if="activeMenu === 'players'" />
-      <ListManagement v-else-if="activeMenu === 'list'" />
-      <ScheduledNotificationTabWrapper v-else-if="activeMenu === 'scheduled-notifications'" module-key="rosca" />
-      <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
-        <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1">
-          Tính năng đang phát triển
-        </h3>
-      </div>
+<div id="hdg-noi-dung-rosca" class="h-full"></div>
     </el-splitter-panel>
   </el-splitter>
  
@@ -96,14 +89,7 @@
  
         <!-- Content Area -->
         <div class="h-full overflow-hidden" v-loading="loading">
-          <PlayersManagement v-if="activeMenu === 'players'" />
-          <ListManagement v-else-if="activeMenu === 'list'" />
-          <ScheduledNotificationTabWrapper v-else-if="activeMenu === 'scheduled-notifications'" module-key="rosca" />
-          <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
-            <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1">
-              Tính năng đang phát triển
-            </h3>
-          </div>
+<div id="hdg-noi-dung-rosca" class="h-full"></div>
         </div>
       </div>
     </template>
@@ -119,17 +105,48 @@
  
       <!-- Content Area -->
       <div class="flex-1 overflow-hidden" v-loading="loading">
-        <PlayersManagement v-if="activeMenu === 'players'" />
-        <ListManagement v-else-if="activeMenu === 'list'" />
-        <ScheduledNotificationTabWrapper v-else-if="activeMenu === 'scheduled-notifications'" module-key="rosca" />
-        <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
-          <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1">
-            Tính năng đang phát triển
-          </h3>
-        </div>
+<div id="hdg-noi-dung-rosca" class="h-full"></div>
       </div>
     </template>
   </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       MỤC 450 (01/09/2026) — XOAY MÁY KHÔNG MẤT GÌ, GIỮ THANH KÉO GIÃN
+
+       Rải cách làm của MỤC 429 (đã chạy thật trên mảng Credit) ra mảng
+       này.
+
+       🔴 VẤN ĐỀ. Ba nhánh bố cục ở trên (`el-splitter` cho máy tính,
+       `isMobile`, `isTablet`) trước đây MỖI NHÁNH chứa một bản nội dung
+       riêng. Xoay máy đổi bề rộng -> Vue gỡ nhánh cũ, dựng nhánh mới ->
+       màn con là thực thể hoàn toàn mới -> mất sạch tab, bộ lọc, ô tìm
+       kiếm, số trang.
+
+       🔴 CÁCH LÀM. Nội dung nay khai MỘT LẦN, ở đây. Teleport chuyển
+       nó vào ô trống của nhánh đang hiện. Đổi nhánh thì Teleport DỜI các
+       nút DOM sang chỗ mới — KHÔNG gỡ và dựng lại. Thực thể component
+       sống nguyên, mọi `ref` bên trong giữ nguyên giá trị.
+
+       `el-splitter` giữ nguyên, thanh kéo giãn trên máy tính giữ nguyên.
+
+       ⚠️ `defer` LÀ BẮT BUỘC. Không có nó, Teleport đi tìm `#hdg-noi-dung-rosca`
+       ngay khi được xử lý, mà lúc đó ô trống có thể chưa gắn vào DOM.
+       Không tìm thấy đích thì Teleport KHÔNG hiện gì: màn trắng. Có từ
+       Vue 3.5; dự án dùng ^3.5.32.
+
+       ⚠️ `id` mang tên mảng. Trùng id giữa hai mảng là nội dung mảng này
+       nhảy vào khung mảng kia.
+       ══════════════════════════════════════════════════════════════════ -->
+  <Teleport defer to="#hdg-noi-dung-rosca">
+    <PlayersManagement v-if="activeMenu === 'players'" />
+    <ListManagement v-else-if="activeMenu === 'list'" />
+    <ScheduledNotificationTabWrapper v-else-if="activeMenu === 'scheduled-notifications'" module-key="rosca" />
+    <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
+      <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1">
+        Tính năng đang phát triển
+      </h3>
+    </div>
+  </Teleport>
 </template>
  
 <script setup lang="ts">

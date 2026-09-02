@@ -5,17 +5,7 @@
       <Sidebar v-model:activeMenu="activeMenu" />
     </el-splitter-panel>
     <el-splitter-panel :min="200" v-loading="loading">
-      <DeviceManagement v-if="activeMenu === '1-1'" />
-      <VehicleManagement v-else-if="activeMenu === '1-2'" />
-      <DocumentManagement v-else-if="activeMenu === '1-3'" />
-      <AppManagement v-else-if="activeMenu === '1-4'" />   <!-- MỤC 437 -->
-      <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
-        <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1 flex items-center gap-2">
-          <el-icon class="text-blue-500"><component :is="currentMenuItem.icon" /></el-icon>
-          {{ currentMenuItem.label }}
-        </h3>
-        <p class="text-sm text-gray-455 dark:text-gray-500">Tính năng đang phát triển</p>
-      </div>
+<div id="hdg-noi-dung-other" class="h-full"></div>
     </el-splitter-panel>
   </el-splitter>
  
@@ -99,17 +89,7 @@
  
         <!-- Content area -->
         <div class="h-full overflow-hidden" v-loading="loading">
-          <DeviceManagement v-if="activeMenu === '1-1'" />
-          <VehicleManagement v-else-if="activeMenu === '1-2'" />
-          <DocumentManagement v-else-if="activeMenu === '1-3'" />
-          <AppManagement v-else-if="activeMenu === '1-4'" />   <!-- MỤC 437 -->
-          <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
-            <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1 flex items-center gap-2">
-              <el-icon class="text-blue-500"><component :is="currentMenuItem.icon" /></el-icon>
-              {{ currentMenuItem.label }}
-            </h3>
-            <p class="text-sm text-gray-455 dark:text-gray-550">Tính năng đang phát triển</p>
-          </div>
+<div id="hdg-noi-dung-other" class="h-full"></div>
         </div>
       </div>
     </template>
@@ -125,20 +105,41 @@
  
       <!-- Nội dung chính -->
       <div class="flex-1 overflow-hidden" v-loading="loading">
-        <DeviceManagement v-if="activeMenu === '1-1'" />
-        <VehicleManagement v-else-if="activeMenu === '1-2'" />
-        <DocumentManagement v-else-if="activeMenu === '1-3'" />
-        <AppManagement v-else-if="activeMenu === '1-4'" />   <!-- MỤC 437 -->
-        <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
-          <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1 flex items-center gap-2">
-            <el-icon class="text-blue-500"><component :is="currentMenuItem.icon" /></el-icon>
-            {{ currentMenuItem.label }}
-          </h3>
-          <p class="text-sm text-gray-455 dark:text-gray-550">Tính năng đang phát triển</p>
-        </div>
+<div id="hdg-noi-dung-other" class="h-full"></div>
       </div>
     </template>
   </div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       MỤC 450 (01/09/2026) — XOAY MÁY KHÔNG MẤT GÌ, GIỮ THANH KÉO GIÃN
+
+       Rải cách làm của MỤC 429 (đã chạy thật trên mảng Credit) ra mảng
+       này. Nội dung khai MỘT LẦN ở đây, Teleport chuyển nó vào ô
+       trống của nhánh bố cục đang hiện — DỜI nút DOM, không gỡ và dựng
+       lại, nên thực thể component sống nguyên.
+
+       ⚠️ BA KHỐI CŨ KHÔNG GIỐNG HỆT NHAU, và chỗ khác là một LỖI GÕ có
+       sẵn: bản điện thoại và máy tính bảng ghi `dark:text-gray-550`,
+       bản máy tính ghi `dark:text-gray-500`. Tailwind không có mức 550,
+       nên hai bản kia mất luôn màu chữ trong nền tối. Gộp làm một, giữ
+       nguyên văn bản MÁY TÍNH — tiện thể sửa lỗi đó cho hai bản kia.
+
+       ⚠️ `defer` LÀ BẮT BUỘC. Thiếu nó, Teleport tìm `#hdg-noi-dung-other` khi ô
+       trống chưa gắn vào DOM, và hỏng thành MÀN TRẮNG. Có từ Vue 3.5.
+       ══════════════════════════════════════════════════════════════════ -->
+  <Teleport defer to="#hdg-noi-dung-other">
+    <DeviceManagement v-if="activeMenu === '1-1'" />
+    <VehicleManagement v-else-if="activeMenu === '1-2'" />
+    <DocumentManagement v-else-if="activeMenu === '1-3'" />
+    <AppManagement v-else-if="activeMenu === '1-4'" />   <!-- MỤC 437 -->
+    <div v-else class="flex flex-col items-center justify-center h-full bg-gray-50 dark:bg-gray-900 text-gray-500 text-lg p-6">
+      <h3 class="font-bold text-gray-800 dark:text-gray-250 mb-1 flex items-center gap-2">
+        <el-icon class="text-blue-500"><component :is="currentMenuItem.icon" /></el-icon>
+        {{ currentMenuItem.label }}
+      </h3>
+      <p class="text-sm text-gray-455 dark:text-gray-500">Tính năng đang phát triển</p>
+    </div>
+  </Teleport>
 </template>
  
 <script setup lang="ts">

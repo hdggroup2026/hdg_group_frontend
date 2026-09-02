@@ -258,14 +258,15 @@
                   <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
                   <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
                   <el-dropdown-item command="schedule">Lên lịch hẹn</el-dropdown-item>
-                  <!-- ⚠️ MỤC 428 — MỤC NÀY HIỆN VỚI MỌI NGƯỜI, CÓ CHỦ Ý.
-                       Frontend hiện KHÔNG lưu `role` của tài khoản (chỉ lưu
-                       `user_permissions`, xem `src/constants/duAn.ts` dòng
-                       143), nên không biết ai là owner để ẩn đi.
-                       Backend mới là cửa thật: bấm mà không phải owner thì
-                       nhận đúng câu "Chỉ tài khoản owner mới đánh dấu được".
-                       Ẩn ở đây dù có làm được cũng KHÔNG phải lớp bảo vệ. -->
-                  <el-dropdown-item command="nhap_sai" divided class="!text-amber-600">Đánh dấu nhập sai</el-dropdown-item>
+                  <!-- MỤC 451 (01/09/2026) — nay ẩn với người không phải
+                       owner. MỤC 428 phải để hiện với mọi người vì lúc đó
+                       frontend chưa lưu `role`; nay đăng nhập có trả về.
+
+                       🔴 ẨN CHO GỌN MẮT, KHÔNG PHẢI LỚP BẢO VỆ. Người dùng
+                       sửa được `localStorage`. Cửa thật vẫn là
+                       `kiem_hai_cua()` ở backend, đọc vai trò từ database
+                       mỗi lần gọi. -->
+                  <el-dropdown-item v-if="laOwner" command="nhap_sai" divided class="!text-amber-600">Đánh dấu nhập sai</el-dropdown-item>
                   <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -308,14 +309,15 @@
                                   <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
                                   <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
                                   <el-dropdown-item command="schedule">Lên lịch hẹn</el-dropdown-item>
-                                  <!-- ⚠️ MỤC 428 — MỤC NÀY HIỆN VỚI MỌI NGƯỜI, CÓ CHỦ Ý.
-                       Frontend hiện KHÔNG lưu `role` của tài khoản (chỉ lưu
-                       `user_permissions`, xem `src/constants/duAn.ts` dòng
-                       143), nên không biết ai là owner để ẩn đi.
-                       Backend mới là cửa thật: bấm mà không phải owner thì
-                       nhận đúng câu "Chỉ tài khoản owner mới đánh dấu được".
-                       Ẩn ở đây dù có làm được cũng KHÔNG phải lớp bảo vệ. -->
-                  <el-dropdown-item command="nhap_sai" divided class="!text-amber-600">Đánh dấu nhập sai</el-dropdown-item>
+                                  <!-- MỤC 451 (01/09/2026) — nay ẩn với người không phải
+                       owner. MỤC 428 phải để hiện với mọi người vì lúc đó
+                       frontend chưa lưu `role`; nay đăng nhập có trả về.
+
+                       🔴 ẨN CHO GỌN MẮT, KHÔNG PHẢI LỚP BẢO VỆ. Người dùng
+                       sửa được `localStorage`. Cửa thật vẫn là
+                       `kiem_hai_cua()` ở backend, đọc vai trò từ database
+                       mỗi lần gọi. -->
+                  <el-dropdown-item v-if="laOwner" command="nhap_sai" divided class="!text-amber-600">Đánh dấu nhập sai</el-dropdown-item>
                   <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
                                 </el-dropdown-menu>
                               </template>
@@ -1256,6 +1258,10 @@ const handlePriceInput = (val: string, field: string) => {
 // ⚠️ Ô nhập để `type="password"`: nút này bấm trong văn phòng, có người
 // đứng sau lưng.
 // ══════════════════════════════════════════════════════════════════════
+// MỤC 451 — đọc một lần lúc dựng màn. Đăng nhập lại thì cả trang tải
+// lại, nên không cần theo dõi thay đổi.
+const laOwner = (localStorage.getItem('user_role') || '') === 'owner'
+
 const hienNhapSai = ref(false)
 const hopDongNhapSai = ref<Contract | null>(null)
 const maXacNhan = ref('')
