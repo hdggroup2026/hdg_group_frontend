@@ -2,7 +2,17 @@ import { authService } from './auth';
 import { getApiUrl } from './apiConfig';
 
 export const creditService = {
-  async getCreditCustomers(params?: { customer_id?: string }): Promise<any[]> {
+  // ══════════════════════════════════════════════════════════════════
+  // MỤC 527 (05/09/2026) — THAM SỐ `classification` TÁCH HAI LUỒNG
+  //
+  // s68: *"Tách luồng data từ đầu luôn."* Tham số gửi THẲNG lên máy chủ,
+  // máy chủ lọc rồi mới trả về. Không tải hết rồi giấu bớt: số tổng tiền
+  // phải tính trên đúng luồng đang xem.
+  //
+  // ⚠️ Khai kiểu ở CẢ BA hàm. Thiếu một chỗ là `vue-tsc` chặn build với
+  // lỗi TS2339/TS2353 — đúng thứ đã làm hỏng build ngày 05/09.
+  // ══════════════════════════════════════════════════════════════════
+  async getCreditCustomers(params?: { customer_id?: string; classification?: string }): Promise<any[]> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();
     const tokenType = localStorage.getItem('token_type') || 'Bearer';
@@ -10,6 +20,7 @@ export const creditService = {
 
     const queryParams = new URLSearchParams();
     if (params?.customer_id) queryParams.append('customer_id', params.customer_id);
+    if (params?.classification) queryParams.append('classification', params.classification);   // MỤC 527
     const queryString = queryParams.toString();
     const url = `${BASE_URL}/credit/get-credit-customers${queryString ? '?' + queryString : ''}`;
 
@@ -166,7 +177,8 @@ export const creditService = {
     return await response.json();
   },
 
-  async getCredits(params?: { status?: string; loan_type?: string; contract_id?: string; customer_id?: string; start_date?: string; end_date?: string }): Promise<any[]> {
+  // MỤC 527 — xem lời ghi ở `getCreditCustomers`.
+  async getCredits(params?: { status?: string; loan_type?: string; contract_id?: string; customer_id?: string; start_date?: string; end_date?: string; classification?: string }): Promise<any[]> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();
     const tokenType = localStorage.getItem('token_type') || 'Bearer';
@@ -342,7 +354,8 @@ export const creditService = {
     return await response.json();
   },
 
-  async getCreditInterests(params?: { contract_id?: string; customer_id?: string; start_date?: string; end_date?: string }): Promise<any[]> {
+  // MỤC 527 — xem lời ghi ở `getCreditCustomers`.
+  async getCreditInterests(params?: { contract_id?: string; customer_id?: string; start_date?: string; end_date?: string; classification?: string }): Promise<any[]> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();
     const tokenType = localStorage.getItem('token_type') || 'Bearer';

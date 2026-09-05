@@ -181,11 +181,15 @@ const chuTrangThai = (tt: string) => ({
   tu_choi: 'Đã từ chối',
 }[tt] || tt)
 
+// ⚠️ `as any` là BẮT BUỘC. Thuộc tính `type` của `el-tag` nhận một tập
+// chữ cố định ('success' | 'warning' | ...), không nhận `string` chung.
+// Thiếu nó là `vue-tsc` chặn build với TS2322 — cách làm này chép từ
+// `AccessoryTab.vue` dòng 523, nơi đã chạy thật từ MỤC 439.
 const mauTrangThai = (tt: string) => ({
   da_xac_nhan: 'success',
   cho_xac_nhan: 'warning',
   tu_choi: 'danger',
-}[tt] || 'info')
+}[tt] as any || 'info')
 
 const daLoc = computed(() =>
   locXe.value

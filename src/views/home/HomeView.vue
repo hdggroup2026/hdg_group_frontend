@@ -1211,7 +1211,10 @@ const hienDsNhom = ref(false)
 const duAnDangXem = ref<any | null>(null)
 const loaiDangXem = ref<'main' | 'member'>('main')
 
-const dsNhomDangXem = computed(() => {
+// ⚠️ Phải khai rõ `any[]`. Không khai thì `vue-tsc` suy kiểu trả về là
+// `any`, và biến đếm `i` trong `v-for` thành `unknown` — nên `i + 1`
+// trong phần hiển thị bị chặn với TS2365.
+const dsNhomDangXem = computed<any[]>(() => {
   const d = duAnDangXem.value
   if (!d) return []
   return (loaiDangXem.value === 'main' ? d.nhom_main : d.nhom_member) || []
