@@ -18,7 +18,7 @@
 <template>
   <div class="h-full overflow-auto">
     <div class="mb-4 flex flex-wrap items-center gap-3">
-      <el-input v-model="tuKhoa" placeholder="Tìm số ĐT, nhà mạng, ICCID, máy..."
+      <el-input v-model="tuKhoa" placeholder="Tìm số ĐT, nhà mạng, ICCID, máy, tên người..."
                 clearable style="width: 250px" />
 
       <el-select v-model="locHan" placeholder="Hạn sử dụng" clearable style="width: 170px">
@@ -65,6 +65,20 @@
       </el-table-column>
 
       <el-table-column prop="carrier" label="Nhà mạng" width="100" show-overflow-tooltip />
+
+      <!-- MỤC 520 (05/09/2026) — người đứng tên SIM. -->
+      <el-table-column prop="registered_owner" label="Người đăng ký" min-width="150" show-overflow-tooltip>
+        <template #default="{ row }">
+          <span class="text-xs">{{ row.registered_owner || '—' }}</span>
+        </template>
+      </el-table-column>
+
+      <!-- MỤC 524 (05/09/2026) — người quản lý SIM. -->
+      <el-table-column prop="sim_manager" label="Người quản lý" min-width="150" show-overflow-tooltip>
+        <template #default="{ row }">
+          <span class="text-xs">{{ row.sim_manager || '—' }}</span>
+        </template>
+      </el-table-column>
       <el-table-column prop="sim_type" label="Loại SIM" width="104" show-overflow-tooltip />
       <el-table-column prop="plan_name" label="Gói cước" width="110" show-overflow-tooltip />
 
@@ -163,6 +177,16 @@
             <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Nhà mạng:</span>
             <span class="text-right break-words min-w-0 text-xs">{{ row.carrier || '—' }}</span>
           </div>
+          <!-- MỤC 520 — thẻ dọc đi theo bảng, không để hai bản lệch nhau. -->
+          <div class="flex justify-between gap-3">
+            <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Người đăng ký:</span>
+            <span class="text-right break-words min-w-0 text-xs">{{ row.registered_owner || '—' }}</span>
+          </div>
+          <!-- MỤC 524 — thẻ dọc đi theo bảng. -->
+          <div class="flex justify-between gap-3">
+            <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Người quản lý:</span>
+            <span class="text-right break-words min-w-0 text-xs">{{ row.sim_manager || '—' }}</span>
+          </div>
           <div class="flex justify-between gap-3">
             <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Gói cước:</span>
             <span class="text-right break-words min-w-0 text-xs">{{ row.plan_name || '—' }}</span>
@@ -232,6 +256,42 @@
                 <el-option label="Vietnamobile" value="Vietnamobile" />
                 <el-option label="Itel" value="Itel" />
               </el-select>
+            </el-form-item>
+          </el-col>
+
+          <!-- ══════════════════════════════════════════════════════
+               MỤC 520 (05/09/2026) — CHỖ NHẬP NGƯỜI ĐĂNG KÝ SIM
+
+               s68 (ảnh 05/09): *"Hình thêm sim thiếu chỗ nhập thông tin
+               người đăng ký tên sim"*. Hỏi lại cần lưu gì, s68 chốt:
+               chỉ TÊN — không căn cước, không ngày, không nơi đăng ký.
+
+               ⚠️ Đây là người ĐỨNG TÊN với nhà mạng, khác với người
+               đang cầm máy có SIM. Người cầm máy đã có ở ô
+               "Lắp ở máy nào" cộng sổ bàn giao. Dòng nhắc dưới ô là để
+               người nhập không lẫn hai thứ.
+               ══════════════════════════════════════════════════════ -->
+          <el-col :xs="24" :sm="8">
+            <el-form-item label="Người đăng ký (đứng tên SIM)">
+              <el-input v-model="form.registered_owner" placeholder="VD: Hồ Văn Vinh" />
+              <span class="text-xs text-gray-400">Người đứng tên với nhà mạng, không phải người đang cầm máy.</span>
+            </el-form-item>
+          </el-col>
+
+          <!-- ══════════════════════════════════════════════════════
+               MỤC 524 (05/09/2026) — NGƯỜI QUẢN LÝ, TÁCH KHỎI NGƯỜI ĐĂNG KÝ
+
+               s68 05/09: *"Về sim thì thêm cột người quản lý sim luôn.
+               Sim có thể 1 người đăng ký, 1 người sử dụng sẽ quản lý."*
+
+               🔴 Ba thứ khác nhau, ba ô riêng: đăng ký (giấy tờ với nhà
+               mạng) · quản lý (trách nhiệm) · lắp ở máy nào (vị trí).
+               SIM để trong kho vẫn có người quản lý.
+               ══════════════════════════════════════════════════════ -->
+          <el-col :xs="24" :sm="8">
+            <el-form-item label="Người quản lý SIM">
+              <el-input v-model="form.sim_manager" placeholder="VD: Nguyễn Văn A" />
+              <span class="text-xs text-gray-400">Người chịu trách nhiệm giữ và dùng SIM này.</span>
             </el-form-item>
           </el-col>
 
@@ -347,7 +407,10 @@ const daLoc = computed(() => {
       if (locHan.value === 'sap' && !(n !== null && n >= 0 && n < 30)) return false
     }
     if (!k) return true
-    return [s.id, s.phone_number, s.carrier, s.iccid, s.plan_name, s.device_id]
+    // MỤC 520, 524 — tìm được cả theo TÊN người. Thêm cột mà quên chỗ
+    // này thì cột hiện ra nhưng gõ tên vào ô tìm kiếm không ra gì.
+    return [s.id, s.phone_number, s.carrier, s.iccid, s.plan_name, s.device_id,
+            s.registered_owner, s.sim_manager]
       .some((v) => String(v || '').toLowerCase().includes(k))
   })
 })
@@ -395,6 +458,8 @@ const formRong = () => ({
   plan_name: '', status: 'active', sim_type: '', device_id: null as any,
   device_type: null as any, expiry_date: null as any,
   activation_date: null as any, monthly_fee: 0, notes: '',
+  registered_owner: '',   // MỤC 520 — thiếu dòng này thì ô nhập không xoá được giữa hai lần mở form
+  sim_manager: '',        // MỤC 524 — cùng lý do
 })
 
 const form = reactive<any>(formRong())

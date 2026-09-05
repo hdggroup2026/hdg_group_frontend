@@ -74,10 +74,28 @@
                 </template>
               </el-table-column>
 
-              <!-- Mã phương tiện (ID) -->
-              <el-table-column prop="id" label="Mã xe (ID)" width="108" show-overflow-tooltip>
+              <!-- ══════════════════════════════════════════════════════
+                   MỤC 529 (05/09/2026) — MÃ XE NGẮN THAY CHO UUID
+
+                   s68 05/09, kèm ảnh thẻ xe đang hiện
+                   `eea7aefd-4b5e-4253-b5df-a38f323a6e1e`:
+                   *"Phần quản lý phương tiện sửa lại mã."*
+
+                   🔴 UUID vẫn là khoá chính bên trong, chỉ KHÔNG hiện ra
+                   nữa. Bảng `vehicle_activity_logs` đang trỏ vào nó.
+
+                   ⚠️ Xe nhập trước MỤC 529 chưa có mã — hiện dấu gạch
+                   thay vì để trống, để nhìn là biết cần chạy công cụ
+                   `1_XEM_TRUOC_MA_XE.bat`.
+                   ══════════════════════════════════════════════════════ -->
+              <el-table-column prop="vehicle_code" label="Mã xe" width="94" show-overflow-tooltip>
                 <template #default="{ row }">
-                  <span class="font-mono text-xs text-gray-500 select-all">{{ row.id }}</span>
+                  <span v-if="row.vehicle_code"
+                        class="font-mono font-bold text-blue-600 dark:text-blue-400 select-all">
+                    {{ row.vehicle_code }}
+                  </span>
+                  <span v-else class="text-xs text-amber-600 dark:text-amber-400"
+                        title="Chưa sinh mã — chạy 1_XEM_TRUOC_MA_XE.bat">chưa có mã</span>
                 </template>
               </el-table-column>
 
@@ -179,8 +197,15 @@
                   class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
                 >
                   <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
+                    <!-- MỤC 529 — thẻ dọc đi theo bảng. Sửa cách hiện một
+                         cột là phải sửa CẢ HAI chỗ (bài học MỤC 424). -->
                     <div class="min-w-0 break-words">
-                      <span class="font-mono text-xs text-gray-500 select-all">{{ row.id }}</span>
+                      <span v-if="row.vehicle_code"
+                            class="font-mono font-bold text-blue-600 dark:text-blue-400 select-all">
+                        {{ row.vehicle_code }}
+                      </span>
+                      <span v-else class="text-xs text-amber-600 dark:text-amber-400">chưa có mã</span>
+                      <span class="ml-2 font-bold text-gray-800 dark:text-gray-100">{{ row.license_plate }}</span>
                     </div>
                     <div class="shrink-0">
                       <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
@@ -272,6 +297,49 @@
         </div>
       </el-tab-pane>
 
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 530 · 531 · 532 (05/09/2026) — BA TAB MỚI
+
+           Xếp theo LUỒNG VIỆC, cùng cách MỤC 441·442 xếp tab bên Thiết bị:
+           có xe → gắn nhóm phụ trách → khai bảo hiểm → đặt lịch bảo dưỡng.
+           Hai tab cuối đều bắn tin xuống nhóm ở tab "Nhóm liên kết", nên
+           tab đó phải đứng trước.
+
+           ⚠️ Ba tab là ba file riêng, KHÔNG nhét vào hộp chi tiết xe. Mỗi
+           thứ là một danh sách cần lọc và tìm kiếm riêng; nhét vào hộp chi
+           tiết thì phải mở từng xe mới biết xe nào sắp hết hạn bảo hiểm —
+           đúng thứ cần tránh.
+           ══════════════════════════════════════════════════════════════ -->
+      <el-tab-pane name="nhom">
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><ChatDotRound /></el-icon>
+            <span>Nhóm liên kết</span>
+          </span>
+        </template>
+        <VehicleGroupTab />
+      </el-tab-pane>
+
+      <el-tab-pane name="baohiem">
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><Tickets /></el-icon>
+            <span>Bảo hiểm</span>
+          </span>
+        </template>
+        <VehicleInsuranceTab />
+      </el-tab-pane>
+
+      <el-tab-pane name="baotri">
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><Tools /></el-icon>
+            <span>Bảo trì, bảo dưỡng</span>
+          </span>
+        </template>
+        <VehicleMaintenanceTab />
+      </el-tab-pane>
+
     </el-tabs>
 
     <!-- Dialog: Add / Edit Vehicle -->
@@ -305,8 +373,30 @@
             </el-row>
             <el-row :gutter="20">
               <el-col :span="12">
+                <!-- ══════════════════════════════════════════════════
+                     MỤC 529 (05/09/2026) — LOẠI XE THÀNH DANH SÁCH CHỌN
+
+                     🔴 TRƯỚC MỤC NÀY Ô NÀY LÀ Ô NHẬP TAY. Nên trong
+                     database đang có "Ô tô", "Ô tô con", "ô tô", "Oto"
+                     là bốn loại khác nhau.
+
+                     Hai việc s68 giao ngày 05/09 đều ĐỨNG TRÊN loại xe:
+                     mã xe sinh theo loại (OTO01/XM01), và nhóm liên kết
+                     gắn theo loại. Với chữ tự do thì cùng một chiếc ô tô
+                     ra mã khác nhau tuỳ hôm đó ai gõ gì, và một loại xe
+                     có hai nhóm liên kết mà không ai biết.
+
+                     ⚠️ Danh sách lấy từ MÁY CHỦ, không khai lại ở đây.
+                     Khai hai nơi là có ngày thêm loại thứ sáu ở một nơi
+                     mà quên nơi kia.
+                     ══════════════════════════════════════════════════ -->
                 <el-form-item label="Loại phương tiện" prop="vehicle_type">
-                  <el-input v-model="form.vehicle_type" placeholder="VD: Ô tô con, Xe tải, Xe máy..." />
+                  <el-select v-model="form.vehicle_type" placeholder="Chọn loại xe..."
+                             class="w-full" style="width: 100%">
+                    <el-option v-for="l in dsLoaiXe" :key="l.ma"
+                               :label="`${l.ten}  (mã ${l.tien_to}01, ${l.tien_to}02...)`"
+                               :value="l.ma" />
+                  </el-select>
                 </el-form-item>
               </el-col>
               <el-col :span="12">
@@ -432,7 +522,10 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
-import { Van, Refresh, Plus, MoreFilled } from '@element-plus/icons-vue'
+import { Van, Refresh, Plus, MoreFilled, ChatDotRound, Tickets, Tools } from '@element-plus/icons-vue'   // MỤC 530–532
+import VehicleGroupTab from './VehicleGroupTab.vue'             // MỤC 530
+import VehicleInsuranceTab from './VehicleInsuranceTab.vue'     // MỤC 531
+import VehicleMaintenanceTab from './VehicleMaintenanceTab.vue' // MỤC 532
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { vehicleService } from '@/api/vehicleService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
@@ -642,7 +735,37 @@ const formatDateTime = (val: string) => {
   }
 }
 
+// ══════════════════════════════════════════════════════════════════
+// MỤC 529 (05/09/2026) — DANH MỤC LOẠI XE LẤY TỪ MÁY CHỦ
+//
+// 🔴 Bảng `switch` cứng bên dưới GIỮ LẠI làm đường lui, nhưng chỉ dùng
+// khi máy chủ chưa trả về kịp. Nguồn thật là `LOAI_XE` trong
+// `app/models/vehicle.py` — nơi duy nhất khai năm loại.
+//
+// ⚠️ Dữ liệu cũ chưa quy đổi (chữ "Ô tô" nhập tay) rơi vào nhánh mặc
+// định và hiện nguyên văn. Đó là CHỦ Ý: hiện nguyên văn thì nhìn là biết
+// xe nào chưa dọn, còn ép về "Khác" là giấu mất việc phải làm.
+// ══════════════════════════════════════════════════════════════════
+const dsLoaiXe = ref<any[]>([])
+
+const taiLoaiXe = async () => {
+  try {
+    dsLoaiXe.value = (await vehicleService.getLoaiXe()) || []
+  } catch (e) {
+    console.warn('Không tải được danh mục loại xe:', e)
+    dsLoaiXe.value = [
+      { ma: 'car', ten: 'Ô tô con', tien_to: 'OTO' },
+      { ma: 'truck', ten: 'Xe tải', tien_to: 'XT' },
+      { ma: 'motorcycle', ten: 'Xe máy', tien_to: 'XM' },
+      { ma: 'container', ten: 'Xe container', tien_to: 'CONT' },
+      { ma: 'other', ten: 'Khác', tien_to: 'PT' },
+    ]
+  }
+}
+
 const getVehicleTypeLabel = (type: string) => {
+  const tim = dsLoaiXe.value.find((l: any) => l.ma === type)
+  if (tim) return tim.ten
   switch (type) {
     case 'car': return 'Ô tô con'
     case 'truck': return 'Xe tải'
@@ -670,6 +793,7 @@ const getStatusTagType = (status: string) => {
 }
 
 onMounted(() => {
+  taiLoaiXe()   // MỤC 529 — danh mục loại xe, cần cho ô chọn và nhãn
   fetchVehicles()
 })
 </script>

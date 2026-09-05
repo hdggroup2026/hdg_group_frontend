@@ -1113,9 +1113,36 @@
                        27/08 (yêu cầu số 7): ô này phải hiện "số nhóm
                        từng dự án" — mà một dự án có hai loại nhóm với
                        vai trò khác hẳn nhau, gộp lại là mất thông tin. -->
+                  <!-- ══════════════════════════════════════════════════
+                       MỤC 526 (05/09/2026) — BẤM SỐ THÌ HIỆN RA LÀ NHỮNG
+                       NHÓM NÀO
+
+                       s68 05/09: *"Các nhóm main khi bấm vào số thì hiện
+                       danh sách nhóm main giúp tôi luôn."*
+
+                       ⚠️ Làm CẢ số member, không chỉ số main. Hai con số
+                       nằm sát nhau mà một bấm được một không thì người
+                       dùng bấm cái kia tưởng máy hỏng.
+
+                       ⚠️ Máy chủ chưa gửi danh sách (bản cũ) thì số hiện
+                       như chữ thường, KHÔNG bấm được. Cho bấm vào chỗ
+                       không có dữ liệu là mở ra hộp rỗng — quy tắc từ
+                       MỤC 438.
+
+                       ⚠️ Dùng `<button>`, KHÔNG dùng `<span @click>`.
+                       ══════════════════════════════════════════════════ -->
                   <span v-if="t.so_nhom_main !== undefined"
                         class="tabular-nums text-[11px] text-gray-400 dark:text-gray-500">
-                    ({{ t.so_nhom_main }} main · {{ t.so_nhom_member }} member)
+                    (<button v-if="t.nhom_main && t.nhom_main.length" type="button"
+                             class="underline decoration-dotted underline-offset-2 hover:text-blue-600 dark:hover:text-blue-400"
+                             :title="`Xem ${t.so_nhom_main} nhóm main của ${t.du_an}`"
+                             @click.stop="moDsNhom(t, 'main')">{{ t.so_nhom_main }}</button><template
+                             v-else>{{ t.so_nhom_main }}</template> main ·
+                    <button v-if="t.nhom_member && t.nhom_member.length" type="button"
+                            class="underline decoration-dotted underline-offset-2 hover:text-blue-600 dark:hover:text-blue-400"
+                            :title="`Xem ${t.so_nhom_member} nhóm member của ${t.du_an}`"
+                            @click.stop="moDsNhom(t, 'member')">{{ t.so_nhom_member }}</button><template
+                            v-else>{{ t.so_nhom_member }}</template> member)
                   </span>
                 </li>
               </ul>
@@ -1129,15 +1156,79 @@
 
       </template>
     </div>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         MỤC 526 (05/09/2026) — HỘP DANH SÁCH NHÓM
+         ══════════════════════════════════════════════════════════════ -->
+    <el-dialog v-model="hienDsNhom" :width="rongHopNhom" align-center destroy-on-close>
+      <template #header>
+        <span class="font-bold">
+          NHÓM {{ loaiDangXem === 'main' ? 'MAIN' : 'MEMBER' }}
+          <span class="text-blue-600 ml-1">{{ duAnDangXem?.du_an }}</span>
+        </span>
+      </template>
+
+      <div class="max-h-[60vh] overflow-y-auto">
+        <ol v-if="dsNhomDangXem.length" class="space-y-1">
+          <li v-for="(n, i) in dsNhomDangXem" :key="n.chat_id"
+              class="flex items-baseline gap-2 text-sm py-1 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+            <span class="w-7 shrink-0 text-right tabular-nums text-gray-400">{{ i + 1 }}.</span>
+            <span class="flex-1 min-w-0 break-words text-gray-800 dark:text-gray-100">{{ n.ten }}</span>
+            <span class="shrink-0 font-mono text-[11px] text-gray-400 select-all">{{ n.chat_id }}</span>
+          </li>
+        </ol>
+        <div v-else class="text-center text-gray-400 py-6 text-sm">
+          Dự án này chưa có nhóm {{ loaiDangXem === 'main' ? 'main' : 'member' }} nào.
+        </div>
+      </div>
+
+      <template #footer>
+        <span class="text-sm text-gray-400 mr-3">Tổng: <b>{{ dsNhomDangXem.length }}</b> nhóm</span>
+        <el-button type="primary" @click="hienDsNhom = false">Đóng</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'   // MỤC 526 — thêm computed
 import { mauSo } from '@/utils/mauSo'
 import { useRouter } from 'vue-router'
 import { layQuyen, danhSachDuocVao, type DuAn } from '@/constants/duAn'
 import { trangChuService } from '@/api/trangChu'
+
+// ══════════════════════════════════════════════════════════════════
+// MỤC 526 (05/09/2026) — BẤM SỐ NHÓM ĐỂ XEM LÀ NHỮNG NHÓM NÀO
+//
+// 🔴 Danh sách lấy THẲNG từ dữ liệu bảng điều khiển đã tải sẵn, không
+// gọi thêm đường mạng nào. Máy chủ (`bot/utils/bang_dieu_khien.py`, hàm
+// `tinh_telegram_nhom`) trả kèm `nhom_main` và `nhom_member` ngay trong
+// cùng lời gọi đã dựng ra con số. Nhờ vậy số hiện trên màn và danh sách
+// bấm ra CHẮC CHẮN cùng một nguồn — không có chuyện đếm 12 mà liệt kê
+// ra 11.
+// ══════════════════════════════════════════════════════════════════
+const hienDsNhom = ref(false)
+const duAnDangXem = ref<any | null>(null)
+const loaiDangXem = ref<'main' | 'member'>('main')
+
+const dsNhomDangXem = computed(() => {
+  const d = duAnDangXem.value
+  if (!d) return []
+  return (loaiDangXem.value === 'main' ? d.nhom_main : d.nhom_member) || []
+})
+
+// Hộp rộng 640px trên máy tính, 95% bề ngang trên điện thoại — hộp cố
+// định trên màn 390px là tràn ra ngoài mép (bài học MỤC 519).
+const rongHopNhom = computed(() =>
+  (typeof window !== 'undefined' && window.innerWidth < 768) ? '95%' : '640px')
+
+const moDsNhom = (duAn: any, loai: 'main' | 'member') => {
+  duAnDangXem.value = duAn
+  loaiDangXem.value = loai
+  hienDsNhom.value = true
+}
+
+
 
 const router = useRouter()
 

@@ -84,6 +84,66 @@
           </el-row>
         </div>
 
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 522 (05/09/2026) — PHỤ KIỆN ĐI THEO THIẾT BỊ
+
+             s68 05/09: *"Quy hoạch thiết bị thì sẽ đi kèm phụ kiện. Nếu
+             bàn giao thiết bị thì mọi phụ kiện kèm theo thiết bị mặc
+             định sẽ đi theo phụ kiện luôn."*
+
+             🔴 KHÔNG lưu thêm cột "người giữ phụ kiện". Phụ kiện gắn máy
+             X, máy X ở tay người Y, nên phụ kiện ở tay người Y — suy ra
+             được, không cần ghi. Ghi thêm là nguồn thứ hai cho cùng một
+             sự thật: tháo phụ kiện sang máy khác mà quên sửa cột kia là
+             hai nơi nói hai chuyện.
+
+             ⚠️ Nhưng danh sách này VẪN được chép vào ô "Tình trạng ban
+             đầu" bên dưới, và đó là chuyện khác hẳn: ô đó là BIÊN BẢN
+             lúc giao — nó phải đứng yên kể cả sau này phụ kiện bị tháo
+             ra. Suy ra là để trả lời "bây giờ ai đang giữ"; biên bản là
+             để trả lời "hôm đó đã giao những gì".
+             ══════════════════════════════════════════════════════════ -->
+        <div class="mb-4">
+          <h4 class="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <span class="w-1.5 h-4 bg-amber-500 rounded-full"></span>
+            Phụ kiện và SIM đi theo máy
+          </h4>
+
+          <div v-loading="dangTaiKem" class="rounded-lg border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-900/20 p-3">
+            <div v-if="monDiKem.length" class="flex flex-col gap-1.5">
+              <div
+                v-for="m in monDiKem"
+                :key="m.nguon + '|' + m.id"
+                class="flex flex-wrap items-center gap-2 text-xs"
+              >
+                <el-tag size="small" :type="m.nguon === 'sim' ? 'warning' : 'info'" effect="plain">
+                  {{ m.nguon === 'sim' ? 'SIM' : 'Phụ kiện' }}
+                </el-tag>
+                <span class="font-mono font-bold">{{ m.id }}</span>
+                <span class="text-gray-700 dark:text-gray-200 break-words">
+                  {{ m.loai || '' }}<template v-if="m.ten"> — {{ m.ten }}</template>
+                </span>
+                <span v-if="m.so_hieu" class="font-mono text-gray-500">{{ m.so_hieu }}</span>
+                <el-tag v-if="['broken', 'lost', 'disposed'].includes(m.trang_thai)"
+                        size="small" type="danger" effect="dark">
+                  {{ nhanTrangThaiMon(m.trang_thai) }}
+                </el-tag>
+              </div>
+              <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 pt-1.5 border-t border-amber-200 dark:border-amber-900/60">
+                <b>{{ monDiKem.length }}</b> món sẽ đi theo máy này. Danh sách đã
+                chép sẵn vào ô <b>Tình trạng ban đầu</b> bên dưới để làm biên bản —
+                sửa thêm được.
+              </div>
+            </div>
+
+            <div v-else-if="!dangTaiKem" class="text-xs text-gray-500 dark:text-gray-400">
+              Máy này không có phụ kiện hay SIM nào gắn kèm. Muốn gắn trước khi
+              giao: đóng hộp này, vào tab <b>Phụ kiện</b> hoặc <b>SIM</b>, chọn một
+              món rồi bấm <b>Gắn vào máy</b>.
+            </div>
+          </div>
+        </div>
+
         <!-- TÌNH TRẠNG VẬT LÝ -->
         <div class="mb-2">
           <h4 class="text-sm font-bold text-violet-650 dark:text-violet-400 uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -166,6 +226,51 @@ const rules = reactive({
   device_id: [{ required: true, message: 'Vui lòng nhập mã thiết bị (ID)', trigger: 'blur' }]
 })
 
+// ══════════════════════════════════════════════════════════════════
+// MỤC 522 (05/09/2026) — PHỤ KIỆN VÀ SIM ĐI THEO MÁY
+// Xem lời ghi dài ở khối "Phụ kiện và SIM đi theo máy" trong phần trên.
+// ══════════════════════════════════════════════════════════════════
+const monDiKem = ref<any[]>([])
+const dangTaiKem = ref(false)
+
+const nhanTrangThaiMon = (tt: string) => ({
+  broken: 'Hỏng', lost: 'Mất', disposed: 'Đã thanh lý',
+}[tt] || tt)
+
+// Một dòng biên bản cho một món. Ghi ĐỦ mã + tên + số hiệu: biên bản mà
+// chỉ ghi "3 món" thì lúc thu hồi không cãi lại được là những món nào.
+const dongBienBan = (m: any) => {
+  const phan = [m.id]
+  const ten = [m.loai, m.ten].filter(Boolean).join(' ')
+  if (ten) phan.push(ten)
+  if (m.so_hieu) phan.push(m.so_hieu)
+  return phan.join(' - ')
+}
+
+const taiMonDiKem = async (deviceId: string) => {
+  monDiKem.value = []
+  if (!deviceId) return
+  dangTaiKem.value = true
+  try {
+    const ds = (await otherService.getPhuKienCuaMay(deviceId)) || []
+    monDiKem.value = ds
+    if (ds.length) {
+      // ⚠️ CHỈ đặt khi ô còn trống. Người dùng đã gõ gì vào đó thì không
+      // được đè — chữ họ gõ là thứ duy nhất máy không tự dựng lại được.
+      const cho = 'Kèm theo: ' + ds.map(dongBienBan).join('; ')
+      if (!form.initial_condition.trim()) {
+        form.initial_condition = cho
+      }
+    }
+  } catch (e: any) {
+    // ⚠️ Hỏng chỗ này KHÔNG được chặn việc bàn giao. Bàn giao là việc
+    // chính, danh sách phụ kiện là thứ kèm theo.
+    console.warn('Không tải được phụ kiện của máy:', e)
+  } finally {
+    dangTaiKem.value = false
+  }
+}
+
 watch(() => props.deviceInfo, (newVal) => {
   if (newVal) {
     form.device_id = newVal.id || ''
@@ -175,6 +280,7 @@ watch(() => props.deviceInfo, (newVal) => {
     form.returned_at = ''
     form.initial_condition = ''
     form.final_condition = ''
+    taiMonDiKem(newVal.id || '')
   }
 }, { immediate: true })
 

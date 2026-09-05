@@ -91,9 +91,24 @@
         </el-table-column>
 
         <!-- Mã Bàn giao -->
-        <el-table-column prop="id" label="Mã bàn giao" width="108" show-overflow-tooltip>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 523 (05/09/2026) — RÚT GỌN BẢNG BÀN GIAO
+
+             s68 05/09: *"rút gọn luôn. Thông số chi tiết không cần coi
+             thường xuyên nên ẩn cho gọn."*
+
+             Đã dời vào hộp Chi tiết: tình trạng ban đầu · tình trạng thu
+             hồi · cột Thao tác. Cùng cách làm MỤC 518 cho sáu tab thiết
+             bị, để các tab của màn này hành xử như nhau.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="id" label="Mã bàn giao" width="122" show-overflow-tooltip>
           <template #default="{ row }">
-            <span class="font-mono text-xs text-gray-400 dark:text-gray-500">{{ row.id ? row.id.substring(0, 8) + '...' : '—' }}</span>
+            <button type="button"
+                    class="font-mono text-xs text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2 hover:text-blue-800"
+                    :title="`Xem đầy đủ phiếu bàn giao ${row.id || ''}`"
+                    @click.stop="handleCommand('detail', row)">
+              {{ row.id ? row.id.substring(0, 8) + '...' : '—' }}
+            </button>
           </template>
         </el-table-column>
 
@@ -139,37 +154,8 @@
           </template>
         </el-table-column>
 
-        <!-- Tình trạng ban đầu -->
-        <el-table-column prop="initial_condition" label="Tình trạng ban đầu" min-width="137" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.initial_condition || '—' }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Tình trạng thu hồi -->
-        <el-table-column prop="final_condition" label="Tình trạng thu hồi" min-width="137" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.final_condition || '—' }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Actions -->
-        <el-table-column label="Thao tác" width="60" align="center">
-          <template #default="{ row }">
-            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
-              <el-button link type="info" class="p-1">
-                <el-icon class="text-xl"><MoreFilled /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
-                  <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-        </el-table-column>
       </el-table>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -192,24 +178,16 @@
             :key="row.id || row.contract_id || i"
             class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
           >
+            <!-- MỤC 523 — thẻ dọc đi theo bảng: mã bấm được, bỏ nút ⋯ -->
             <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
               <div class="min-w-0 break-words">
-                <span class="font-mono text-xs text-gray-400 dark:text-gray-500">{{ row.id ? row.id.substring(0, 8) + '...' : '—' }}</span>
+                <button type="button"
+                        class="font-mono text-xs text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2"
+                        @click.stop="handleCommand('detail', row)">
+                  {{ row.id ? row.id.substring(0, 8) + '...' : '—' }}
+                </button>
               </div>
-              <div class="shrink-0">
-                <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
-                              <el-button link type="info" class="p-1">
-                                <el-icon class="text-xl"><MoreFilled /></el-icon>
-                              </el-button>
-                              <template #dropdown>
-                                <el-dropdown-menu>
-                                  <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
-                                  <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
-                                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
-                                </el-dropdown-menu>
-                              </template>
-                            </el-dropdown>
-              </div>
+              <div class="shrink-0 text-xs text-gray-400">Bấm mã để xem đủ</div>
             </div>
             <div class="space-y-2 text-sm text-left">
               <div class="flex justify-between gap-3">
@@ -247,18 +225,6 @@
                                 {{ formatDate(row.returned_at) }}
                               </span>
                               <el-tag v-else size="small" type="danger" effect="light" class="font-bold">Đang bàn giao</el-tag>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tình trạng ban đầu:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.initial_condition || '—' }}</span>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tình trạng thu hồi:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.final_condition || '—' }}</span>
                 </span>
               </div>
             </div>
@@ -456,6 +422,12 @@
       </div>
       <template #footer>
         <span class="dialog-footer">
+          <!-- MỤC 523 — hai việc chuyển từ cột Thao tác xuống đây.
+               Đóng hộp Chi tiết TRƯỚC khi gọi việc khác, cùng lý do
+               MỤC 518: hai hộp thoại chồng nhau thì hộp dưới khoá cuộn
+               của hộp trên. -->
+          <el-button @click="viecTuChiTiet('edit')">Chỉnh sửa</el-button>
+          <el-button class="!text-red-500" @click="viecTuChiTiet('delete')">Xóa</el-button>
           <el-button type="primary" @click="detailDialogVisible = false">Đóng</el-button>
         </span>
       </template>
@@ -545,6 +517,14 @@ const rules = reactive({
 })
 
 // Action Handlers
+// MỤC 523 (05/09/2026) — chạy một việc từ chân hộp Chi tiết.
+const viecTuChiTiet = (cmd: string) => {
+  const phieu = selectedAssignment.value
+  if (!phieu) return
+  detailDialogVisible.value = false
+  handleCommand(cmd, phieu)
+}
+
 const handleCommand = (cmd: string, row: any) => {
   if (cmd === 'detail') {
     selectedAssignment.value = row

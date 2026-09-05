@@ -1020,6 +1020,10 @@
 </template>
 
 <script setup lang="ts">
+
+// MỤC 527 (05/09/2026) — màn này cũng chạy trong một luồng. Xem lời ghi
+// đầy đủ ở `CustomerList.vue`.
+const props = defineProps<{ luong?: string }>()
 import { ref, computed, onMounted, watch } from 'vue'
 import { mauSo } from '@/utils/mauSo'
 import { Search, Wallet, CreditCard, Money, TrendCharts, Collection, Files } from '@element-plus/icons-vue'
@@ -1147,6 +1151,7 @@ const fetchCustomers = async () => {
     if (custCustomerId.value.trim()) {
       params.customer_id = custCustomerId.value.trim()
     }
+    if (props.luong) params.classification = props.luong   // MỤC 527
     const data = await creditService.getCreditCustomers(params)
     customers.value = data
   } catch (error: any) {
@@ -1167,6 +1172,7 @@ const fetchContracts = async () => {
       params.start_date = contractDateRange.value[0]
       params.end_date = contractDateRange.value[1]
     }
+    if (props.luong) params.classification = props.luong   // MỤC 527
     const data = await creditService.getCredits(params)
     contracts.value = data
   } catch (error: any) {
@@ -1185,6 +1191,7 @@ const fetchPayments = async () => {
       params.start_date = payDateRange.value[0]
       params.end_date = payDateRange.value[1]
     }
+    if (props.luong) params.classification = props.luong   // MỤC 527
     const data = await creditService.getCreditInterests(params)
     payments.value = data
   } catch (error: any) {

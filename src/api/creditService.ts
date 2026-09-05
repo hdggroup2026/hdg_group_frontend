@@ -179,6 +179,7 @@ export const creditService = {
     if (params?.customer_id) queryParams.append('customer_id', params.customer_id);
     if (params?.start_date) queryParams.append('start_date', params.start_date);
     if (params?.end_date) queryParams.append('end_date', params.end_date);
+    if (params?.classification) queryParams.append('classification', params.classification);   // MỤC 527
 
     const queryString = queryParams.toString();
     const url = `${BASE_URL}/credit/get-credits${queryString ? '?' + queryString : ''}`;
@@ -352,6 +353,7 @@ export const creditService = {
     if (params?.customer_id) queryParams.append('customer_id', params.customer_id);
     if (params?.start_date) queryParams.append('start_date', params.start_date);
     if (params?.end_date) queryParams.append('end_date', params.end_date);
+    if (params?.classification) queryParams.append('classification', params.classification);   // MỤC 527
 
     const queryString = queryParams.toString();
     const url = `${BASE_URL}/credit/get-credit-interests${queryString ? '?' + queryString : ''}`;

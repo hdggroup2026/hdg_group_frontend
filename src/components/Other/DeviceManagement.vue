@@ -95,6 +95,17 @@
         <SimTab />
       </el-tab-pane>
 
+      <!-- ══════════════════════════════════════════════════════════════
+           MỤC 521 (05/09/2026) — TAB NGƯỜI SỬ DỤNG
+
+           s68 05/09: *"Hiện tại chỉ mới có danh sách thiết bị. Nếu muốn
+           kiểm tra 1 người đang giữ danh sách thiết bị nào thì sẽ khó
+           kiểm tra."*
+
+           Đặt NGAY SAU Bàn giao, cùng lý do xếp tab của MỤC 441·442: đi
+           theo luồng việc. Có máy → có phụ kiện → có SIM → giao cho ai →
+           **ai đang giữ gì**. Đây là câu hỏi cuối cùng của luồng đó.
+           ══════════════════════════════════════════════════════════════ -->
       <!-- Tab cuối: Bàn giao -->
       <el-tab-pane name="assignment">
         <template #label>
@@ -106,13 +117,24 @@
         <AssignmentTab />
       </el-tab-pane>
 
+      <el-tab-pane name="user">
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><User /></el-icon>
+            <span>Người Sử Dụng</span>
+          </span>
+        </template>
+        <UserTab />
+      </el-tab-pane>
+
     </el-tabs>
   </div>
 </template>
 
 <script setup lang="ts">
 import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
-import { Cpu, Iphone, Notebook, Monitor, VideoCamera, More, Switch, Headset, Postcard } from '@element-plus/icons-vue'   // MỤC 441, 442
+import { Cpu, Iphone, Notebook, Monitor, VideoCamera, More, Switch, Headset, Postcard, User } from '@element-plus/icons-vue'   // MỤC 441, 442, 521
+import UserTab from './UserTab.vue'   // MỤC 521
 import PhoneTab from './PhoneTab.vue'
 import LaptopTab from './LaptopTab.vue'
 import TabletTab from './TabletTab.vue'

@@ -49,6 +49,48 @@
               </el-form-item>
             </el-col>
           </el-row>
+          <!-- ══════════════════════════════════════════════════════
+               MỤC 522 (05/09/2026) — NHẬN LẠI ĐỦ MÓN
+
+               Nửa còn lại của việc "phụ kiện đi theo thiết bị". Giao mà
+               không có danh sách lúc nhận lại thì người thu hồi không
+               biết phải đòi những gì — và thiếu một cục sạc thì không ai
+               phát hiện ra.
+
+               ⚠️ Danh sách này là thứ ĐANG gắn máy lúc mở hộp, không
+               phải thứ đã ghi trong biên bản lúc giao. Hai cái lệch nhau
+               chính là thông tin đáng giá nhất: món nào đã bị tháo ra.
+               ══════════════════════════════════════════════════════ -->
+          <el-row :gutter="20" class="mb-3">
+            <el-col :span="24">
+              <div v-loading="dangTaiKem" class="rounded-lg border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-900/20 p-3">
+                <div class="text-xs font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider mb-2">
+                  Phụ kiện và SIM đang gắn máy này
+                </div>
+                <div v-if="monDiKem.length" class="flex flex-col gap-1.5">
+                  <div v-for="m in monDiKem" :key="m.nguon + '|' + m.id"
+                       class="flex flex-wrap items-center gap-2 text-xs">
+                    <el-tag size="small" :type="m.nguon === 'sim' ? 'warning' : 'info'" effect="plain">
+                      {{ m.nguon === 'sim' ? 'SIM' : 'Phụ kiện' }}
+                    </el-tag>
+                    <span class="font-mono font-bold">{{ m.id }}</span>
+                    <span class="text-gray-700 dark:text-gray-200 break-words">
+                      {{ m.loai || '' }}<template v-if="m.ten"> — {{ m.ten }}</template>
+                    </span>
+                    <span v-if="m.so_hieu" class="font-mono text-gray-500">{{ m.so_hieu }}</span>
+                  </div>
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 pt-1.5 border-t border-amber-200 dark:border-amber-900/60">
+                    Phải nhận lại <b>{{ monDiKem.length }}</b> món. Đối chiếu đủ rồi
+                    hãy xác nhận thu hồi.
+                  </div>
+                </div>
+                <div v-else-if="!dangTaiKem" class="text-xs text-gray-500 dark:text-gray-400">
+                  Máy này không còn phụ kiện hay SIM nào gắn kèm.
+                </div>
+              </div>
+            </el-col>
+          </el-row>
+
           <el-row :gutter="20">
             <el-col :span="24">
               <el-form-item label="Tình trạng thu hồi" prop="final_condition">
@@ -112,11 +154,31 @@ const rules = reactive({
   returned_at: [{ required: true, message: 'Vui lòng chọn ngày thu hồi', trigger: 'change' }]
 })
 
+// MỤC 522 (05/09/2026) — xem lời ghi ở khối "Phụ kiện và SIM đang gắn
+// máy này" phía trên.
+const monDiKem = ref<any[]>([])
+const dangTaiKem = ref(false)
+
+const taiMonDiKem = async (deviceId: string) => {
+  monDiKem.value = []
+  if (!deviceId) return
+  dangTaiKem.value = true
+  try {
+    monDiKem.value = (await otherService.getPhuKienCuaMay(deviceId)) || []
+  } catch (e: any) {
+    // ⚠️ Hỏng chỗ này KHÔNG được chặn việc thu hồi.
+    console.warn('Không tải được phụ kiện của máy:', e)
+  } finally {
+    dangTaiKem.value = false
+  }
+}
+
 watch(() => props.deviceInfo, (newVal) => {
   if (newVal) {
     form.device_id = newVal.id || ''
     form.returned_at = new Date().toISOString().split('T')[0]
     form.final_condition = ''
+    taiMonDiKem(newVal.id || '')
   }
 }, { immediate: true })
 

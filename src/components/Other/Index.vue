@@ -146,7 +146,7 @@
 import { ref, computed, onMounted, onUnmounted, watch, provide } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWindowSize, useDark } from '@vueuse/core'
-import { Cpu, Van, FolderOpened } from '@element-plus/icons-vue'
+import { Cpu, Van, FolderOpened, Iphone } from '@element-plus/icons-vue'   // MỤC 517 — thêm Iphone
 import Sidebar from './Sidebar.vue'
 import DeviceManagement from './DeviceManagement.vue'
 import VehicleManagement from './VehicleManagement.vue'
@@ -165,7 +165,21 @@ provide('setLoading', (val: boolean) => {
 watch(
   () => route.params.subview,
   (newSubview) => {
-    if (!['devices', 'vehicles', 'documents'].includes(newSubview as string)) {
+    // ══════════════════════════════════════════════════════════════
+    // MỤC 517 (05/09/2026) — BẤM "QUẢN LÝ APP" BỊ ĐẨY NGƯỢC VỀ THIẾT BỊ
+    //
+    // s68 (ảnh 05/09, hình 4): *"bấm vào quản lý app thì lại bị nhảy về
+    // quản lý thiết bị."*
+    //
+    // 🔴 Danh sách đường dẫn hợp lệ dưới đây THIẾU chữ `apps`. MỤC 437
+    // hôm 31/08 có khai `apps` ở `subviewMap` và `indexMap`, nhưng quên
+    // khai ở đây. Bấm menu → đẩy sang `/other/apps` → câu kiểm này thấy
+    // `apps` không có trong danh sách → `router.replace` đẩy ngược về
+    // `/other/devices` ngay lập tức.
+    //
+    // ⚠️ Không có lỗi nào hiện ra, nên nhìn như menu bị liệt.
+    // ══════════════════════════════════════════════════════════════
+    if (!['devices', 'vehicles', 'documents', 'apps'].includes(newSubview as string)) {
       router.replace('/other/devices')
       return
     }
@@ -215,10 +229,28 @@ const isDesktop = computed(() => windowWidth.value >= 1024)
 const isTablet = computed(() => windowWidth.value >= 768 && windowWidth.value < 1024)
 const isMobile = computed(() => windowWidth.value < 768)
  
+// ══════════════════════════════════════════════════════════════════
+// MỤC 517 (05/09/2026) — MENU CỦA ĐIỆN THOẠI VÀ MÁY TÍNH BẢNG THIẾU
+// HẲN MỤC "QUẢN LÝ APP"
+//
+// 🔴 Danh sách này KHÔNG phải bản sao của `Sidebar.vue`. `Sidebar.vue`
+// chỉ chạy ở MÁY TÍNH (≥1024px) và MÁY TÍNH BẢNG. Ở ĐIỆN THOẠI
+// (<768px) menu xổ xuống dựng từ chính danh sách này. MỤC 437 chỉ thêm
+// mục App vào `Sidebar.vue`, nên trên điện thoại mục đó KHÔNG TỒN TẠI —
+// không phải bấm bị nhảy, mà là không có gì để bấm.
+//
+// Đây đúng thứ nguyên tắc 6.1 cấm: sửa cho một cỡ màn hình rồi bỏ quên
+// các cỡ kia.
+//
+// ⚠️ `currentMenuItem` bên dưới cũng đọc danh sách này. Thiếu mục '1-4'
+// thì thanh tiêu đề trên điện thoại rơi về mặc định và hiện chữ
+// "Quản lý Thiết bị" ngay cả khi đang ở màn App.
+// ══════════════════════════════════════════════════════════════════
 const sidebarMenuItems = [
   { index: '1-1', label: 'Quản lý Thiết bị', icon: Cpu },
   { index: '1-2', label: 'Quản lý Phương tiện', icon: Van },
-  { index: '1-3', label: 'Quản lý Hình ảnh, Giấy tờ', icon: FolderOpened }
+  { index: '1-3', label: 'Quản lý Hình ảnh, Giấy tờ', icon: FolderOpened },
+  { index: '1-4', label: 'Quản lý App', icon: Iphone }   // MỤC 517
 ]
  
 const currentMenuItem = computed(() =>

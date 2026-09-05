@@ -582,6 +582,20 @@
 </template>
 
 <script setup lang="ts">
+
+// ══════════════════════════════════════════════════════════════════
+// MỤC 527 (05/09/2026) — MÀN NÀY CHẠY TRONG MỘT LUỒNG
+//
+// s68 05/09: *"bấm ô 1 vào luồng PQCredit, ô 2 vào luồng KCredit.
+// Trong mỗi luồng đều có đầy đủ nội dung từng luồng."*
+//
+// 🔴 `luong` gửi THẲNG lên máy chủ làm bộ lọc, không lọc sau khi tải.
+// Tải hết rồi giấu bớt thì mọi con số tổng vẫn tính trên cả hai luồng.
+//
+// ⚠️ Rỗng = không lọc. Giữ nguyên hành vi cũ cho chỗ nào dùng lại
+// component này ngoài hai luồng.
+// ══════════════════════════════════════════════════════════════════
+const props = defineProps<{ luong?: string }>()
 import { ref, reactive, computed, onMounted } from 'vue'
 import { mauSo } from '@/utils/mauSo'
 import { Search, MoreFilled, User, Message, Location, Refresh } from '@element-plus/icons-vue'
@@ -743,7 +757,7 @@ const moHopDongCuaKhach = async (row: any) => {
   dangTaiHopDong.value = true
   try {
     hopDongCuaKhach.value =
-      await creditService.getCredits({ customer_id: row.customer_id })
+      await creditService.getCredits({ customer_id: row.customer_id, classification: props.luong })
   } catch (e: any) {
     // Hỏng thì NÓI RA trong chính hộp thoại, không nuốt — người dùng đang
     // chờ xem một danh sách, hộp trống mà im lặng là hiểu nhầm "không có
@@ -940,7 +954,7 @@ const handleDelete = async (row: Customer) => {
 const fetchCustomers = async () => {
   loading.value = true
   try {
-    const data = await creditService.getCreditCustomers()
+    const data = await creditService.getCreditCustomers({ classification: props.luong })
     customers.value = data
   } catch (error: any) {
     ElMessage.error(error.message || 'Lỗi khi tải danh sách khách hàng')

@@ -47,6 +47,19 @@ export const otherService = {
     return await this._goi(`/other/get-accessories${duoi}`, { method: 'GET' });
   },
 
+  // ══════════════════════════════════════════════════════════════════
+  // MỤC 521 (05/09/2026) — MỘT NGƯỜI ĐANG GIỮ NHỮNG GÌ
+  //
+  // 🔴 MỘT lời gọi, không phải chín. Backend đã gộp sẵn thiết bị + phụ
+  // kiện + SIM theo từng người. Gọi rời rồi tự gộp ở đây là chép lại
+  // luật quy đổi hai bộ từ vựng `phone`/`smartphone` sang phía web —
+  // hai nơi cùng một luật là có ngày lệch nhau.
+  // ══════════════════════════════════════════════════════════════════
+  async getNguoiSuDung(username?: string): Promise<any[]> {
+    const duoi = username ? `?username=${encodeURIComponent(username)}` : ''
+    return await this._goi(`/other/get-nguoi-su-dung${duoi}`, { method: 'GET' });
+  },
+
   async addAccessories(items: any[]): Promise<any[]> {
     return await this._goi('/other/add-accessories',
       { method: 'POST', body: JSON.stringify(items) });

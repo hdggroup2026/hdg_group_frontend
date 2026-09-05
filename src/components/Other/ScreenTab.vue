@@ -61,10 +61,36 @@
           </template>
         </el-table-column>
 
-        <!-- Mã máy (ID) -->
-        <el-table-column prop="id" label="Mã máy (ID)" width="101" show-overflow-tooltip>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 518 (05/09/2026) — BẢNG CHỈ CÒN PHẦN NHẬN DẠNG,
+             BẤM MÃ THIẾT BỊ ĐỂ XEM ĐỦ
+
+             s68 (ảnh 05/09, hình 1): *"thông tin 2 ô vuông đấy ẩn đi.
+             Khi nào bấm vào mã máy (đổi thành Mã Thiết Bị) thì hiện đầy
+             đủ bảng thông tin của thiết bị đấy ra là xong."*
+
+             Đã dời khỏi bảng: số serial · IMEI · HĐH · cấu hình · dung
+             lượng · pin · trạng thái · ngày mua · hạn bảo hành · ghi
+             chú · cột Thao tác. Tất cả VẪN CÒN NGUYÊN trong hộp
+             CHI TIẾT — đã đối chiếu từng trường trước khi cắt, không
+             trường nào biến mất khỏi màn hình.
+
+             ⚠️ Cột Thao tác ẩn theo yêu cầu s68 ngày 05/09, nên bốn
+             việc Bàn giao · Thu hồi · Chỉnh sửa · Xóa đã chuyển xuống
+             chân hộp Chi tiết. Ẩn cột mà không chuyển là khoá luôn
+             đường xoá máy.
+
+             ⚠️ Dùng `<button>`, KHÔNG dùng `<span @click>` — quy tắc từ
+             MỤC 420, 424, 438.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="id" label="Mã Thiết Bị" width="122" show-overflow-tooltip>
           <template #default="{ row }">
-            <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.id }}</span>
+            <button type="button"
+                    class="font-mono font-bold text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2 hover:text-blue-800"
+                    :title="`Xem đầy đủ thông tin của ${row.id}`"
+                    @click.stop="handleCommand('detail', row)">
+              {{ row.id }}
+            </button>
           </template>
         </el-table-column>
 
@@ -92,96 +118,19 @@
           </template>
         </el-table-column>
 
-        <!-- Kích thước -->
-        <el-table-column prop="screen_size" label="Kích thước" width="90" align="center">
-          <template #default="{ row }">
-            <span class="text-xs text-gray-700 dark:text-gray-300 font-semibold">{{ row.screen_size || '—' }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Độ phân giải -->
-        <el-table-column prop="resolution" label="Độ phân giải" width="97" align="center">
-          <template #default="{ row }">
-            <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.resolution || '—' }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Tấm nền -->
-        <el-table-column prop="panel_type" label="Tấm nền" width="86" align="center">
-          <template #default="{ row }">
-            <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.panel_type || '—' }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Tần số quét -->
-        <el-table-column prop="refresh_rate" label="Tần số quét" width="86" align="center">
-          <template #default="{ row }">
-            <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.refresh_rate || '—' }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Cổng kết nối -->
-        <el-table-column prop="ports" label="Cổng kết nối" width="115" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="text-xs text-gray-650 dark:text-gray-350">{{ row.ports || '—' }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Số Serial -->
-        <el-table-column prop="serial_number" label="Số Serial" width="108" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span class="font-mono text-xs text-gray-750 dark:text-gray-250">{{ row.serial_number || '—' }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Hạn bảo hành -->
-        <el-table-column prop="warranty_expiry" label="Hạn bảo hành" width="101" align="center">
-          <template #default="{ row }">
-            <span class="font-mono text-xs">{{ formatDate(row.warranty_expiry) }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Trạng thái -->
-        <el-table-column prop="status" label="Trạng thái" width="108" align="center">
-          <template #default="{ row }">
-            <el-tag size="small" :type="getStatusTagType(row.status)" effect="dark" class="font-bold">
-              {{ getStatusLabel(row.status) }}
-            </el-tag>
-          </template>
-        </el-table-column>
 
         <!-- Phụ kiện đi kèm -->
         <el-table-column prop="accessories" label="Phụ kiện" width="122" show-overflow-tooltip />
 
-        <!-- Ngày mua -->
-        <el-table-column prop="purchase_date" label="Ngày mua" width="86" align="center">
-          <template #default="{ row }">
-            <span class="font-mono text-xs">{{ formatDate(row.purchase_date) }}</span>
-          </template>
-        </el-table-column>
 
-        <!-- Ghi chú -->
-        <el-table-column prop="notes" label="Ghi chú" min-width="130" show-overflow-tooltip />
 
-        <!-- Actions -->
-        <el-table-column label="Thao tác" width="60" align="center">
-          <template #default="{ row }">
-            <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
-              <el-button link type="info" class="p-1">
-                <el-icon class="text-xl"><MoreFilled /></el-icon>
-              </el-button>
-              <template #dropdown>
-                <el-dropdown-menu>
-                  <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
-                  <el-dropdown-item command="handover">Bàn giao</el-dropdown-item>
-                  <el-dropdown-item command="return">Thu hồi</el-dropdown-item>
-                  <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
-                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
-                </el-dropdown-menu>
-              </template>
-            </el-dropdown>
-          </template>
-        </el-table-column>
       </el-table>
 
 <!-- ══════════════════════════════════════════════════════════════
@@ -204,26 +153,16 @@
             :key="row.id || row.contract_id || i"
             class="rounded-2xl border border-gray-200 dark:border-gray-700/80 bg-white dark:bg-gray-800 p-4 shadow-sm"
           >
+            <!-- MỤC 518 — thẻ dọc đi theo bảng: mã bấm được, bỏ nút ⋯ -->
             <div class="flex items-start justify-between gap-2 pb-3 border-b border-gray-100 dark:border-gray-700/60 mb-3">
               <div class="min-w-0 break-words">
-                <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.id }}</span>
+                <button type="button"
+                        class="font-mono font-bold text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2"
+                        @click.stop="handleCommand('detail', row)">
+                  {{ row.id }}
+                </button>
               </div>
-              <div class="shrink-0">
-                <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
-                              <el-button link type="info" class="p-1">
-                                <el-icon class="text-xl"><MoreFilled /></el-icon>
-                              </el-button>
-                              <template #dropdown>
-                                <el-dropdown-menu>
-                                  <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
-                                  <el-dropdown-item command="handover">Bàn giao</el-dropdown-item>
-                                  <el-dropdown-item command="return">Thu hồi</el-dropdown-item>
-                                  <el-dropdown-item command="edit">Chỉnh sửa</el-dropdown-item>
-                                  <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
-                                </el-dropdown-menu>
-                              </template>
-                            </el-dropdown>
-              </div>
+              <div class="shrink-0 text-xs text-gray-400">Bấm mã để xem đủ</div>
             </div>
             <div class="space-y-2 text-sm text-left">
               <div class="flex justify-between gap-3">
@@ -248,71 +187,9 @@
                 </span>
               </div>
               <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Kích thước:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="text-xs text-gray-700 dark:text-gray-300 font-semibold">{{ row.screen_size || '—' }}</span>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Độ phân giải:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.resolution || '—' }}</span>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tấm nền:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.panel_type || '—' }}</span>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tần số quét:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="text-xs text-gray-700 dark:text-gray-300">{{ row.refresh_rate || '—' }}</span>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Cổng kết nối:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="text-xs text-gray-650 dark:text-gray-350">{{ row.ports || '—' }}</span>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số Serial:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="font-mono text-xs text-gray-750 dark:text-gray-250">{{ row.serial_number || '—' }}</span>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Hạn bảo hành:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="font-mono text-xs">{{ formatDate(row.warranty_expiry) }}</span>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Trạng thái:</span>
-                <span class="text-right break-words min-w-0">
-                  <el-tag size="small" :type="getStatusTagType(row.status)" effect="dark" class="font-bold">
-                                {{ getStatusLabel(row.status) }}
-                              </el-tag>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
                 <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Phụ kiện:</span>
                 <span class="text-right break-words min-w-0">
                   {{ row.accessories }}
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ngày mua:</span>
-                <span class="text-right break-words min-w-0">
-                  <span class="font-mono text-xs">{{ formatDate(row.purchase_date) }}</span>
-                </span>
-              </div>
-              <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Ghi chú:</span>
-                <span class="text-right break-words min-w-0">
-                  {{ row.notes }}
                 </span>
               </div>
             </div>
@@ -567,6 +444,22 @@
       </div>
       <template #footer>
         <span class="dialog-footer">
+          <!-- ══════════════════════════════════════════════════════
+               MỤC 518 (05/09/2026) — BỐN VIỆC CHUYỂN TỪ CỘT THAO TÁC
+               XUỐNG ĐÂY
+
+               Cột Thao tác (nút ⋯) đã ẩn khỏi bảng theo yêu cầu s68
+               ngày 05/09. Nếu chỉ ẩn mà không chuyển thì không còn
+               đường nào để Bàn giao · Thu hồi · Chỉnh sửa · Xóa.
+
+               ⚠️ Đóng hộp Chi tiết TRƯỚC khi gọi việc khác. Element
+               Plus xếp hai hộp thoại chồng nhau thì hộp dưới khoá cuộn
+               của hộp trên, bấm được nút nhưng không kéo xem được.
+               ══════════════════════════════════════════════════════ -->
+          <el-button @click="viecTuChiTiet('handover')">Bàn giao</el-button>
+          <el-button @click="viecTuChiTiet('return')">Thu hồi</el-button>
+          <el-button @click="viecTuChiTiet('edit')">Chỉnh sửa</el-button>
+          <el-button class="!text-red-500" @click="viecTuChiTiet('delete')">Xóa</el-button>
           <el-button type="primary" @click="detailDialogVisible = false">Đóng</el-button>
         </span>
       </template>
@@ -700,6 +593,15 @@ const rules = reactive({
 })
 
 // Action Handlers
+// MỤC 518 (05/09/2026) — chạy một việc từ chân hộp Chi tiết.
+// Đóng hộp trước, xem lời ghi ở chân hộp Chi tiết phía trên.
+const viecTuChiTiet = (cmd: string) => {
+  const may = selectedScreen.value
+  if (!may) return
+  detailDialogVisible.value = false
+  handleCommand(cmd, may)
+}
+
 const handleCommand = (cmd: string, row: any) => {
   if (cmd === 'detail') {
     selectedScreen.value = row

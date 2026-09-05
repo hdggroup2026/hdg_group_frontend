@@ -50,9 +50,33 @@
         <template #default="{ $index }">{{ (trang - 1) * moiTrang + $index + 1 }}</template>
       </el-table-column>
 
-      <el-table-column prop="id" label="Mã PK" width="90" show-overflow-tooltip>
+      <!-- ══════════════════════════════════════════════════════════
+           MỤC 523 (05/09/2026) — RÚT GỌN BẢNG PHỤ KIỆN
+
+           s68 05/09: *"rút gọn luôn. Thông số chi tiết không cần coi
+           thường xuyên nên ẩn cho gọn."*
+
+           Đã dời vào hộp Chi tiết: số seri · tình trạng vật lý · giá mua
+           · ngày mua · hết bảo hành · ghi chú · cột Thao tác.
+
+           🔴 KHÁC sáu tab thiết bị và tab Bàn giao ở một điểm: tab này
+           TRƯỚC ĐÓ KHÔNG CÓ hộp Chi tiết nào (đã tra cả file, chỉ có hộp
+           Thêm/Sửa và hộp Gắn vào máy). Nên hộp Chi tiết bên dưới là
+           DỰNG MỚI — ẩn cột mà không dựng nó là xoá thẳng bảy thứ khỏi
+           màn hình, không còn đường nào xem lại.
+
+           ⚠️ GIỮ cột Trạng thái, dù sáu tab thiết bị đã ẩn cột cùng tên.
+           Ở đây nó không phải thông số: nó là bộ lọc chính ngay trên
+           thanh công cụ, và là thứ trả lời "cục sạc này còn hay hỏng".
+           ══════════════════════════════════════════════════════════ -->
+      <el-table-column prop="id" label="Mã PK" width="106" show-overflow-tooltip>
         <template #default="{ row }">
-          <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.id }}</span>
+          <button type="button"
+                  class="font-mono font-bold text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2 hover:text-blue-800"
+                  :title="`Xem đầy đủ thông tin của ${row.id}`"
+                  @click.stop="moChiTiet(row)">
+            {{ row.id }}
+          </button>
         </template>
       </el-table-column>
 
@@ -66,11 +90,6 @@
       <el-table-column prop="name" label="Tên / model" min-width="150" show-overflow-tooltip />
       <el-table-column prop="brand" label="Hãng" width="94" show-overflow-tooltip />
 
-      <el-table-column prop="serial_number" label="Số seri" width="116" show-overflow-tooltip>
-        <template #default="{ row }">
-          <span class="font-mono text-xs">{{ row.serial_number || '—' }}</span>
-        </template>
-      </el-table-column>
 
       <!-- ⚠️ Rỗng thì hiện "Trong kho", KHÔNG hiện dấu gạch. Dấu gạch
            nghĩa là chưa có dữ liệu; đây là một sự thật đã biết. -->
@@ -89,72 +108,28 @@
         </template>
       </el-table-column>
 
-      <el-table-column prop="condition" label="Tình trạng" min-width="120" show-overflow-tooltip />
 
-      <el-table-column prop="purchase_price" label="Giá mua" width="104" align="right">
-        <template #default="{ row }">
-          <span class="font-mono text-xs">{{ tien(row.purchase_price) }}</span>
-        </template>
-      </el-table-column>
 
-      <el-table-column prop="purchase_date" label="Ngày mua" width="86" align="center">
-        <template #default="{ row }">
-          <div v-if="row.purchase_date" class="font-mono text-xs leading-tight">
-            <div class="whitespace-nowrap">{{ ngayThang(row.purchase_date) }}</div>
-            <div class="whitespace-nowrap">{{ namCua(row.purchase_date) }}</div>
-          </div>
-          <span v-else class="text-gray-400">—</span>
-        </template>
-      </el-table-column>
 
-      <el-table-column prop="warranty_expiry" label="Hết bảo hành" width="92" align="center">
-        <template #default="{ row }">
-          <span v-if="row.warranty_expiry" class="font-mono text-xs" :class="lopHan(row.warranty_expiry)">
-            {{ ngayDayDu(row.warranty_expiry) }}
-          </span>
-          <span v-else class="text-gray-400">—</span>
-        </template>
-      </el-table-column>
 
-      <el-table-column prop="notes" label="Ghi chú" min-width="120" show-overflow-tooltip />
 
-      <el-table-column label="Thao tác" width="60" align="center">
-        <template #default="{ row }">
-          <el-dropdown trigger="click" @command="(c: string) => chonLenh(c, row)">
-            <el-button link><el-icon><MoreFilled /></el-icon></el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="sua">Chỉnh sửa</el-dropdown-item>
-                <el-dropdown-item command="gan">Gắn vào máy</el-dropdown-item>
-                <el-dropdown-item v-if="row.device_id" command="kho">Trả về kho</el-dropdown-item>
-                <el-dropdown-item command="xoa" divided class="!text-red-500">Xóa</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-        </template>
-      </el-table-column>
     </el-table>
 
     <!-- ══════════════════ THẺ ══════════════════ -->
     <div v-if="hienThe" v-loading="dangTai" class="flex flex-col gap-3">
       <div v-for="row in trangHienTai" :key="row.id"
            class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+        <!-- MỤC 523 — thẻ dọc đi theo bảng: mã bấm được, bỏ nút ⋯ -->
         <div class="flex items-start justify-between gap-2 mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
           <div class="min-w-0 break-words">
-            <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.id }}</span>
+            <button type="button"
+                    class="font-mono font-bold text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2"
+                    @click.stop="moChiTiet(row)">
+              {{ row.id }}
+            </button>
             <span class="ml-2 font-semibold text-gray-800 dark:text-gray-100">{{ row.name || '—' }}</span>
           </div>
-          <el-dropdown trigger="click" @command="(c: string) => chonLenh(c, row)">
-            <el-button link><el-icon><MoreFilled /></el-icon></el-button>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item command="sua">Chỉnh sửa</el-dropdown-item>
-                <el-dropdown-item command="gan">Gắn vào máy</el-dropdown-item>
-                <el-dropdown-item v-if="row.device_id" command="kho">Trả về kho</el-dropdown-item>
-                <el-dropdown-item command="xoa" divided class="!text-red-500">Xóa</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
+          <div class="shrink-0 text-xs text-gray-400">Bấm mã để xem đủ</div>
         </div>
 
         <div class="flex flex-col gap-2 text-sm">
@@ -165,10 +140,6 @@
           <div class="flex justify-between gap-3">
             <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Hãng:</span>
             <span class="text-right break-words min-w-0 text-xs">{{ row.brand || '—' }}</span>
-          </div>
-          <div class="flex justify-between gap-3">
-            <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Số seri:</span>
-            <span class="text-right break-words min-w-0 font-mono text-xs">{{ row.serial_number || '—' }}</span>
           </div>
           <div class="flex justify-between gap-3">
             <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Đang ở máy:</span>
@@ -183,16 +154,6 @@
               <el-tag size="small" :type="mauTrangThai(row.status)" effect="dark" class="font-bold">
                 {{ chuTrangThai(row.status) }}
               </el-tag>
-            </span>
-          </div>
-          <div class="flex justify-between gap-3">
-            <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Giá mua:</span>
-            <span class="text-right break-words min-w-0 font-mono text-xs">{{ tien(row.purchase_price) }}</span>
-          </div>
-          <div class="flex justify-between gap-3">
-            <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Hết bảo hành:</span>
-            <span class="text-right break-words min-w-0 font-mono text-xs" :class="lopHan(row.warranty_expiry)">
-              {{ row.warranty_expiry ? ngayDayDu(row.warranty_expiry) : '—' }}
             </span>
           </div>
         </div>
@@ -317,6 +278,97 @@
         <el-button type="primary" :loading="dangLuuGan" @click="luuGan">
           {{ mayDuocChon ? 'Gắn vào máy' : 'Trả về kho' }}
         </el-button>
+      </template>
+    </el-dialog>
+
+    <!-- ══════════════════════════════════════════════════════════════
+         MỤC 523 (05/09/2026) — HỘP CHI TIẾT PHỤ KIỆN (DỰNG MỚI)
+
+         Chứa ĐỦ bảy thứ vừa ẩn khỏi bảng, cộng bốn việc chuyển từ cột
+         Thao tác xuống chân hộp.
+
+         ⚠️ Mỗi ô dưới đây hiện y hệt cách bảng cũ hiện — cùng hàm
+         `tien`, `ngayDayDu`, `lopHan`, `chuTrangThai`. Viết cách hiện
+         riêng cho hộp này là hai chỗ định dạng cùng một con số, có ngày
+         lệch nhau.
+         ══════════════════════════════════════════════════════════════ -->
+    <el-dialog v-model="hienChiTiet" :width="hienThe ? '95%' : '680px'"
+               align-center destroy-on-close>
+      <template #header>
+        <span class="font-bold">
+          CHI TIẾT PHỤ KIỆN
+          <span class="text-blue-600 font-mono ml-1">{{ pkDangXem?.id }}</span>
+        </span>
+      </template>
+
+      <div v-if="pkDangXem" class="text-left grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Loại</div>
+          <div class="text-sm">
+            <el-tag v-if="pkDangXem.accessory_type" size="small" effect="plain">{{ pkDangXem.accessory_type }}</el-tag>
+            <span v-else class="text-gray-400">—</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Tên / model</div>
+          <div class="text-sm font-bold text-gray-800 dark:text-gray-100">{{ pkDangXem.name || '—' }}</div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Hãng</div>
+          <div class="text-sm">{{ pkDangXem.brand || '—' }}</div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Số seri</div>
+          <div class="text-sm font-mono">{{ pkDangXem.serial_number || '—' }}</div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Đang ở máy</div>
+          <div class="text-sm">
+            <span v-if="pkDangXem.device_id" class="font-mono font-bold">{{ pkDangXem.device_id }}</span>
+            <span v-else class="text-gray-500">Trong kho</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Trạng thái</div>
+          <div class="text-sm">
+            <el-tag size="small" :type="mauTrangThai(pkDangXem.status)" effect="dark" class="font-bold">
+              {{ chuTrangThai(pkDangXem.status) }}
+            </el-tag>
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Tình trạng vật lý</div>
+          <div class="text-sm">{{ pkDangXem.condition || '—' }}</div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Giá mua</div>
+          <div class="text-sm font-mono">{{ tien(pkDangXem.purchase_price) }}</div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Ngày mua</div>
+          <div class="text-sm font-mono">{{ pkDangXem.purchase_date ? ngayDayDu(pkDangXem.purchase_date) : '—' }}</div>
+        </div>
+        <div>
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Hết bảo hành</div>
+          <div class="text-sm font-mono" :class="pkDangXem.warranty_expiry ? lopHan(pkDangXem.warranty_expiry) : ''">
+            {{ pkDangXem.warranty_expiry ? ngayDayDu(pkDangXem.warranty_expiry) : '—' }}
+          </div>
+        </div>
+        <div class="sm:col-span-2">
+          <div class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">Ghi chú</div>
+          <div class="text-sm whitespace-pre-wrap">{{ pkDangXem.notes || 'Không có ghi chú nào thêm.' }}</div>
+        </div>
+      </div>
+
+      <template #footer>
+        <!-- MỤC 523 — bốn việc chuyển từ cột Thao tác. Đóng hộp Chi tiết
+             TRƯỚC khi gọi việc khác: hai hộp thoại chồng nhau thì hộp
+             dưới khoá cuộn của hộp trên. -->
+        <el-button @click="viecTuChiTiet('sua')">Chỉnh sửa</el-button>
+        <el-button @click="viecTuChiTiet('gan')">Gắn vào máy</el-button>
+        <el-button v-if="pkDangXem?.device_id" @click="viecTuChiTiet('kho')">Trả về kho</el-button>
+        <el-button class="!text-red-500" @click="viecTuChiTiet('xoa')">Xóa</el-button>
+        <el-button type="primary" @click="hienChiTiet = false">Đóng</el-button>
       </template>
     </el-dialog>
   </div>
@@ -500,6 +552,25 @@ const traVeKho = async (row: any) => {
   } catch (e: any) {
     ElMessage.error(e?.message || 'Không lưu được.')
   }
+}
+
+// ══════════════════════════════════════════════════════════════════
+// MỤC 523 (05/09/2026) — HỘP CHI TIẾT PHỤ KIỆN
+// Xem lời ghi ở khối hộp thoại "CHI TIẾT PHỤ KIỆN" phía trên.
+// ══════════════════════════════════════════════════════════════════
+const hienChiTiet = ref(false)
+const pkDangXem = ref<any | null>(null)
+
+const moChiTiet = (row: any) => {
+  pkDangXem.value = row
+  hienChiTiet.value = true
+}
+
+const viecTuChiTiet = (lenh: string) => {
+  const pk = pkDangXem.value
+  if (!pk) return
+  hienChiTiet.value = false
+  chonLenh(lenh, pk)
 }
 
 const chonLenh = (lenh: string, row: any) => {

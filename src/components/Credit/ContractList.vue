@@ -969,6 +969,20 @@
 </template>
 
 <script setup lang="ts">
+
+// ══════════════════════════════════════════════════════════════════
+// MỤC 527 (05/09/2026) — MÀN NÀY CHẠY TRONG MỘT LUỒNG
+//
+// s68 05/09: *"bấm ô 1 vào luồng PQCredit, ô 2 vào luồng KCredit.
+// Trong mỗi luồng đều có đầy đủ nội dung từng luồng."*
+//
+// 🔴 `luong` gửi THẲNG lên máy chủ làm bộ lọc, không lọc sau khi tải.
+// Tải hết rồi giấu bớt thì mọi con số tổng vẫn tính trên cả hai luồng.
+//
+// ⚠️ Rỗng = không lọc. Giữ nguyên hành vi cũ cho chỗ nào dùng lại
+// component này ngoài hai luồng.
+// ══════════════════════════════════════════════════════════════════
+const props = defineProps<{ luong?: string }>()
 import { ref, reactive, computed, onMounted } from 'vue'
 import { mauSo } from '@/utils/mauSo'
 import { Search, MoreFilled, Files, Plus } from '@element-plus/icons-vue'
@@ -1604,6 +1618,7 @@ const fetchCredits = async () => {
       params.end_date = dateRange.value[1]
     }
 
+    if (props.luong) params.classification = props.luong   // MỤC 527
     const data = await creditService.getCredits(params)
     contracts.value = data.map((item: any) => ({
       id: item.id || '',
@@ -1639,7 +1654,7 @@ const fetchCredits = async () => {
 
 const fetchCustomersList = async () => {
   try {
-    const data = await creditService.getCreditCustomers()
+    const data = await creditService.getCreditCustomers({ classification: props.luong })
     customersList.value = data
   } catch (error: any) {
     // Silently fail - customer dropdown may not load
