@@ -436,12 +436,130 @@
               </el-col>
             </el-row>
           </div>
+
+          <!-- ══════════════════════════════════════════════════════════
+               MỤC 536 (05/09/2026) — KHAI LUÔN BA THỨ ĐI KÈM LÚC TẠO XE
+
+               s68 05/09: *"lúc tạo phương tiện mới thì thêm liên kết, add
+               hợp đồng, ngày hẹn bảo trì bảo dưỡng gần nhất luôn. Khỏi
+               phải tạo thủ công từng hạn mục rồi mới liên kết"*.
+
+               🔴 CHỈ HIỆN KHI THÊM MỚI, không hiện lúc chỉnh sửa. Xe đã
+               có rồi thì ba thứ này quản ở ba tab riêng — mỗi xe có thể
+               có nhiều hợp đồng và nhiều lần bảo dưỡng, nhét vào form sửa
+               là chỉ sửa được cái đầu tiên và giấu mất phần còn lại.
+
+               ⚠️ Cả ba khối ĐỀU KHÔNG BẮT BUỘC. Có xe mua về chưa kịp mua
+               bảo hiểm, có xe chưa biết giao nhóm nào. Bỏ trống là bỏ
+               qua khối đó, không báo lỗi.
+               ══════════════════════════════════════════════════════════ -->
+          <template v-if="!isEdit">
+            <div class="mb-4">
+              <h4 class="text-sm font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1 flex items-center gap-2">
+                <span class="w-1.5 h-4 bg-amber-500 rounded-full"></span>
+                Khai luôn (không bắt buộc)
+              </h4>
+              <p class="text-xs text-gray-400 mb-3">
+                Điền ở đây thì khỏi phải vào ba tab kia tạo lại. Để trống cũng
+                được — thêm sau lúc nào cũng thêm được.
+              </p>
+
+              <!-- ── Nhóm liên kết ── -->
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="Chat ID nhóm phụ trách">
+                    <el-input v-model="form.nhom_chat_id" placeholder="VD: -1001234567890" />
+                    <span class="text-xs text-gray-400">
+                      Mỗi nhóm chỉ phụ trách một xe. Lấy Chat ID bằng lệnh
+                      <b>/get_chat_id</b> gõ ngay trong nhóm đó.
+                    </span>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="Tên nhóm (ghi để dễ nhớ)">
+                    <el-input v-model="form.nhom_ten" placeholder="VD: HDG - Đội xe tải" />
+                    <span class="text-xs text-gray-400">
+                      Nhóm bấm ✅ xác nhận thì hệ thống tự lấy tên thật.
+                    </span>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <!-- ── Hợp đồng bảo hiểm ── -->
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="Bảo hiểm — ngày hết hạn">
+                    <el-date-picker v-model="form.bh_ngay_het_han" type="date"
+                                    value-format="YYYY-MM-DD" class="!w-full"
+                                    placeholder="Chọn ngày..." />
+                    <span class="text-xs text-gray-400">
+                      Có ngày này thì bot mới cảnh báo được (trước 7 ngày và
+                      đúng ngày hết hạn).
+                    </span>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="Bảo hiểm — số hợp đồng">
+                    <el-input v-model="form.bh_so_hop_dong" placeholder="VD: BH2026-00123" />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="Bảo hiểm — công ty">
+                    <el-input v-model="form.bh_cong_ty" placeholder="VD: Bảo Việt, PVI..." />
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="Bảo hiểm — loại">
+                    <el-select v-model="form.bh_loai" allow-create filterable clearable
+                               placeholder="Chọn hoặc gõ..." class="!w-full">
+                      <el-option label="TNDS bắt buộc" value="TNDS bắt buộc" />
+                      <el-option label="TNDS tự nguyện" value="TNDS tự nguyện" />
+                      <el-option label="Vật chất xe" value="Vật chất xe" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+
+              <!-- ── Lịch bảo trì gần nhất ── -->
+              <el-row :gutter="20">
+                <el-col :span="12">
+                  <el-form-item label="Bảo dưỡng — ngày hẹn gần nhất">
+                    <el-date-picker v-model="form.bt_ngay_hen" type="date"
+                                    value-format="YYYY-MM-DD" class="!w-full"
+                                    placeholder="Chọn ngày..." />
+                    <span class="text-xs text-gray-400">
+                      Làm xong thì vào tab Bảo trì bấm "Đã xong" và ghi hẹn
+                      lần tới — hệ thống tự đặt lịch mới.
+                    </span>
+                  </el-form-item>
+                </el-col>
+                <el-col :span="12">
+                  <el-form-item label="Bảo dưỡng — loại việc">
+                    <el-select v-model="form.bt_loai" class="!w-full">
+                      <el-option label="Bảo dưỡng định kỳ" value="bao_duong" />
+                      <el-option label="Bảo trì, sửa chữa" value="bao_tri" />
+                    </el-select>
+                  </el-form-item>
+                </el-col>
+              </el-row>
+              <el-row :gutter="20">
+                <el-col :span="24">
+                  <el-form-item label="Bảo dưỡng — nội dung cần làm">
+                    <el-input v-model="form.bt_noi_dung"
+                              placeholder="VD: Thay nhớt, kiểm tra phanh, đảo lốp..." />
+                  </el-form-item>
+                </el-col>
+              </el-row>
+            </div>
+          </template>
         </el-form>
       </div>
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="dialogVisible = false">Hủy</el-button>
-          <el-button type="primary" @click="submitForm">Xác nhận</el-button>
+          <el-button type="primary" :loading="loading" @click="submitForm">Xác nhận</el-button>
         </span>
       </template>
     </el-dialog>
@@ -605,7 +723,19 @@ const form = reactive({
   model: '',
   color: '',
   owner_name: '',
-  status: 'activity'
+  status: 'activity',
+  // ── MỤC 536 (05/09/2026) — ba khối khai kèm lúc tạo xe ──
+  // ⚠️ Phải khai đủ ở đây, nếu không `resetForm` bên dưới không xoá
+  // được và ô nhập giữ lại giá trị của xe vừa tạo lần trước.
+  nhom_chat_id: '',
+  nhom_ten: '',
+  bh_so_hop_dong: '',
+  bh_cong_ty: '',
+  bh_loai: '',
+  bh_ngay_het_han: null as any,
+  bt_loai: 'bao_duong',
+  bt_noi_dung: '',
+  bt_ngay_hen: null as any,
 })
 
 const rules = reactive({
@@ -636,6 +766,18 @@ const openAddDialog = () => {
   form.color = ''
   form.owner_name = ''
   form.status = 'activity'
+  // MỤC 536 — xoá sạch ba khối khai kèm. Không xoá thì lần thêm xe sau
+  // vẫn giữ chat_id và ngày bảo hiểm của xe trước, và người dùng bấm
+  // Xác nhận là gắn nhầm nhóm cho xe mới.
+  form.nhom_chat_id = ''
+  form.nhom_ten = ''
+  form.bh_so_hop_dong = ''
+  form.bh_cong_ty = ''
+  form.bh_loai = ''
+  form.bh_ngay_het_han = null
+  form.bt_loai = 'bao_duong'
+  form.bt_noi_dung = ''
+  form.bt_ngay_hen = null
   dialogVisible.value = true
 }
 
@@ -678,14 +820,42 @@ const submitForm = async () => {
           }
           ElMessage.success('Cập nhật thông tin phương tiện thành công!')
         } else {
-          // POST /add-vehicles accepts list. ID can be left blank (auto generated by backend uuid)
-          const res = await vehicleService.addVehicles([payload])
-          if (res && res.length > 0) {
-            vehicles.value.unshift(res[0])
-          } else {
-            fetchVehicles()
+          // ══════════════════════════════════════════════════════════
+          // MỤC 536 (05/09/2026) — MỘT LỜI GỌI CHO CẢ BỐN VIỆC
+          //
+          // 🔴 KHÔNG gọi bốn đường API nối tiếp. Lời gọi thứ ba hỏng là
+          // xe đã tạo mà bảo hiểm chưa — người dùng thấy báo lỗi nên
+          // tưởng chưa có gì, bấm lại thành hai xe trùng biển số.
+          // Đường `add-phuong-tien-day-du` gói cả bốn vào một giao dịch.
+          // ══════════════════════════════════════════════════════════
+          const kq = await vehicleService.addPhuongTienDayDu({
+            ...payload,
+            nhom_chat_id: (form.nhom_chat_id || '').trim() || null,
+            nhom_ten: form.nhom_ten || null,
+            bh_so_hop_dong: form.bh_so_hop_dong || null,
+            bh_cong_ty: form.bh_cong_ty || null,
+            bh_loai: form.bh_loai || null,
+            bh_ngay_het_han: form.bh_ngay_het_han || null,
+            bt_loai: form.bt_loai || null,
+            bt_noi_dung: form.bt_noi_dung || null,
+            bt_ngay_hen: form.bt_ngay_hen || null,
+          })
+
+          // Nói rõ ĐÃ TẠO NHỮNG GÌ. Báo "thành công" trống thì người
+          // dùng không biết ba khối kia có ăn hay không.
+          const d = (kq && kq.da_tao) || {}
+          const phan = [`Đã tạo xe ${d.xe?.vehicle_code || ''}`]
+          if (d.nhom) phan.push('đã gắn nhóm (chờ nhóm xác nhận)')
+          if (d.bao_hiem) phan.push('đã khai bảo hiểm')
+          if (d.bao_tri) phan.push('đã đặt lịch bảo dưỡng')
+          ElMessage.success(phan.join(' · '))
+
+          // ⚠️ Cảnh báo hiện RIÊNG và lâu hơn. Gộp vào dòng thành công
+          // là người dùng đọc lướt qua mất.
+          for (const c of (kq?.canh_bao || [])) {
+            ElMessage({ message: c, type: 'warning', duration: 8000 })
           }
-          ElMessage.success('Thêm mới phương tiện thành công!')
+          fetchVehicles()
         }
         dialogVisible.value = false
       } catch (error: any) {

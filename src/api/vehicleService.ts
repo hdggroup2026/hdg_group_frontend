@@ -207,6 +207,14 @@ export const vehicleService = {
     return await this._goi('/vehicle/get-loai-xe', { method: 'GET' });
   },
 
+  // ── MỤC 536 — tạo xe kèm luôn nhóm · bảo hiểm · lịch bảo dưỡng ──
+  // 🔴 MỘT lời gọi cho cả bốn việc. Máy chủ gói vào một giao dịch nên
+  // hỏng chỗ nào là sạch chỗ đó, không để lại xe nửa vời.
+  async addPhuongTienDayDu(duLieu: any): Promise<any> {
+    return await this._goi('/vehicle/add-phuong-tien-day-du',
+      { method: 'POST', body: JSON.stringify(duLieu) });
+  },
+
   // ── MỤC 530, sửa ở MỤC 533 — nhóm liên kết theo TỪNG XE ─────────
   // 🔴 s68 chốt 05/09: *"Mỗi nhóm 1 xe."*
   async getNhomXe(vehicleId?: string): Promise<any[]> {

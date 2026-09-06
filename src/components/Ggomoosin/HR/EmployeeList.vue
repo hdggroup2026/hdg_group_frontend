@@ -316,12 +316,31 @@
     >
       <div class="max-h-[65vh] overflow-y-auto overflow-x-hidden px-2">
         <el-form :model="form" label-width="170px" class="mt-2 compact-form">
-          <!-- THÔNG TIN CƠ BẢN -->
+          <!-- ══════════════════════════════════════════════════════════
+               THÔNG TIN CƠ BẢN — MỤC 537 (05/09/2026) BỐ CỤC LẠI
+
+               s68 05/09: *"Bố cục lại phần thông tin cơ bản cho khoa học
+               giúp tôi. Họ 1 dòng tên 1 dòng. Nhìn kém quá."* và chốt
+               lại: *"Họ + tên: 1 dòng. Nick tele + nhóm tele 1 dòng.
+               Những thông tin liên quan nhau nên đi kèm nhau 1 dòng nhìn
+               cho logic nhé."*
+
+               🔴 BỐ CỤC CŨ XẾP LẪN LỘN: hàng 1 là "Mã NV | Họ", hàng 2
+               là "Tên | Username". Nên Họ và Tên — hai nửa của cùng một
+               cái tên — nằm ở hai hàng khác nhau, cách nhau bởi Mã NV và
+               Username. Đọc dọc xuống không ra được tên người.
+
+               Nay xếp theo NHÓM NGHĨA, mỗi hàng một nhóm:
+                 định danh · tên người · Telegram · cá nhân ·
+                 liên hệ · giấy tờ · nơi ở · khác
+               ══════════════════════════════════════════════════════════ -->
           <div class="mb-4">
             <h4 class="text-sm font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider mb-3 flex items-center gap-2">
               <span class="w-1.5 h-4 bg-blue-500 rounded-full"></span>
               Thông tin cơ bản
             </h4>
+
+            <!-- ① Định danh trong hệ thống -->
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Mã NV">
@@ -329,35 +348,73 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="Họ">
-                  <el-input v-model="form.lastName" placeholder="Họ..." />
+                <el-form-item label="Ngày vào làm">
+                  <!-- MỤC 538 — s68: *"Hiện tại không có thông tin thời
+                       gian bắt đầu làm việc."* Đặt cạnh Mã NV vì cả hai
+                       đều là mốc nhận người vào. -->
+                  <el-date-picker :editable="false" v-model="form.ngayVaoLam" type="date"
+                                  placeholder="Chọn ngày..." format="DD/MM/YYYY"
+                                  value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>
+
+            <!-- ② Tên người — HỌ và TÊN cùng một hàng -->
             <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Họ và tên đệm">
+                  <el-input v-model="form.lastName" placeholder="VD: Chung Thị Thành" />
+                </el-form-item>
+              </el-col>
               <el-col :span="12">
                 <el-form-item label="Tên">
-                  <el-input v-model="form.firstName" placeholder="Tên..." />
-                </el-form-item>
-              </el-col>
-              <el-col :span="12">
-                <el-form-item label="Username">
-                  <el-input v-model="form.username" placeholder="Username..." />
+                  <el-input v-model="form.firstName" placeholder="VD: Vân" />
                 </el-form-item>
               </el-col>
             </el-row>
+
+            <!-- ③ Telegram — nick và nhóm cùng một hàng -->
             <el-row :gutter="20">
               <el-col :span="12">
-                <el-form-item label="Ủy quyền">
-                  <el-input v-model="form.authorization" placeholder="Ủy quyền..." />
+                <el-form-item label="Nick Telegram">
+                  <el-input v-model="form.username" placeholder="VD: akaaa2233" />
+                  <span class="text-xs text-gray-400">Không có dấu @.</span>
                 </el-form-item>
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Nhóm Telegram">
-                  <el-input v-model="form.telegramGroup" placeholder="Nhóm TG..." />
+                  <!-- ══════════════════════════════════════════════════
+                       MỤC 541 (05/09/2026) — CHỌN NHÓM, KHÔNG GÕ TAY
+
+                       s68 05/09: *"Phần nhóm telegram thì cho liên kết
+                       chatid luôn thì có ok hơn không?"*
+
+                       🔴 Ô này TRƯỚC ĐÂY LÀ CHỮ TỰ DO. Gõ `GGO0005` hay
+                       `GGO005` hay `ggo0005` là ba giá trị khác nhau, mà
+                       bot dùng đúng ô này để biết gửi BẢNG LƯƠNG cho ai.
+                       Gõ nhầm là lương người này bắn sang nhóm lạ.
+
+                       ⚠️ `allow-create` GIỮ LẠI có chủ ý: bảy nhân viên
+                       đang có đều lưu TÊN nhóm kiểu cũ, và hệ thống vẫn
+                       tra được (`cham_cong_xac_nhan.py` dòng 626 tra tên
+                       sang bảng nhóm, hoặc dùng thẳng nếu là dãy số).
+                       Khoá cứng chỉ-chọn là bảy hồ sơ cũ không sửa được
+                       nữa cho tới khi chọn lại nhóm.
+                       ══════════════════════════════════════════════════ -->
+                  <el-select v-model="form.telegramGroup" filterable allow-create
+                             clearable placeholder="Chọn nhóm..." style="width: 100%">
+                    <el-option v-for="n in dsNhomTelegram" :key="n.chat_id"
+                               :value="n.chat_id"
+                               :label="`${n.group_name || '(chưa có tên)'} — ${n.chat_id}`" />
+                  </el-select>
+                  <span class="text-xs text-gray-400">
+                    Chọn từ danh sách để lấy đúng chat ID. Nhóm cũ ghi bằng tên vẫn dùng được.
+                  </span>
                 </el-form-item>
               </el-col>
             </el-row>
+
+            <!-- ④ Thông tin cá nhân -->
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Giới tính">
@@ -373,6 +430,8 @@
                 </el-form-item>
               </el-col>
             </el-row>
+
+            <!-- ⑤ Liên hệ -->
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="SĐT">
@@ -385,31 +444,35 @@
                 </el-form-item>
               </el-col>
             </el-row>
+
+            <!-- ⑥ Giấy tờ tuỳ thân — số và nơi cấp đi liền nhau -->
             <el-row :gutter="20">
-              <el-col :span="12">
-                <el-form-item label="Địa chỉ">
-                  <el-input v-model="form.address" placeholder="Địa chỉ..." />
-                </el-form-item>
-              </el-col>
               <el-col :span="12">
                 <el-form-item label="CCCD/CMND">
                   <el-input v-model="form.idNumber" placeholder="Số CCCD..." />
                 </el-form-item>
               </el-col>
-            </el-row>
-            <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Nơi cấp">
                   <el-input v-model="form.idPlace" placeholder="Nơi cấp..." />
                 </el-form-item>
               </el-col>
+            </el-row>
+
+            <!-- ⑦ Nơi ở — địa chỉ chiếm trọn hàng vì dài nhất form -->
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item label="Địa chỉ">
+                  <el-input v-model="form.address" placeholder="Số nhà, đường, phường, quận, tỉnh/thành..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Quốc tịch">
                   <el-input v-model="form.nationality" placeholder="Việt Nam" />
                 </el-form-item>
               </el-col>
-            </el-row>
-            <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Tình trạng hôn nhân">
                   <el-select v-model="form.maritalStatus" placeholder="Chọn" style="width: 100%" class="highlight-select">
@@ -419,12 +482,102 @@
                   </el-select>
                 </el-form-item>
               </el-col>
+            </el-row>
+
+            <!-- ⑧ Còn lại -->
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Ủy quyền">
+                  <el-input v-model="form.authorization" placeholder="Nick Telegram người được ủy quyền..." />
+                </el-form-item>
+              </el-col>
               <el-col :span="12">
                 <el-form-item label="Ảnh nhân viên">
                   <el-input v-model="form.photoUrl" placeholder="URL ảnh..." />
                 </el-form-item>
               </el-col>
             </el-row>
+          </div>
+
+          <!-- ══════════════════════════════════════════════════════════
+               TRẠNG THÁI LÀM VIỆC — MỤC 538 · 539 · 540 (05/09/2026)
+
+               s68 05/09: *"nhân viên G005 nghỉ làm việc thì bây giờ xử lý
+               vào đâu? Ghi ngày nghỉ làm việc luôn để hệ thống không tính
+               lương hay nhắc nhở checkin / out nữa."* và *"lúc bật nghỉ
+               việc thì hiện thêm ô tính lương đến ngày: dd/mm/yyyy và
+               nhập vào."*
+
+               🔴 CƠ CHẾ NGHỈ VIỆC ĐÃ CÓ SẴN NHƯNG CHƯA CÓ CÔNG TẮC. Cột
+               `status` tồn tại từ lâu và cả hệ thống lọc
+               `status != "inactive"`, nhưng web LUÔN ghi cứng `'Active'`
+               và không có ô nào để đổi. Khối này chính là công tắc đó.
+               ══════════════════════════════════════════════════════════ -->
+          <div class="mb-4">
+            <h4 class="text-sm font-bold uppercase tracking-wider mb-3 flex items-center gap-2"
+                :class="form.dangLam ? 'text-teal-600 dark:text-teal-400' : 'text-red-600 dark:text-red-400'">
+              <span class="w-1.5 h-4 rounded-full"
+                    :class="form.dangLam ? 'bg-teal-500' : 'bg-red-500'"></span>
+              Trạng thái làm việc
+            </h4>
+
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item label="Đang làm việc">
+                  <el-switch v-model="form.dangLam"
+                             active-text="Đang làm" inactive-text="Đã nghỉ việc"
+                             inline-prompt style="--el-switch-off-color: #ef4444" />
+                  <span class="ml-3 text-xs text-gray-400">
+                    Tắt công tắc này thì bot ngừng nhắc check-in và ngừng chấm
+                    công tự động ngay.
+                  </span>
+                </el-form-item>
+              </el-col>
+            </el-row>
+
+            <!-- Chỉ hiện khi ĐÃ TẮT công tắc -->
+            <template v-if="!form.dangLam">
+              <div class="p-3 rounded-lg border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-900/20">
+                <el-row :gutter="20">
+                  <el-col :span="12">
+                    <el-form-item label="Tính lương đến ngày">
+                      <el-date-picker :editable="false" v-model="form.ngayTinhLuongDen" type="date"
+                                      placeholder="dd/mm/yyyy" format="DD/MM/YYYY"
+                                      value-format="YYYY-MM-DD" style="width: 100%" />
+                      <span class="text-xs text-gray-500 dark:text-gray-400">
+                        Ngày làm việc cuối cùng. Công được tính đến hết ngày này,
+                        và <b>kỳ lương chứa ngày này vẫn xuất được bình thường</b>.
+                      </span>
+                    </el-form-item>
+                  </el-col>
+                  <el-col :span="12">
+                    <el-form-item label="Lý do nghỉ">
+                      <el-select v-model="form.lyDoNghiChon" placeholder="Chọn lý do..."
+                                 clearable style="width: 100%">
+                        <el-option v-for="l in DS_LY_DO_NGHI" :key="l" :label="l" :value="l" />
+                      </el-select>
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+
+                <!-- ⚠️ Ô nhập tay chỉ bung ra khi chọn "Khác". Hiện sẵn hai ô
+                     là người dùng không biết phải điền ô nào. -->
+                <el-row :gutter="20" v-if="form.lyDoNghiChon === 'Khác'">
+                  <el-col :span="24">
+                    <el-form-item label="Ghi rõ lý do">
+                      <el-input v-model="form.lyDoNghiKhac" placeholder="Nhập lý do cụ thể..." />
+                    </el-form-item>
+                  </el-col>
+                </el-row>
+
+                <div class="text-xs text-red-700 dark:text-red-400 mt-1">
+                  🔴 Lưu xong, bot sẽ <b>tự gửi thông báo chấm dứt hợp đồng lao
+                  động</b> xuống nhóm riêng của nhân viên và nhóm quản lý.
+                  Tin này chỉ gửi <b>một lần</b>, lúc chuyển từ đang làm sang
+                  đã nghỉ.
+                </div>
+              </div>
+            </template>
           </div>
 
           <!-- HỌC VẤN & KINH NGHIỆM -->
@@ -1197,6 +1350,24 @@ const openEditDialog = (row: any) => {
   form.username = row.username
   form.authorization = row.authorization
   form.telegramGroup = row.telegramGroup
+  // ── MỤC 537 · 538 ──
+  form.ngayVaoLam = row.ngayVaoLam || ''
+  // 🔴 `dangLam` suy từ `status`. Chỉ chữ "inactive" mới là đã nghỉ;
+  // mọi giá trị khác (kể cả rỗng) đều coi là đang làm — bảy hồ sơ cũ
+  // không có trạng thái rõ ràng, mặc định coi họ nghỉ việc là sai.
+  form.dangLam = String(row.status || '').toLowerCase() !== 'inactive'
+  form.ngayTinhLuongDen = row.ngayTinhLuongDen || ''
+  // Lý do cũ nằm trong danh sách thì chọn sẵn, không thì đổ vào ô "Khác".
+  if (row.lyDoNghi && DS_LY_DO_NGHI.includes(row.lyDoNghi)) {
+    form.lyDoNghiChon = row.lyDoNghi
+    form.lyDoNghiKhac = ''
+  } else if (row.lyDoNghi) {
+    form.lyDoNghiChon = 'Khác'
+    form.lyDoNghiKhac = row.lyDoNghi
+  } else {
+    form.lyDoNghiChon = ''
+    form.lyDoNghiKhac = ''
+  }
   form.gender = row.gender
   form.dob = row.dob
   form.phone = row.phone
@@ -1245,6 +1416,31 @@ const openEditDialog = (row: any) => {
   dialogVisible.value = true
 }
 
+// ══════════════════════════════════════════════════════════════════
+// MỤC 538 (05/09/2026) — LÝ DO NGHỈ VIỆC
+//
+// s68 05/09: *"Cho drop list 5-10 lý do cơ bản. Và lý do khác thì nhập
+// tay vào sau."*
+//
+// ⚠️ "Khác" luôn đứng CUỐI, và chọn nó mới bung ô nhập tay. Hiện sẵn hai
+// ô là người dùng không biết phải điền ô nào.
+// ══════════════════════════════════════════════════════════════════
+const DS_LY_DO_NGHI = [
+  'Hết hạn hợp đồng',
+  'Nhân viên xin nghỉ',
+  'Chuyển công tác',
+  'Nghỉ do sức khoẻ',
+  'Nghỉ do hoàn cảnh gia đình',
+  'Không đạt yêu cầu công việc',
+  'Vi phạm nội quy',
+  'Tinh giản nhân sự',
+  'Nghỉ hưu',
+  'Khác',
+]
+
+// MỤC 541 — danh sách nhóm Telegram để chọn thay vì gõ tay.
+const dsNhomTelegram = ref<any[]>([])
+
 const defaultForm = () => ({
   code: '', lastName: '', firstName: '', username: '', authorization: '', telegramGroup: '',
   gender: 'Nam', dob: '', phone: '', email: '', address: '', idNumber: '', idPlace: '',
@@ -1260,7 +1456,16 @@ const defaultForm = () => ({
   bankName: '', bankAccount: '', paymentCode: '',
   emergencyPhone: '', emergencyContact: '',
   autoAttendance: true, workType: 3,
-  careerGoal: '', performanceReview: ''
+  careerGoal: '', performanceReview: '',
+  // ── MỤC 537 · 538 (05/09/2026) — ngày vào làm và nghỉ việc ──
+  // ⚠️ `dangLam` mặc định TRUE: thêm nhân viên mới thì đương nhiên đang
+  // làm. Mặc định false là mỗi lần thêm người lại bắn thông báo chấm dứt
+  // hợp đồng.
+  ngayVaoLam: '' as any,
+  dangLam: true,
+  ngayTinhLuongDen: '' as any,
+  lyDoNghiChon: '',
+  lyDoNghiKhac: ''
 })
 
 const form = reactive(defaultForm())
@@ -1293,7 +1498,27 @@ const submitForm = async () => {
     place_of_issue: form.idPlace || null,
     nationality: form.nationality || 'Việt Nam',
     marital_status: form.maritalStatus || 'Độc thân',
-    status: 'Active',
+    // ══════════════════════════════════════════════════════════════
+    // MỤC 538 (05/09/2026) — TRẠNG THÁI GỬI LÊN THEO CÔNG TẮC
+    //
+    // 🔴 Trước MỤC 538 dòng này GHI CỨNG `'Active'`. Nên cột `status`
+    // tồn tại, cả hệ thống lọc theo nó, mà KHÔNG AI BẬT ĐƯỢC từ web —
+    // cơ chế nghỉ việc có sẵn nhưng không có công tắc.
+    //
+    // ⚠️ Chữ phải đúng `inactive` viết thường. Máy chủ so bằng
+    // `Employee.status != "inactive"`; viết hoa một chữ là người đã nghỉ
+    // vẫn bị nhắc check-in như thường.
+    // ══════════════════════════════════════════════════════════════
+    status: form.dangLam ? 'Active' : 'inactive',
+    ngay_vao_lam: form.ngayVaoLam || null,
+    // Nghỉ việc thì gửi ngày và lý do; đang làm thì XOÁ sạch hai ô đó —
+    // bật lại người cũ mà còn ngày nghỉ treo là kỳ lương sau bị cắt công
+    // nhầm.
+    ngay_tinh_luong_den: form.dangLam ? null : (form.ngayTinhLuongDen || null),
+    ly_do_nghi: form.dangLam ? null : (
+      form.lyDoNghiChon === 'Khác'
+        ? (form.lyDoNghiKhac || 'Khác')
+        : (form.lyDoNghiChon || null)),
     experience: form.experience || null,
     company_id: null,
     employee_photo: form.photoUrl || null,
@@ -1422,6 +1647,13 @@ const mapApiToEmployee = (apiEmp: any) => {
     username: apiEmp.username || '',
     authorization: apiEmp.authority || '',
     telegramGroup: apiEmp.telegram_group || '',
+    // ── MỤC 537 · 538 (05/09/2026) ──
+    // ⚠️ Thiếu ba dòng này thì form sửa mở ra luôn trống ba ô mới, và
+    // bấm Lưu là xoá mất ngày nghỉ đã khai.
+    ngayVaoLam: apiEmp.ngay_vao_lam || '',
+    ngayTinhLuongDen: apiEmp.ngay_tinh_luong_den || '',
+    lyDoNghi: apiEmp.ly_do_nghi || '',
+    status: apiEmp.status || '',
     gender: apiEmp.gender || 'Nam',
     dob: apiEmp.birthday || '',
     phone: apiEmp.number_phone || '',
