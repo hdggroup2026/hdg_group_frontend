@@ -455,34 +455,16 @@ import RealEstateCards from './RealEstateCards.vue'
 import RealEstateTableQuery from './RealEstateTableQuery.vue'
 import { rentalService } from '@/api/rentalService'
 
-interface Property {
-  id: string
-  real_estate_id: string
-  address: string
-  start_buy: string
-  end_buy: string
-  total_cost: number
-  real_estate_cost: number
-  construction_cost: number
-  furniture_cost: number
-  sale_cost: number
-  contributed_cost: number
-  monthly_interest_rate: number
-  mining_profit: number
-  rental_profit: number
-  start_sale: string
-  end_sale: string
-  profit_after_tax: number
-  profit_after_sale: number
-  status: string
-  note: string
-  current_estimated: number
-  // ══ MỤC 588 — bốn trường của MỤC 587 ══
-  chat_id: string
-  group_name: string
-  zalo_nhom: string
-  khach_trong_nhom: boolean
-}
+// ══ MỤC 593 (08/09/2026) — KIỂU `Property` NAY KHAI Ở MỘT CHỖ DUY NHẤT ══
+//
+// Trước MỤC này file tự khai `interface Property` riêng. Ba file của mảng
+// Rental có ba bản chép; MỤC 588 thêm bốn trường vào bản của
+// RealEstateTabWrapper.vue mà quên hai bản kia → Cloudflare dựng đỏ
+// TS2322 hai lần (15:40 và 16:13 ngày 08/09/2026).
+//
+// Nay đọc từ `src/types/rental.ts`. Thêm cột mới chỉ sửa một chỗ, không
+// thể quên file nào. KHÔNG khai lại `interface Property` trong file này.
+import type { Property } from '@/types/rental'
 
 const activeTab = refTabBenVung('rental/realestate', 'cards')  // MỤC 423
 

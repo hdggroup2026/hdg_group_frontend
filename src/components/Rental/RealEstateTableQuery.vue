@@ -348,29 +348,16 @@ import { dungManHep } from '@/composables/manHep'
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 
-interface Property {
-  id: string
-  real_estate_id: string
-  address: string
-  start_buy: string
-  end_buy: string
-  total_cost: number
-  real_estate_cost: number
-  construction_cost: number
-  furniture_cost: number
-  sale_cost: number
-  contributed_cost: number
-  monthly_interest_rate: number
-  mining_profit: number
-  rental_profit: number
-  start_sale: string
-  end_sale: string
-  profit_after_tax: number
-  profit_after_sale: number
-  status: string
-  note: string
-  current_estimated: number
-}
+// ══ MỤC 593 (08/09/2026) — KIỂU `Property` NAY KHAI Ở MỘT CHỖ DUY NHẤT ══
+//
+// Trước MỤC này file tự khai `interface Property` riêng. Ba file của mảng
+// Rental có ba bản chép; MỤC 588 thêm bốn trường vào bản của
+// RealEstateTabWrapper.vue mà quên hai bản kia → Cloudflare dựng đỏ
+// TS2322 hai lần (15:40 và 16:13 ngày 08/09/2026).
+//
+// Nay đọc từ `src/types/rental.ts`. Thêm cột mới chỉ sửa một chỗ, không
+// thể quên file nào. KHÔNG khai lại `interface Property` trong file này.
+import type { Property } from '@/types/rental'
 
 defineProps<{
   properties: Property[]
