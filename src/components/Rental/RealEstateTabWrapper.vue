@@ -32,7 +32,25 @@
     </el-tabs>
 
     <!-- Add/Edit RealEstate Dialog -->
-    <el-dialog
+
+    <!-- ══ MỤC 589 (08/09/2026) — FORM BẤT ĐỘNG SẢN XEM ĐƯỢC TRÊN ĐIỆN THOẠI ══
+
+         Trước MỤC này mọi el-col trong form dùng :span="12" — chia đôi trên
+         MỌI cỡ màn. Trên điện thoại thành hai cột chật: ô ngày tháng và ô
+         chat_id không đọc hết được, phải cuộn ngang.
+
+         🔴 Quy tắc frontend số 1 của dự án: mọi thay đổi phải áp cho CẢ BA
+         cỡ màn hình. MỤC 588 đã làm đúng cho bốn ô mới, nhưng để nguyên các
+         khối cũ — nên form nửa đúng nửa sai. Nay áp đều.
+
+         :xs="24"        điện thoại   -> mỗi ô một dòng
+         :sm="12"        máy tính bảng trở lên -> hai cột như cũ
+         :lg="8"         màn rộng, cho khối ba cột giữ nguyên ba cột
+
+         ⚠️ CHỈ đổi trong khối hộp thoại của form. Bảng và thẻ ở ngoài
+         không đụng — chúng đã có bản dựng riêng cho màn hẹp. -->
+    
+<el-dialog
       v-model="dialogVisible"
       :title="isEdit ? 'CHỈNH SỬA THÔNG TIN BẤT ĐỘNG SẢN' : 'THÊM MỚI BẤT ĐỘNG SẢN'"
       width="900px"
@@ -50,12 +68,12 @@
               Thông tin chung
             </h4>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Mã BĐS" prop="real_estate_id">
                   <el-input v-model="form.real_estate_id" placeholder="Mã BĐS (real_estate_id)..." :disabled="isEdit" />
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Tình trạng" prop="status">
                   <el-select v-model="form.status" style="width: 100%" class="highlight-select">
                     <el-option label="Đang ở" value="living" />
@@ -70,17 +88,60 @@
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Địa chỉ" prop="address">
                   <el-input v-model="form.address" placeholder="Địa chỉ chi tiết..." />
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Ghi chú" prop="note">
                   <el-input v-model="form.note" type="textarea" :rows="2" placeholder="Ghi chú thêm..." />
                 </el-form-item>
               </el-col>
             </el-row>
+          </div>
+
+          <!-- ══ MỤC 588 (08/09/2026) — NHÓM TELEGRAM & ZALO CỦA CĂN ══
+               MỤC 587 đã thêm bốn cột vào database và sửa đường tra nhóm,
+               nhưng không có ô nhập thì cột nằm đó không ai dùng được.
+
+               🔴 Nhóm gắn theo CĂN, không theo khách: khách trả nhà rồi
+               cho thuê lại thì hợp đồng mới vẫn dùng đúng nhóm này. -->
+          <div class="mb-4">
+            <h4 class="text-sm font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+              <span class="w-1.5 h-4 bg-emerald-500 rounded-full"></span>
+              Nhóm liên lạc của căn
+            </h4>
+            <el-row :gutter="20">
+              <el-col :xs="24" :sm="12">
+                <el-form-item label="Nhóm Telegram" prop="chat_id">
+                  <el-input v-model="form.chat_id" placeholder="Gõ /get_chat_id trong nhóm để lấy..." />
+                </el-form-item>
+              </el-col>
+              <el-col :xs="24" :sm="12">
+                <el-form-item label="Tên nhóm Telegram" prop="group_name">
+                  <el-input v-model="form.group_name" placeholder="Ví dụ: Rental 13 - Căn Hộ MarQ" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <el-row :gutter="20">
+              <el-col :xs="24" :sm="12">
+                <el-form-item label="Nhóm Zalo của khách" prop="zalo_nhom">
+                  <el-input v-model="form.zalo_nhom" placeholder="Tên hoặc link nhóm Zalo..." />
+                </el-form-item>
+              </el-col>
+              <el-col :xs="24" :sm="12">
+                <el-form-item label="Khách trong nhóm TG" prop="khach_trong_nhom">
+                  <el-switch v-model="form.khach_trong_nhom" active-text="Có" inactive-text="Không" />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <!-- ⚠️ Câu này KHÔNG phải trang trí: người khai cần biết bật
+                 công tắc kia nghĩa là khách đọc được cả nhóm nội bộ. -->
+            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+              Ô Zalo chỉ để người vận hành biết dán thông báo vào đâu — bot không tự gửi sang Zalo.
+              Bật “Khách trong nhóm TG” nghĩa là khách đọc được mọi tin trong nhóm Telegram của căn này.
+            </p>
           </div>
 
           <!-- PHẦN 2: THÔNG TIN MUA VÀ ĐẦU TƯ -->
@@ -90,26 +151,26 @@
               Thông tin Mua & Đầu tư
             </h4>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Ngày bắt đầu mua" prop="start_buy">
                   <el-date-picker :editable="false" v-model="form.start_buy" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Ngày kết thúc mua" prop="end_buy">
                   <el-date-picker :editable="false" v-model="form.end_buy" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Tổng đầu tư (VNĐ)">
                   <el-input v-model="form.total_cost_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'total_cost')">
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
                   </el-input>
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Tiền Bất động sản (VNĐ)">
                   <el-input v-model="form.real_estate_cost_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'real_estate_cost')">
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
@@ -118,14 +179,14 @@
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Tiền xây dựng (VNĐ)">
                   <el-input v-model="form.construction_cost_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'construction_cost')">
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
                   </el-input>
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Tiền nội thất (VNĐ)">
                   <el-input v-model="form.furniture_cost_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'furniture_cost')">
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
@@ -142,14 +203,14 @@
               Thông tin Khai thác & Bán ra
             </h4>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Lợi nhuận khai thác">
                   <el-input v-model="form.mining_profit_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'mining_profit')">
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
                   </el-input>
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Lợi nhuận cho thuê">
                   <el-input v-model="form.rental_profit_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'rental_profit')">
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
@@ -158,14 +219,14 @@
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Giá tạm tính hiện tại">
                   <el-input v-model="form.current_estimated_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'current_estimated')">
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
                   </el-input>
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Tiền bán ra (sale_cost)">
                   <el-input v-model="form.sale_cost_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'sale_cost')">
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
@@ -174,26 +235,26 @@
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Ngày bắt đầu bán" prop="start_sale">
                   <el-date-picker :editable="false" v-model="form.start_sale" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Ngày kết thúc bán" prop="end_sale">
                   <el-date-picker :editable="false" v-model="form.end_sale" type="date" placeholder="Chọn ngày" format="DD/MM/YYYY" value-format="YYYY-MM-DD" style="width: 100%" />
                 </el-form-item>
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Bán ra sau thuế (VNĐ)">
                   <el-input v-model="form.profit_after_tax_text" placeholder="Nhập số tiền..." @input="(v) => handlePriceInput(v, 'profit_after_tax')">
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
                   </el-input>
                 </el-form-item>
               </el-col>
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Lợi nhuận sau bán (VNĐ)">
                   <el-input v-model="form.profit_after_sale_text" placeholder="Tự động tính..." disabled>
                     <template #suffix><span class="text-xs text-gray-400">VNĐ</span></template>
@@ -202,7 +263,7 @@
               </el-col>
             </el-row>
             <el-row :gutter="20">
-              <el-col :span="12">
+              <el-col :xs="24" :sm="12">
                 <el-form-item label="Lãi suất / Tháng (%)">
                   <el-input-number v-model="form.monthly_interest_rate" :min="0" :max="100" :precision="2" style="width: 100%" controls-position="right" />
                 </el-form-item>
@@ -416,6 +477,11 @@ interface Property {
   status: string
   note: string
   current_estimated: number
+  // ══ MỤC 588 — bốn trường của MỤC 587 ══
+  chat_id: string
+  group_name: string
+  zalo_nhom: string
+  khach_trong_nhom: boolean
 }
 
 const activeTab = refTabBenVung('rental/realestate', 'cards')  // MỤC 423
@@ -512,7 +578,12 @@ const form = reactive({
   status: 'vacant',
   note: '',
   current_estimated: 0,
-  current_estimated_text: ''
+  current_estimated_text: '',
+  // ══ MỤC 588 — bốn trường của MỤC 587 ══
+  chat_id: '',
+  group_name: '',
+  zalo_nhom: '',
+  khach_trong_nhom: false
 })
 
 const rules = reactive({
@@ -597,6 +668,12 @@ const openEditDialog = (row: Property) => {
   form.end_sale = row.end_sale || ''
   form.status = row.status
   form.note = row.note || ''
+  // ⚠️ MỤC 588: có `|| ''` cho cả ba ô chữ. Thiếu thì căn nào chưa khai
+  // sẽ nạp `null` vào el-input và Vue in ra chữ "null" trong ô.
+  form.chat_id = row.chat_id || ''
+  form.group_name = row.group_name || ''
+  form.zalo_nhom = row.zalo_nhom || ''
+  form.khach_trong_nhom = row.khach_trong_nhom === true
   dialogVisible.value = true
 }
 
@@ -626,7 +703,14 @@ const submitForm = async () => {
         profit_after_sale: form.profit_after_sale,
         status: form.status,
         note: form.note,
-        current_estimated: form.current_estimated
+        current_estimated: form.current_estimated,
+        // ══ MỤC 588 — bốn trường của MỤC 587 ══
+        // ⚠️ Thiếu bốn dòng này thì ô hiện ra, gõ vào được, bấm Lưu xong
+        // mở lại thấy trống — hỏng im lặng, người dùng tưởng mình gõ sai.
+        chat_id: form.chat_id || null,
+        group_name: form.group_name || null,
+        zalo_nhom: form.zalo_nhom || null,
+        khach_trong_nhom: form.khach_trong_nhom
       }
 
       if (isEdit.value) {
