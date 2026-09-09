@@ -558,6 +558,13 @@
                     </div>
                   </div>
                 </div>
+                <!-- MỤC 604 — chỉ hiện khi thật sự lệch. -->
+                <div v-if="creditLech !== 0"
+                     class="mt-2 pt-2 border-t border-red-300 dark:border-red-700
+                            text-[11px] font-semibold text-red-600 dark:text-red-400">
+                  ⚠️ Lệch {{ Math.abs(creditLech) }} mã giữa tổng và các nhóm —
+                  báo lại để kiểm dữ liệu.
+                </div>
               </template>
             </div>
 
@@ -1408,11 +1415,37 @@ const tien = (x: number | null | undefined): string => {
  * kiểm `so_dong > 0`), nhưng phải tồn tại: giấu đi thì tổng hai khối trên
  * không bằng con số ở dòng đầu thẻ, và người đọc đi tìm mã thất lạc.
  */
-const nhanhCredit = computed(() => [
-  { nhan: 'PQCredit', khoi: bang.value?.credit?.pq_credit },
-  { nhan: 'KCredit', khoi: bang.value?.credit?.k_credit },
-  { nhan: 'Chưa khai luồng', khoi: bang.value?.credit?.chua_khai_luong },
-])
+const nhanhCredit = computed(() => {
+  const c: any = bang.value?.credit
+  if (!c) return []
+  // MỤC 604 (09/09/2026) — chèn MỌI nhánh khác vào giữa, trước khối
+  // "chưa khai luồng". Xem lời ghi ở `bang_dieu_khien.py`: MỤC 603 lọc
+  // cứng hai tên nên mã mang nhánh thứ ba biến mất khỏi màn hình mà
+  // không có gì báo.
+  const khac = (c.nhanh_khac || []).map((k: any) => ({ nhan: k.ten, khoi: k }))
+  return [
+    { nhan: 'PQCredit', khoi: c.pq_credit },
+    { nhan: 'KCredit', khoi: c.k_credit },
+    ...khac,
+    { nhan: 'Chưa khai luồng', khoi: c.chua_khai_luong },
+  ]
+})
+
+/**
+ * MỤC 604 — CHUÔNG BÁO KHI CÓ MÃ RƠI MẤT.
+ *
+ * 🔴 Bài học từ chính lỗi của MỤC 603: các khối con cộng lại phải BẰNG
+ * con số ở dòng đầu thẻ. Lần trước lệch 1 mã mà màn hình im lặng — s68
+ * phải tự ngồi đếm mới ra.
+ *
+ * Nay nếu còn lệch, thẻ hiện thẳng một dòng đỏ nói lệch bao nhiêu. Thà
+ * xấu mà biết còn hơn đẹp mà sai.
+ */
+const creditLech = computed(() => {
+  const c: any = bang.value?.credit
+  if (!c || typeof c.so_dong_moi_khoi !== 'number') return 0
+  return (c.so_dong || 0) - c.so_dong_moi_khoi
+})
 
 const soLe = (x: number | null | undefined): string => {
   if (x === null || x === undefined) return '—'
