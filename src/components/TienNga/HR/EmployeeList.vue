@@ -60,105 +60,56 @@
             <span class="font-mono text-xs text-gray-500">{{ (currentPage - 1) * pageSize + $index + 1 }}</span>
           </template>
         </el-table-column>
-        <el-table-column prop="code" label="Mã NV" width="110" sortable="custom" />
-        <el-table-column prop="lastName" label="Họ" width="101" />
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 597 (09/09/2026) — RÚT BẢNG TỪ 51 CỘT XUỐNG 8
+
+             s68 09/09: *"Nhân sự bên Tiến Nga trên website làm giống
+             bên Ggomoosin cho dễ nhìn."*
+
+             Bảng cũ có 51 cột, phải cuộn ngang qua hơn chục màn mới
+             hết. Ba cột đầu (Mã NV · Họ · Tên) trôi khỏi tầm nhìn ngay
+             khi cuộn, nên nhìn số lương ở cột thứ 30 không biết của ai.
+
+             Ggomoosin đã rút gọn ở MỤC 546 và giữ nguyên tám cột dưới
+             đây. Nay Tiến Nga theo đúng bộ đó.
+
+             🔴 KHÔNG MẤT TRƯỜNG NÀO. 43 cột bỏ đi đều đã có mặt trong
+             hộp "CHI TIẾT THÔNG TIN NHÂN VIÊN" — mở bằng cách bấm vào
+             Mã NV màu xanh, hoặc menu ⋯ → Chi tiết.
+
+             ⚠️ NGOẠI LỆ ĐÃ VÁ: "Nhóm Telegram" là cột DUY NHẤT không có
+             trong hộp Chi tiết. Bỏ nó khỏi bảng mà không thêm vào hộp
+             thì mất hẳn đường xem — nên MỤC này thêm nó vào hộp Chi
+             tiết, cạnh ô Quyền hạn. Đã dò từng cột một để tìm ra chỗ
+             hụt này, không suy theo tên.
+
+             🔴 KHÔNG thêm cột "Trạng thái" như Ggomoosin. Cột đó đọc
+             `row.status`, mà bên Tiến Nga chuỗi `status` không xuất
+             hiện lấy một lần trong cả file — chưa có cơ chế nghỉ việc.
+             Thêm vào thì mọi người đều hiện "Đang làm" kể cả người đã
+             nghỉ: sai mà nhìn như đúng.
+
+             🔴 GIỮ cột "Thao tác" (Ggomoosin bỏ). Ggomoosin bỏ được vì
+             hộp Chi tiết bên đó có sẵn hai nút Chỉnh sửa và Xóa; hộp
+             bên Tiến Nga chỉ có nút Đóng. Bỏ cột này trước khi thêm hai
+             nút kia là cắt mất đường sửa và xóa hồ sơ.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="code" label="Mã NV" width="96" sortable="custom">
+          <template #default="scope">
+            <button type="button"
+                    class="font-mono font-bold text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2 hover:text-blue-800"
+                    :title="`Xem đầy đủ hồ sơ ${scope.row.code}`"
+                    @click.stop="handleCommand('detail', scope.row)">
+              {{ scope.row.code }}
+            </button>
+          </template>
+        </el-table-column>
+        <el-table-column prop="lastName" label="Họ" width="130" />
         <el-table-column prop="firstName" label="Tên" width="86" />
-        <el-table-column prop="username" label="Username" width="108">
-          <template #default="scope"><span class="text-blue-500">{{ scope.row.username }}</span></template>
-        </el-table-column>
-        <el-table-column prop="authorization" label="Ủy quyền" width="101" />
-        <el-table-column prop="telegramGroup" label="Nhóm Telegram" width="158" show-overflow-tooltip />
-        <el-table-column prop="gender" label="Giới tính" width="79" align="center">
-          <template #default="scope">
-            <el-tag :type="scope.row.gender === 'Nam' ? 'primary' : 'danger'" effect="light" size="small" round>{{ scope.row.gender }}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="Ngày sinh" width="94">
-          <template #default="scope"><span class="text-xs text-gray-600 dark:text-gray-400">{{ formatDate(scope.row.dob) }}</span></template>
-        </el-table-column>
         <el-table-column prop="phone" label="SĐT" width="101" />
-        <el-table-column prop="email" label="Email" width="173" show-overflow-tooltip />
-        <el-table-column prop="address" label="Địa chỉ" width="230" show-overflow-tooltip />
-        <el-table-column prop="idNumber" label="CCCD/CMND" width="115" />
-        <el-table-column prop="idPlace" label="Nơi cấp" width="115" />
-        <el-table-column prop="nationality" label="Quốc tịch" width="90" />
-        <el-table-column prop="maritalStatus" label="Tình trạng hôn nhân" width="122" />
-        <el-table-column prop="education" label="Trình độ học vấn" width="119" />
-        <el-table-column prop="major" label="Chuyên ngành" width="115" />
-        <el-table-column prop="certificate" label="Chứng chỉ" width="115" />
-        <el-table-column prop="experience" label="Kinh nghiệm" width="101" />
+        <el-table-column prop="education" label="Trình độ" width="92" />
         <el-table-column prop="department" label="Phòng ban" width="130" />
-        <el-table-column prop="position" label="Chức vụ" width="130" />
-        <el-table-column prop="contractType" label="Loại hợp đồng" width="108" />
-        <el-table-column prop="photoUrl" label="Ảnh nhân viên" width="115" show-overflow-tooltip />
-        <el-table-column label="Giờ vào ca" width="86" align="center">
-          <template #default="scope">{{ scope.row.shiftStartStr || '07:00' }}</template>
-        </el-table-column>
-        <el-table-column label="Giờ tan ca" width="86" align="center">
-          <template #default="scope">{{ scope.row.shiftEndStr || '16:00' }}</template>
-        </el-table-column>
-        <el-table-column label="Vào ca T7" width="86" align="center">
-          <template #default="scope">{{ scope.row.satShiftStartStr || '07:00' }}</template>
-        </el-table-column>
-        <el-table-column label="Tan ca T7" width="86" align="center">
-          <template #default="scope">{{ scope.row.satShiftEndStr || '11:30' }}</template>
-        </el-table-column>
-        <el-table-column label="Số giờ làm/ngày" width="108" align="center">
-          <template #default="scope"><span class="font-medium">{{ scope.row.workHoursPerDay }}h</span></template>
-        </el-table-column>
-        <el-table-column label="Lương cơ bản" width="122" align="right">
-          <template #default="scope"><span class="font-medium" :class="mauSo(scope.row.baseSalary)">{{ formatCurrency(scope.row.baseSalary) }}</span></template>
-        </el-table-column>
-        <el-table-column label="Lương tháng" width="122" align="right">
-          <template #default="scope"><span :class="mauSoDam(scope.row.monthlySalary)">{{ formatCurrency(scope.row.monthlySalary) }}</span></template>
-        </el-table-column>
-        <el-table-column label="Lương tuần" width="115" align="right">
-          <template #default="scope">{{ formatCurrency(scope.row.weeklySalary) }}</template>
-        </el-table-column>
-        <el-table-column label="Lương ngày" width="115" align="right">
-          <template #default="scope">{{ formatCurrency(scope.row.dailySalary) }}</template>
-        </el-table-column>
-        <el-table-column label="Lương giờ" width="108" align="right">
-          <template #default="scope">{{ formatCurrency(scope.row.hourlySalary) }}</template>
-        </el-table-column>
-        <el-table-column label="Lương làm thêm giờ" width="133" align="right">
-          <template #default="scope"><span class="font-medium" :class="mauSo(scope.row.overtimeSalary)">{{ formatCurrency(scope.row.overtimeSalary) }}</span></template>
-        </el-table-column>
-        <el-table-column label="Tiền thưởng" width="115" align="right">
-          <template #default="scope">{{ formatCurrency(scope.row.bonus) }}</template>
-        </el-table-column>
-        <el-table-column label="Tiền ăn trưa" width="115" align="right">
-          <template #default="scope">{{ formatCurrency(scope.row.lunchAllowance) }}</template>
-        </el-table-column>
-        <el-table-column label="Năng suất" width="108" align="right">
-          <template #default="scope">{{ formatCurrency(scope.row.productivity) }}</template>
-        </el-table-column>
-        <el-table-column label="Phụ cấp khác" width="115" align="right">
-          <template #default="scope">{{ formatCurrency(scope.row.otherAllowance) }}</template>
-        </el-table-column>
-        <el-table-column prop="benefit" label="Phúc lợi" width="115" show-overflow-tooltip />
-        <el-table-column label="Số ngày phép năm" width="119" align="center">
-          <template #default="scope"><span class="font-medium">{{ scope.row.annualLeaveDays }}</span></template>
-        </el-table-column>
-        <el-table-column prop="insurance" label="Bảo hiểm" width="126" show-overflow-tooltip />
-        <el-table-column label="Bảo hiểm XH" width="115" align="right">
-          <template #default="scope">{{ formatCurrency(scope.row.socialInsurance) }}</template>
-        </el-table-column>
-        <el-table-column prop="careerGoal" label="Mục tiêu nghề nghiệp" width="166" show-overflow-tooltip />
-        <el-table-column prop="performanceReview" label="Đánh giá hiệu suất" width="130" />
-        <el-table-column prop="bankName" label="Ngân hàng" width="122" />
-        <el-table-column prop="bankAccount" label="Số tài khoản" width="130" />
-        <el-table-column prop="paymentCode" label="Mã thanh toán" width="108" />
-        <el-table-column prop="emergencyPhone" label="SĐT khẩn cấp" width="115" />
-        <el-table-column prop="emergencyContact" label="Người liên hệ khẩn cấp" width="158" show-overflow-tooltip />
-        <el-table-column label="Auto chấm công" width="108" align="center">
-          <template #default="scope">
-            <el-tag :type="scope.row.autoAttendance ? 'success' : 'info'" effect="light" size="small" round>
-              {{ scope.row.autoAttendance ? 'Có' : 'Không' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="workType" label="Loại công" width="79" align="center" />
+        <el-table-column prop="position" label="Chức vụ" width="112" />
 
         <!-- Thao tác -->
         <el-table-column label="Thao tác" width="60" align="center">
@@ -892,6 +843,20 @@
             <div>
               <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Quyền hạn</div>
               <div class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ selectedEmployee.authorization || '—' }}</div>
+            </div>
+            <!-- ══════════════════════════════════════════════════════
+                 MỤC 597 (09/09/2026) — Ô NHÓM TELEGRAM, THÊM MỚI
+
+                 Cột "Nhóm Telegram" vừa bị bỏ khỏi bảng danh sách. Đây
+                 là trường DUY NHẤT trong 43 cột bỏ đi mà hộp Chi tiết
+                 chưa có — 42 cột kia đều đã sẵn ở đâu đó trong hộp này.
+
+                 🔴 Không thêm ô này thì bỏ cột kia là cắt đứt đường xem,
+                 chứ không phải dọn cho gọn.
+                 ══════════════════════════════════════════════════════ -->
+            <div>
+              <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Nhóm Telegram</div>
+              <div class="text-sm font-medium text-gray-700 dark:text-gray-300 break-words">{{ selectedEmployee.telegramGroup || '—' }}</div>
             </div>
           </div>
           <div class="mt-4">

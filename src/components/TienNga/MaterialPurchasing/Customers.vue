@@ -66,9 +66,24 @@
         </el-table-column>
         <el-table-column prop="code" label="Mã KH" width="86" sortable="custom" />
 
-        <el-table-column prop="name" label="Họ và tên" min-width="216" show-overflow-tooltip>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 597 (09/09/2026) — TÊN KHÁCH XUỐNG DÒNG, KHÔNG CẮT
+
+             s68: *"họ và tên khách hàng / đối tác cho xuống dòng để
+             thông tin không bị ..."*
+
+             Tên doanh nghiệp dài hơn hẳn tên người: "CÔNG TY TNHH TÂN
+             HÙNG…", "DOANH NGHIỆP TƯ NHÂ…" — cắt đi thì hai công ty
+             khác nhau nhìn giống hệt nhau trên màn hình.
+
+             🔴 Phải gỡ CẢ HAI thứ mới hết dấu ba chấm:
+               · `whitespace-nowrap` ép nội dung nằm một dòng
+               · `show-overflow-tooltip` cắt phần thừa và bày tooltip
+             Gỡ một cái thôi thì cái còn lại vẫn cắt.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="name" label="Họ và tên" min-width="216">
           <template #default="scope">
-            <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">{{ scope.row.name }}</span>
+            <span class="whitespace-normal break-words leading-snug font-semibold text-gray-800 dark:text-gray-200">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="purchasingPoint" label="Điểm thu mua" width="108" />

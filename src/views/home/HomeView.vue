@@ -503,6 +503,21 @@
             </button>
 
             <!-- ── Credit ── -->
+            <!-- ══════════════════════════════════════════════════════════
+                 MỤC 603 (09/09/2026) — TÁCH PQCREDIT VÀ KCREDIT
+
+                 s68 09/09: *"credit của PQ và Kcredit cũng chia ra.
+                 PQcredit ở trên. K credit ở dưới giúp tôi."*
+
+                 Trước mục này tám mã đổ chung một danh sách, nhìn không ra
+                 mã nào của luồng nào. Nay backend gắn nhánh cho từng mã
+                 (đọc cột `classification`), frontend chỉ việc dựng ba khối
+                 nhỏ dùng chung một mẫu.
+
+                 🔴 KHỐI THỨ BA "CHƯA KHAI LUỒNG" chỉ hiện khi có. Mã chưa
+                 khai nhánh mà giấu đi thì tổng hai khối trên không bằng số
+                 ở dòng đầu, người đọc đi tìm mã thất lạc.
+                 ══════════════════════════════════════════════════════════ -->
             <div v-if="d.ten === 'Credit' && bang?.credit" class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
               <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 Lãi tháng {{ bang.credit.thang }}
@@ -511,24 +526,39 @@
               </div>
               <div v-if="bang.credit.so_dong === 0"
                    class="text-xs text-gray-500">{{ bang.credit.chu_khi_rong }}</div>
-              <ul v-else class="space-y-1">
-                <li v-for="m in bang.credit.danh_sach.slice(0, 8)" :key="m.ma"
-                    class="flex justify-between gap-2 text-xs">
-                  <span class="text-gray-700 dark:text-gray-200 break-all">{{ m.ma }}</span>
-                  <span class="shrink-0 tabular-nums"
-                        :class="m.trang_thai === 'da_thu'
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-amber-600 dark:text-amber-400'">
-                    {{ m.trang_thai === 'da_thu'
-                        ? tien(m.tien)
-                        : '(dự kiến ' + tien(m.tien_du_kien) + ')' }}
-                  </span>
-                </li>
-              </ul>
-              <div v-if="bang.credit.so_dong > 8"
-                   class="mt-1.5 text-[11px] text-gray-400">
-                …còn {{ bang.credit.so_dong - 8 }} mã nữa
-              </div>
+              <template v-else>
+                <div v-for="k in nhanhCredit" :key="k.nhan">
+                  <div v-if="k.khoi && k.khoi.so_dong > 0" class="mb-2.5">
+                    <div class="flex items-baseline justify-between gap-2 mb-1">
+                      <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
+                        {{ k.nhan }}
+                      </span>
+                      <span v-if="k.khoi.tong_lai_da_thu"
+                            class="text-[11px] tabular-nums text-emerald-600 dark:text-emerald-400">
+                        đã thu {{ tien(k.khoi.tong_lai_da_thu) }}
+                      </span>
+                    </div>
+                    <ul class="space-y-1">
+                      <li v-for="m in k.khoi.danh_sach.slice(0, 8)" :key="m.ma"
+                          class="flex justify-between gap-2 text-xs">
+                        <span class="text-gray-700 dark:text-gray-200 break-all">{{ m.ma }}</span>
+                        <span class="shrink-0 tabular-nums"
+                              :class="m.trang_thai === 'da_thu'
+                                ? 'text-emerald-600 dark:text-emerald-400'
+                                : 'text-amber-600 dark:text-amber-400'">
+                          {{ m.trang_thai === 'da_thu'
+                              ? tien(m.tien)
+                              : '(dự kiến ' + tien(m.tien_du_kien) + ')' }}
+                        </span>
+                      </li>
+                    </ul>
+                    <div v-if="k.khoi.so_dong > 8"
+                         class="mt-1 text-[11px] text-gray-400">
+                      …còn {{ k.khoi.so_dong - 8 }} mã nữa
+                    </div>
+                  </div>
+                </div>
+              </template>
             </div>
 
             <!-- ── Rental ── -->
@@ -557,6 +587,21 @@
               <div v-if="bang.rental.so_dong > 8"
                    class="mt-1.5 text-[11px] text-gray-400">
                 …còn {{ bang.rental.so_dong - 8 }} mã nữa
+              </div>
+              <!-- MỤC 603 — s68: *"thêm dòng tổng đã thu vào ô vuông"*.
+                   Số này backend đã tính sẵn (`tong_da_thu`), chỉ là chưa
+                   ai bày ra.
+                   🔴 CHỈ CỘNG MÃ ĐÃ THU. Các mã "(dự kiến …)" màu cam
+                   KHÔNG nằm trong tổng — cộng lẫn hai loại là ra một con
+                   số không có thật. Vì thế dòng này ghi rõ chữ "đã thu"
+                   và để cùng màu xanh với các mã đã thu. -->
+              <div v-if="bang.rental.tong_da_thu"
+                   class="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700
+                          flex justify-between gap-2 text-xs">
+                <span class="font-semibold text-gray-700 dark:text-gray-200">Tổng đã thu</span>
+                <span class="shrink-0 tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
+                  {{ tien(bang.rental.tong_da_thu) }}
+                </span>
               </div>
             </div>
 
@@ -659,10 +704,82 @@
                    class="mt-1.5 text-[11px] text-gray-400">
                 …còn {{ bang.ggomoosin.so_nguoi - 8 }} người nữa
               </div>
+              <!-- MỤC 603 — mã nhân viên không mang tiền tố G hay TN.
+                   Chỉ hiện khi có. Không nuốt: người đó chấm công sai mà
+                   không thuộc khối nào thì sẽ sai mãi mà không ai thấy. -->
+              <div v-if="bang.ggomoosin.khac && bang.ggomoosin.khac.so_nguoi > 0"
+                   class="mt-3 pt-2 border-t border-dashed border-amber-300 dark:border-amber-700">
+                <div class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 mb-1">
+                  Chưa rõ dự án — mã không bắt đầu bằng G hay TN
+                </div>
+                <ul class="space-y-1">
+                  <li v-for="n in bang.ggomoosin.khac.danh_sach.slice(0, 8)"
+                      :key="n.ma_nhan_vien"
+                      class="flex justify-between gap-2 text-xs">
+                    <span class="text-gray-700 dark:text-gray-200">
+                      {{ n.ho_ten || n.ma_nhan_vien }}
+                      <span class="text-gray-400">({{ n.ma_nhan_vien }})</span>
+                    </span>
+                    <span class="shrink-0 font-medium text-amber-600 dark:text-amber-400">
+                      {{ n.tong_so_ngay_sai }} ngày
+                    </span>
+                  </li>
+                </ul>
+              </div>
             </div>
 
             <!-- ── Tiến Nga (MỤC 342) ── -->
             <div v-else-if="d.ten === 'Tiến Nga' && bang?.tien_nga" class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
+              <!-- ══════════════════════════════════════════════════════
+                   MỤC 603 (09/09/2026) — CHẤM CÔNG SAI CỦA TIẾN NGA
+
+                   s68 09/09: *"Phần check in / out sai là chia thành 2
+                   phần. Phần ggomoosin riêng và Tiến Nga riêng. Không để
+                   chung vậy không xác định là nhân sự bên nào."*
+
+                   Danh sách này lấy từ `bang.ggomoosin.tien_nga` — cùng
+                   một lần quét bảng chấm công, backend tách sẵn theo tiền
+                   tố mã nhân viên rồi mới trả về.
+
+                   ⚠️ Đọc từ khối `ggomoosin` chứ không phải khối
+                   `tien_nga`, dù nó hiện trong thẻ Tiến Nga. Quét bảng
+                   `attendance` hai lần chỉ để dữ liệu nằm đúng tên khối là
+                   trả giá bằng tốc độ trang chủ.
+                   ══════════════════════════════════════════════════════ -->
+              <div v-if="bang.ggomoosin?.tien_nga?.so_nguoi > 0" class="mb-3">
+                <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
+                  Chấm công sai quy trình · tháng {{ bang.ggomoosin.thang }}
+                  (tính đến ngày {{ bang.ggomoosin.tinh_den_ngay }})
+                </div>
+                <ul class="space-y-1.5">
+                  <li v-for="n in bang.ggomoosin.tien_nga.danh_sach.slice(0, 8)"
+                      :key="n.ma_nhan_vien" class="text-xs">
+                    <div class="flex justify-between gap-2">
+                      <span class="text-gray-700 dark:text-gray-200">
+                        {{ n.ho_ten || n.ma_nhan_vien }}
+                      </span>
+                      <span class="shrink-0 font-medium text-amber-600 dark:text-amber-400">
+                        {{ n.tong_so_ngay_sai }} ngày
+                      </span>
+                    </div>
+                    <div class="text-[11px] text-gray-400 dark:text-gray-500">
+                      <span v-if="n.so_ngay_khong_check_in > 0">
+                        không check-in {{ n.so_ngay_khong_check_in }}
+                      </span>
+                      <span v-if="n.so_ngay_khong_check_in > 0
+                                  && n.so_ngay_khong_check_out > 0"> · </span>
+                      <span v-if="n.so_ngay_khong_check_out > 0">
+                        không check-out {{ n.so_ngay_khong_check_out }}
+                      </span>
+                    </div>
+                  </li>
+                </ul>
+                <div v-if="bang.ggomoosin.tien_nga.so_nguoi > 8"
+                     class="mt-1.5 text-[11px] text-gray-400">
+                  …còn {{ bang.ggomoosin.tien_nga.so_nguoi - 8 }} người nữa
+                </div>
+                <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700"></div>
+              </div>
               <div class="text-xs text-gray-500 dark:text-gray-400 mb-2">
                 Mua mủ tháng {{ bang.tien_nga.thang }}
               </div>
@@ -1279,6 +1396,23 @@ const tien = (x: number | null | undefined): string => {
   if (x === null || x === undefined) return '—'
   return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(x)
 }
+
+/**
+ * MỤC 603 (09/09/2026) — BA KHỐI CREDIT, ĐÚNG THỨ TỰ s68 NÊU.
+ *
+ * s68 09/09: *"PQcredit ở trên. K credit ở dưới giúp tôi."* Thứ tự trong
+ * mảng này CHÍNH LÀ thứ tự hiện trên màn — đổi chỗ hai dòng đầu là đổi
+ * thứ tự hiển thị, không phải sửa gì trong template.
+ *
+ * 🔴 KHỐI THỨ BA giữ mã chưa khai luồng. Nó chỉ hiện khi có (template
+ * kiểm `so_dong > 0`), nhưng phải tồn tại: giấu đi thì tổng hai khối trên
+ * không bằng con số ở dòng đầu thẻ, và người đọc đi tìm mã thất lạc.
+ */
+const nhanhCredit = computed(() => [
+  { nhan: 'PQCredit', khoi: bang.value?.credit?.pq_credit },
+  { nhan: 'KCredit', khoi: bang.value?.credit?.k_credit },
+  { nhan: 'Chưa khai luồng', khoi: bang.value?.credit?.chua_khai_luong },
+])
 
 const soLe = (x: number | null | undefined): string => {
   if (x === null || x === undefined) return '—'

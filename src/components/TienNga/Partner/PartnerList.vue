@@ -75,9 +75,23 @@
         </el-table-column>
         <el-table-column prop="code" label="Mã Đối tác" width="120" sortable="custom" />
 
-        <el-table-column prop="name" label="Tên Đối tác" min-width="274" show-overflow-tooltip>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 597 (09/09/2026) — TÊN ĐỐI TÁC XUỐNG DÒNG, KHÔNG CẮT
+
+             s68: *"họ và tên khách hàng / đối tác cho xuống dòng để
+             thông tin không bị ..."*
+
+             Màn này gần như toàn tên công ty: "CÔNG TY CỔ PHẦN TÀI
+             NGUYÊN …", "CÔNG TY TNHH MTV CAO SU BÌN…". Năm dòng đầu
+             đều bắt đầu bằng "CÔNG TY" nên phần bị cắt CHÍNH LÀ phần
+             phân biệt được chúng với nhau.
+
+             🔴 Gỡ cả `whitespace-nowrap` lẫn `show-overflow-tooltip` —
+             xem lời ghi cùng mục ở `MaterialPurchasing/Customers.vue`.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="name" label="Tên Đối tác" min-width="274">
           <template #default="scope">
-            <span class="whitespace-nowrap font-semibold text-gray-800 dark:text-gray-200">{{ scope.row.name }}</span>
+            <span class="whitespace-normal break-words leading-snug font-semibold text-gray-800 dark:text-gray-200">{{ scope.row.name }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="debt" label="Công nợ" width="115" align="right">

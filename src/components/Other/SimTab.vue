@@ -337,10 +337,35 @@
           </el-col>
           <el-col :xs="24" :sm="8">
             <el-form-item label="Trạng thái">
+              <!-- ══════════════════════════════════════════════════════
+                   MỤC 602 (09/09/2026) — SỬA MÃ TRẠNG THÁI CHO KHỚP BACKEND
+
+                   🔴 BA MÃ CŨ Ở ĐÂY KHÔNG THUỘC BẢNG NÀO CỦA BACKEND.
+                   Web ghi `suspended` và `cancelled`, còn
+                   `app/models/device.py` → `SimCardStatus` chỉ biết
+                   `active` · `blocked` · `expired`. API không kiểm giá trị
+                   (`status: Optional[str]`, không ràng buộc) nên hai giá
+                   trị lạ vào thẳng database mà không báo lỗi gì.
+
+                   Hậu quả đã xảy ra thật:
+                     · Bot liệt kê SIM không có nhãn cho `suspended` →
+                       dòng đó hiện trống, không biểu tượng, không chữ
+                     · Lệnh `/other_cap_nhat_sim` từ chối `suspended` vì nó
+                       kiểm theo enum
+
+                   ⚠️ `suspended` còn là mã của AppStatus (ứng dụng), không
+                   phải SIM — chép nhầm từ màn App sang.
+
+                   Nay bốn lựa chọn dưới đây khớp đúng enum backend. Riêng
+                   `cancelled` giữ nguyên mã, chỉ đổi nhãn từ "Đã huỷ" thành
+                   "Ngưng sử dụng" — nhờ vậy dữ liệu cũ mang mã đó tự khớp,
+                   không phải sửa.
+                   ══════════════════════════════════════════════════════ -->
               <el-select v-model="form.status" style="width: 100%">
                 <el-option label="Đang dùng" value="active" />
-                <el-option label="Tạm khoá" value="suspended" />
-                <el-option label="Đã huỷ" value="cancelled" />
+                <el-option label="Tạm khoá" value="blocked" />
+                <el-option label="Hết hạn" value="expired" />
+                <el-option label="Ngưng sử dụng — không nhắc hạn nữa" value="cancelled" />
               </el-select>
             </el-form-item>
           </el-col>

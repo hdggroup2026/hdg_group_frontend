@@ -15,12 +15,44 @@
         <!-- MỤC 400 — giấu ở màn hẹp: dưới 768px chỉ còn một chế độ dùng
              được, để ô chọn ở đó là người dùng chọn rồi không thấy gì
              đổi. `hidden md:flex` theo đúng quy ước bố cục. -->
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 600 (09/09/2026) — Ô TÌM KIẾM BỊ ĐẨY XUỐNG DÒNG Ở IPAD
+
+             s68 vẽ ô vuông quanh ô "Tìm kiếm" và mũi tên chỉ sang phải,
+             kèm: *"Dời ô vuông đen sang theo hướng mũi tên. Trên giao
+             diện ipad."*
+
+             🔴 KHÔNG PHẢI LỖI VỊ TRÍ — LÀ LỖI THIẾU CHỖ. Đo bề ngang
+             thanh công cụ:
+
+               nhãn "Hiển thị:" + select ...... 240px
+               badge Tổng BĐS ................. 175px
+               nhãn "Tình trạng:" + select .... 234px
+               nhãn "Tìm kiếm:" + ô w-64 ...... 332px
+               hai nút bên phải ............... 220px
+               + khoảng cách .................. 1249px TỔNG
+
+             iPad nằm ngang chỉ có 1148px dùng được -> thiếu 101px, nên
+             `flex-wrap` đẩy ô Tìm kiếm xuống dòng hai. Máy tính để bàn
+             1440px thì vừa, vì thế chỉ iPad mới thấy.
+
+             Dời chỗ ô đó mà không cắt bớt bề ngang thì nó vẫn xuống
+             dòng, chỉ xuống ở chỗ khác.
+
+             Cắt 90px ở hai nơi rồi cho ô Tìm kiếm tự giãn theo chỗ còn
+             lại — xem tiếp lời ghi ở khối Tìm kiếm bên dưới.
+
+             ⚠️ BỎ NHÃN "Hiển thị:" chứ không thu nhỏ: ô chọn ngay cạnh
+             đã ghi sẵn "Hiển thị dạng List" / "Hiển thị dạng Card", nên
+             nhãn đó lặp lại đúng chữ vừa đọc. Hai nhãn kia
+             ("Tình trạng:", "Tìm kiếm:") giữ nguyên vì ô của chúng chỉ
+             hiện giá trị, không nói tên trường.
+             ══════════════════════════════════════════════════════════ -->
         <div class="hidden md:flex items-center gap-2">
-          <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Hiển thị:</span>
           <el-select
             v-model="displayMode"
             placeholder="Chọn dạng"
-            style="width: 170px"
+            style="width: 150px"
             class="custom-dark-select highlight-select"
             popper-class="custom-dark-select-popper"
           >
@@ -57,14 +89,37 @@
             <el-option label="Đã bán" value="sold" />
           </el-select>
         </div>
-        <div class="flex items-center gap-2">
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 600 — Ô TÌM KIẾM CO GIÃN, KHÔNG CỐ ĐỊNH 256px
+
+             `w-64` là 256px cứng: màn rộng thì thừa, iPad thì đủ để đẩy
+             cả khối xuống dòng.
+
+             Nay `flex-1` cho nó ăn hết chỗ còn dư của hàng, `min-w`
+             chặn dưới 150px để trên màn hẹp ô không bị bóp thành một
+             khe không gõ được.
+
+             🔴 `min-w-0` là bắt buộc và dễ quên. Mặc định một ô flex
+             KHÔNG co nhỏ hơn nội dung bên trong nó; thiếu dòng này thì
+             `flex-1` không co được và ô vẫn đẩy hàng xuống dòng đúng
+             như cũ.
+
+             Kết quả đo lại: tổng còn ~1053px, iPad dư ~95px nên ô Tìm
+             kiếm giãn ra khoảng 245px — rộng hơn cả bản cũ, mà vẫn nằm
+             cùng một hàng.
+
+             ⚠️ Ba cỡ màn: điện thoại và máy tính bảng dựng đứng vẫn
+             `flex-wrap` xuống dòng như trước (ở đó xuống dòng là đúng,
+             không có cách nào khác); `min-w` giữ ô đủ rộng để gõ.
+             ══════════════════════════════════════════════════════════ -->
+        <div class="flex items-center gap-2 flex-1 min-w-0">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Tìm kiếm:</span>
           <el-input
             v-model="searchQuery"
             placeholder="Tìm mã BĐS, địa chỉ..."
             :prefix-icon="Search"
             clearable
-            class="w-64 custom-dark-input"
+            class="w-full min-w-[150px] custom-dark-input"
           />
         </div>
       </div>

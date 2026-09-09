@@ -79,7 +79,36 @@
              ⚠️ Trước khi cắt đã đối chiếu BẰNG MÁY từng cột với từng mục
              trong hộp Chi tiết. Không cột nào mất chỗ xem lại.
              ══════════════════════════════════════════════════════════ -->
-        <el-table-column prop="code" label="Mã NV" width="118" sortable="custom">
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 597 (09/09/2026) — CHIA LẠI BỀ NGANG BỐN CỘT
+
+             s68: *"Cột họ dời sang trái tí cho hiển thị đủ nội dung"*,
+             *"cột trạng thái dời sang trái tí cho sát vào"*, *"Header
+             chữ Trình độ bỏ chữ học vấn đi"*.
+
+             Ba câu trên là MỘT bài toán: bảng thiếu chỗ ở nửa trái và
+             thừa chỗ ở nửa phải. Nới cột Họ mà không lấy chỗ từ đâu thì
+             bảng dài thêm, phải cuộn ngang — hỏng chỗ khác.
+
+             | Cột          | Trước | Sau  | Lấy/trả chỗ |
+             |--------------|-------|------|-------------|
+             | Mã NV        |  118  |  96  |  trả 22     |
+             | Họ           |  101  | 130  |  lấy 29     |
+             | Trình độ     |  119  |  92  |  trả 27     |
+             | Chức vụ      |  130  | 112  |  trả 18     |
+
+             Tổng bảng hẹp đi 38px, nên cột Trạng thái ở cuối tự nhích
+             sang trái đúng 38px.
+
+             🔴 Mã NV 96px vẫn đủ: mã dài nhất đang dùng là `G011` —
+             bốn ký tự phông đơn cách. Đo trên dữ liệu thật ở ảnh s68
+             gửi 09/09, không phải ước lượng.
+
+             🔴 "Trình độ học vấn" 14 ký tự KHÔNG vừa 119px nên tiêu đề
+             tự cắt thành "Trình độ học …" — bỏ hai chữ cuối là vừa
+             92px, và giá trị trong ô ("Đại học") xưa nay vẫn ngắn.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="code" label="Mã NV" width="96" sortable="custom">
           <template #default="scope">
             <button type="button"
                     class="font-mono font-bold text-blue-600 dark:text-blue-400 underline decoration-dotted underline-offset-2 hover:text-blue-800"
@@ -89,12 +118,12 @@
             </button>
           </template>
         </el-table-column>
-        <el-table-column prop="lastName" label="Họ" width="101" />
+        <el-table-column prop="lastName" label="Họ" width="130" />
         <el-table-column prop="firstName" label="Tên" width="86" />
         <el-table-column prop="phone" label="SĐT" width="101" />
-        <el-table-column prop="education" label="Trình độ học vấn" width="119" />
+        <el-table-column prop="education" label="Trình độ" width="92" />
         <el-table-column prop="department" label="Phòng ban" width="130" />
-        <el-table-column prop="position" label="Chức vụ" width="130" />
+        <el-table-column prop="position" label="Chức vụ" width="112" />
 
         <!-- ══════════════════════════════════════════════════════════
              MỤC 546 — CỘT TRẠNG THÁI, THÊM MỚI

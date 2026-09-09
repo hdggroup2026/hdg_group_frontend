@@ -5,13 +5,44 @@
       <div class="flex items-center gap-4 flex-wrap">
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Nhân viên:</span>
-          <el-input
+          <!-- ══════════════════════════════════════════════════════════
+               MỤC 598 (09/09/2026) — CHỌN NHÂN VIÊN TỪ DANH SÁCH
+
+               s68: *"thêm 1 nút drop list bên phải để chọn mã nhân viên
+               luôn. Khỏi nhập. Là vừa có chức năng bấm và drop list"*
+
+               `el-select` có `filterable` làm được cả hai việc trong một
+               ô: bấm mũi tên để xem danh sách, hoặc gõ để lọc dần.
+
+               🔴 CHỖ SAI SẴN CÓ, MỤC NÀY VÁ LUÔN: ô cũ ghi placeholder
+               *"Mã NV hoặc Họ tên..."* nhưng `handleSearch` dòng 803 lấy
+               nguyên chuỗi gõ vào rồi truyền thẳng làm `employee_id` cho
+               API. Gõ họ tên là tra hụt, không có gì báo — đúng bài học
+               7.3, chỉ đường thoát mà đường đó không tồn tại.
+
+               Nay `value` LUÔN là mã nhân viên, còn nhãn hiện
+               "G001 — Trần Thị Kim Loan". `filterable` lọc theo NHÃN nên
+               gõ tên vẫn tìm ra, mà thứ gửi lên API vẫn là mã.
+
+               ⚠️ `employeeOptions` đã được nạp sẵn ở `onMounted` dòng
+               726, không phải chờ mở hộp thoại — nên danh sách có ngay
+               khi vào màn.
+               ══════════════════════════════════════════════════════════ -->
+          <el-select
             v-model="filters.search"
-            placeholder="Mã NV hoặc Họ tên..."
-            :prefix-icon="Search"
+            placeholder="Chọn hoặc gõ mã NV / họ tên..."
+            filterable
             clearable
-            class="w-60 custom-dark-input"
-          />
+            :loading="loadingEmployees"
+            class="w-60 custom-dark-select"
+          >
+            <el-option
+              v-for="nv in employeeOptions"
+              :key="nv.id"
+              :label="`${nv.id} — ${nv.lastName} ${nv.firstName}`.trim()"
+              :value="nv.id"
+            />
+          </el-select>
         </div>
         <div class="flex items-center gap-2">
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Thời gian:</span>
