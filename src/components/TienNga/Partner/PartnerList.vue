@@ -38,7 +38,7 @@
           type="success" 
           class="hidden md:inline-flex"
           :disabled="selectedRows.length !== 1" 
-          @click="handlePayDebtClick"
+          @click="handlePayDebtClick()"
         >
           Chi trả công nợ
         </el-button>
@@ -1256,8 +1256,52 @@ onBeforeUnmount(() => {
 // Bảng gọi không tham số, lấy dòng từ ô tick như cũ. Thẻ trên điện
 // thoại KHÔNG có ô tick nên truyền thẳng dòng vào. Một hàm, hai đường
 // gọi — thay vì chép đôi phần điền form rồi để hai bản lệch nhau.
+/**
+ * ══ MỤC 610 (11/09/2026) — HỘP CHI TRẢ HIỆN 0 ĐỒNG DÙ ĐỐI TÁC ĐANG NỢ ══
+ *
+ * Kế toán Tiến Nga 11/09: tick đối tác DT003 (công nợ −1.267.350.000) rồi
+ * bấm "Chi trả công nợ", nhưng hộp mở ra ghi *"CÔNG NỢ HIỆN TẠI: 0 VNĐ"*,
+ * tên đối tác trống, chữ cái đại diện thành "Đ".
+ *
+ * 🔴 NGUYÊN NHÂN: nút gọi `@click="handlePayDebtClick"` — KHÔNG có dấu
+ * ngoặc. Vue truyền thẳng đối tượng SỰ KIỆN CHUỘT làm tham số đầu tiên,
+ * nên `rowTuThe` nhận được một `MouseEvent`. Nó khác `null` nên `||` coi
+ * là hợp lệ và KHÔNG lấy dòng đã tick nữa. Rồi:
+ *
+ *     row.name -> undefined  ->  chữ đại diện rơi về "Đ"
+ *     row.code -> undefined  ->  mã đối tác trống
+ *     row.debt -> undefined  ->  formatCurrency(undefined) ra "0"
+ *
+ * Ba triệu chứng trong ảnh khớp đúng ba dòng trên.
+ *
+ * 🔴 VÌ SAO CHỈ LỖI TRÊN MÁY TÍNH, ĐIỆN THOẠI THÌ KHÔNG: màn hẹp vào
+ * bằng menu ⋯ của thẻ (`handleCommand` dòng 1097) — đường đó truyền dòng
+ * THẬT. Chỉ nút trên thanh công cụ mới dính. Vì thế lỗi sống được lâu:
+ * ai thử trên điện thoại đều thấy chạy tốt.
+ *
+ * Sửa hai lớp:
+ *   ① Nút gọi `handlePayDebtClick()` có dấu ngoặc — không còn nhận sự kiện
+ *   ② Hàm tự kiểm tham số có đúng là dòng dữ liệu không. Lớp này thừa khi
+ *      ① đã đúng, nhưng chỗ nào gọi sai về sau cũng bị chặn tại đây thay
+ *      vì mở ra một hộp chi tiền toàn số 0.
+ */
 const handlePayDebtClick = (rowTuThe?: any) => {
-  const row = rowTuThe || (selectedRows.value.length === 1 ? selectedRows.value[0] : null)
+  // 🔴 Một dòng đối tác THẬT luôn có `code` và `debt`. `MouseEvent` không
+  // có cả hai. Kiểm bằng thứ dữ liệu PHẢI có, không kiểm bằng
+  // `instanceof MouseEvent` — sự kiện chạm trên máy tính bảng là
+  // `PointerEvent`, kiểm theo lớp là lọt.
+  const laDongThat = rowTuThe
+    && typeof rowTuThe === 'object'
+    && 'code' in rowTuThe
+    && 'debt' in rowTuThe
+  const row = (laDongThat ? rowTuThe : null)
+    || (selectedRows.value.length === 1 ? selectedRows.value[0] : null)
+  if (!row) {
+    // Không im lặng: trước đây bấm nhầm thì hộp vẫn mở với toàn số 0,
+    // kế toán tưởng đối tác hết nợ.
+    ElMessage.warning('Hãy tick chọn đúng một đối tác trước khi chi trả công nợ.')
+    return
+  }
   if (row) {
     selectedRowForPayDebt.value = row
     
