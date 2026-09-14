@@ -453,6 +453,49 @@
                 </el-form-item>
               </el-col>
             </el-row>
+            <!-- ══════════════════════════════════════════════════════════
+                 MỤC 612 (12/09/2026) — Ô GHI CHÚ CHO HỢP ĐỒNG THUÊ
+
+                 Kế toán Tiến Nga 12/09: *"chỗ mục hợp đồng thuê. có thể
+                 cho thêm mục ghi chú k A."*
+
+                 Cột `notes` đã có sẵn trong `app/models/rental.py` dòng
+                 100 và trong schema — chỉ là web chưa bày ra. Không cần
+                 đổi cấu trúc database.
+
+                 🔴 NHƯNG CỘT NÀY KHÔNG PHẢI CHỖ TRỐNG. Lời ghi ngay tại
+                 dòng 100 của model: *"Ghi Chú (chứa cả cờ
+                 [SKIP_RENTAL: MM/YYYY], [BLACKLIST])"*. Bot đọc hai cờ đó
+                 để quyết định có nhắc tiền hay không —
+                 `scheduler.py` dòng 1689–1691 bỏ qua kỳ nào có
+                 `[SKIP_RENTAL: MM/YYYY]`.
+
+                 Cho gõ đè thẳng lên cột đó thì sửa một dòng ghi chú là
+                 XOÁ MẤT CỜ, và hợp đồng đã bấm "Lưu sổ" bị nhắc lại từ
+                 đầu. Nên ô này chỉ nhận phần CHỮ CỦA NGƯỜI; cờ hệ thống
+                 được tách ra lúc mở và ghép lại lúc lưu — xem
+                 `tachGhiChu` và `ghepGhiChu` trong phần script.
+                 ══════════════════════════════════════════════════════════ -->
+            <el-row :gutter="20">
+              <el-col :span="24">
+                <el-form-item label="Ghi chú">
+                  <el-input
+                    v-model="form.notesNguoiDung"
+                    type="textarea"
+                    :rows="3"
+                    maxlength="500"
+                    show-word-limit
+                    placeholder="Ghi chú về hợp đồng: thoả thuận riêng, tình trạng bàn giao, hẹn sửa chữa..."
+                  />
+                </el-form-item>
+                <div v-if="form.notesCoHeThong"
+                     class="-mt-3 mb-2 text-[11px] text-amber-600 dark:text-amber-400">
+                  ⓘ Hợp đồng này có đánh dấu của hệ thống
+                  (<code>{{ form.notesCoHeThong }}</code>). Đánh dấu đó được
+                  giữ nguyên, không bị ghi chú của bạn xoá mất.
+                </div>
+              </el-col>
+            </el-row>
           </div>
         </el-form>
       </div>
@@ -591,6 +634,9 @@ const form = reactive({
   start_rental: '',
   end_rental: '',
   status: 'active',
+  // MỤC 612 — tách làm hai: phần người gõ, và phần cờ hệ thống giữ hộ.
+  notesNguoiDung: '',
+  notesCoHeThong: '',
   create_new_customer: true
 })
 
@@ -772,8 +818,50 @@ const openAddDialog = () => {
   form.start_rental = new Date().toISOString().substring(0, 10)
   form.end_rental = ''
   form.status = 'active'
+  // MỤC 612 — dọn sạch cả hai phần ghi chú. Bỏ sót thì hợp đồng MỚI mang
+  // theo ghi chú và cờ của hợp đồng vừa xem trước đó.
+  form.notesNguoiDung = ''
+  form.notesCoHeThong = ''
   form.create_new_customer = true
   dialogVisible.value = true
+}
+
+/**
+ * ══ MỤC 612 (12/09/2026) — TÁCH CỜ HỆ THỐNG RA KHỎI GHI CHÚ ══
+ *
+ * Cột `notes` của hợp đồng thuê chứa LẪN hai thứ:
+ *   · chữ của người nhập
+ *   · cờ hệ thống: `[SKIP_RENTAL: MM/YYYY]` và `[BLACKLIST]`
+ *
+ * Bot đọc cờ để quyết định có nhắc tiền hay không (`scheduler.py` dòng
+ * 1689–1691). Người sửa ghi chú mà cờ biến mất là hợp đồng đã bấm
+ * "Lưu sổ" bị nhắc lại từ đầu — và không có gì báo.
+ *
+ * 🔴 BẮT MỌI CỜ `[...]` Ở ĐẦU CHUỖI, KHÔNG chỉ hai cái đang biết. Mai kia
+ * ai thêm cờ thứ ba mà quên sửa chỗ này thì cờ đó cũng được giữ, thay vì
+ * âm thầm bị xoá. Chỉ cần nó theo đúng quy ước: dấu ngoặc vuông, nằm ở
+ * đầu, viết HOA.
+ *
+ * ⚠️ Cố ý KHÔNG bắt `[...]` nằm giữa câu. Người ta viết "khách hẹn trả
+ * [tháng 3]" là chuyện bình thường; coi đó là cờ hệ thống rồi giữ lại khi
+ * họ xoá mới là làm sai ý họ.
+ */
+const MAU_CO_HE_THONG = /^(\s*\[[A-Z_]+(?::[^\]]*)?\]\s*)+/
+
+const tachGhiChu = (notes: string | null | undefined) => {
+  const chuoi = String(notes || '')
+  const khop = chuoi.match(MAU_CO_HE_THONG)
+  return {
+    co: khop ? khop[0].trim() : '',
+    chu: khop ? chuoi.slice(khop[0].length).trim() : chuoi.trim(),
+  }
+}
+
+const ghepGhiChu = (co: string, chu: string) => {
+  const a = String(co || '').trim()
+  const b = String(chu || '').trim()
+  if (a && b) return `${a} ${b}`
+  return a || b
 }
 
 const openEditDialog = (row: Contract) => {
@@ -799,6 +887,14 @@ const openEditDialog = (row: Contract) => {
   form.start_rental = row.start_rental
   form.end_rental = row.end_rental
   form.status = row.status
+  // MỤC 612 — bóc cờ ra, ô nhập chỉ hiện phần chữ của người.
+  // 🔴 Thiếu bước này thì kế toán nhìn thấy "[SKIP_RENTAL: 09/2026]" trong
+  // ô ghi chú, tưởng rác rồi xoá đi — và hợp đồng bị nhắc lại.
+  {
+    const tach = tachGhiChu((row as any).notes)
+    form.notesNguoiDung = tach.chu
+    form.notesCoHeThong = tach.co
+  }
   form.create_new_customer = false
   dialogVisible.value = true
 }
@@ -884,7 +980,10 @@ const submitForm = async () => {
           deposit: Number(form.deposit) || 0,
           monthly_rental: Number(form.monthly_rental) || 0,
           rental_debt: Number(form.rental_debt) || 0,
-          status: form.status || 'active'
+          status: form.status || 'active',
+          // MỤC 612 — ghép lại cờ hệ thống + chữ người dùng trước khi gửi.
+          // 🔴 Gửi thẳng `notesNguoiDung` là xoá cờ.
+          notes: ghepGhiChu(form.notesCoHeThong, form.notesNguoiDung) || null
         }
 
         if (isEdit.value) {
