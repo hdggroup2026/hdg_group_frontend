@@ -174,6 +174,12 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                  <!-- MỤC 614 (14/09/2026) — s68: *"bên hụi, nếu lập phiếu sai,
+                       không có nút chỉnh sửa A"*. Hàm mở hộp sửa và nhánh xử lý
+                       `edit` ĐÃ CÓ SẴN (dòng 977 và 1018) — chỉ thiếu dòng menu.
+                       Chỉ owner thấy. Backend cũng chặn, xem MỤC 614 ở
+                       `app/api/v1/rosca.py`. -->
+                  <el-dropdown-item v-if="laOwner" command="edit">Sửa</el-dropdown-item>
                   <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -214,6 +220,12 @@
                               <template #dropdown>
                                 <el-dropdown-menu>
                                   <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                                  <!-- MỤC 614 (14/09/2026) — s68: *"bên hụi, nếu lập phiếu sai,
+                                       không có nút chỉnh sửa A"*. Hàm mở hộp sửa và nhánh xử lý
+                                       `edit` ĐÃ CÓ SẴN (dòng 977 và 1018) — chỉ thiếu dòng menu.
+                                       Chỉ owner thấy. Backend cũng chặn, xem MỤC 614 ở
+                                       `app/api/v1/rosca.py`. -->
+                                  <el-dropdown-item v-if="laOwner" command="edit">Sửa</el-dropdown-item>
                                   <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
                                 </el-dropdown-menu>
                               </template>
@@ -1012,6 +1024,16 @@ const handleOpenDetailDialog = (row: RoscaContribution) => {
 }
 
 // Actions dispatcher
+/**
+ * MỤC 614 (14/09/2026) — chỉ chủ sở hữu được sửa giao dịch hụi.
+ *
+ * ⚠️ Đây CHỈ LÀ ẨN NÚT cho gọn màn hình, KHÔNG phải chốt chặn. Giá trị
+ * này đọc từ `localStorage`, ai cũng sửa được bằng công cụ nhà phát
+ * triển. Chốt thật nằm ở backend: `app/api/v1/rosca.py` trả 403 nếu
+ * `role` khác "owner".
+ */
+const laOwner = (localStorage.getItem('user_role') || '').trim().toLowerCase() === 'owner'
+
 const handleCommand = (cmd: string, row: RoscaContribution) => {
   if (cmd === 'detail') {
     handleOpenDetailDialog(row)
