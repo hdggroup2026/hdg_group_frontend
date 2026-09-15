@@ -716,6 +716,27 @@
       </div>
       <template #footer>
         <span class="dialog-footer">
+          <!-- ══════════════════════════════════════════════════════════
+               MỤC 617 (15/09/2026) — NÚT SỬA ĐẶT NGAY TRONG HỘP CHI TIẾT
+
+               MỤC 614 (14/09) đã thêm mục "Sửa" vào menu ⋯ ở cột Thao tác.
+               Nhưng 15/09 kế toán vẫn báo *"vẫn chưa có nút chỉnh sửa ạ"*,
+               kèm ảnh đang mở HỘP CHI TIẾT — và hộp đó chỉ có nút Đóng.
+
+               🔴 TÔI ĐẶT NÚT SAI CHỖ. Người ta mở chi tiết ra XEM, thấy
+               số sai, rồi tìm nút sửa NGAY TẠI ĐÓ. Bắt họ đóng hộp lại,
+               tìm đúng dòng trong 176 dòng, rồi bấm ⋯ là bắt đi vòng.
+
+               Nay có ở CẢ HAI chỗ: menu ⋯ (cho ai đã quen) và ngay đây.
+               Cùng gọi một hàm `handleOpenEditDialog`.
+               ══════════════════════════════════════════════════════════ -->
+          <el-button
+            v-if="laOwner && selectedContrib"
+            type="warning"
+            @click="suaTuHopChiTiet"
+          >
+            Sửa giao dịch
+          </el-button>
           <el-button type="primary" @click="detailDialogVisible = false">Đóng</el-button>
         </span>
       </template>
@@ -1023,6 +1044,19 @@ const handleOpenDetailDialog = (row: RoscaContribution) => {
   detailDialogVisible.value = true
 }
 
+/**
+ * MỤC 617 (15/09/2026) — bấm Sửa ngay trong hộp Chi tiết.
+ *
+ * 🔴 ĐÓNG HỘP CHI TIẾT TRƯỚC rồi mới mở hộp Sửa. Hai hộp cùng bật là
+ * chồng lên nhau, và hộp dưới vẫn chặn thao tác — người dùng tưởng treo.
+ */
+const suaTuHopChiTiet = () => {
+  const dong = selectedContrib.value
+  if (!dong) return
+  detailDialogVisible.value = false
+  handleOpenEditDialog(dong)
+}
+
 // Actions dispatcher
 /**
  * MỤC 614 (14/09/2026) — chỉ chủ sở hữu được sửa giao dịch hụi.
@@ -1033,6 +1067,26 @@ const handleOpenDetailDialog = (row: RoscaContribution) => {
  * `role` khác "owner".
  */
 const laOwner = (localStorage.getItem('user_role') || '').trim().toLowerCase() === 'owner'
+
+/**
+ * ══ MỤC 617 (15/09/2026) — DÒNG CHẨN ĐOÁN, ĐỂ KHỎI ĐOÁN LẦN THỨ BA ══
+ *
+ * Nút Sửa đã trượt hai lần: MỤC 614 (thiếu vai trò trong database),
+ * MỤC 616 (đổi vai trò xong vẫn chưa thấy — vì đặt sai chỗ). Mỗi lần
+ * chẩn đoán mất một vòng chụp ảnh qua lại.
+ *
+ * Dòng này in thẳng vào Console của trình duyệt giá trị THẬT mà trang
+ * đang đọc. Bấm F12 là biết ngay đang vướng chỗ nào, không phải đoán.
+ *
+ * ⚠️ `console.log` chứ không phải hộp thông báo: chỉ người cần tìm mới
+ * mở Console, người dùng thường không thấy gì.
+ */
+console.log(
+  '[HDG MỤC 617] Contributions.vue —',
+  'user_role =', JSON.stringify(localStorage.getItem('user_role')),
+  '| laOwner =', laOwner,
+  '| nút Sửa sẽ', laOwner ? 'HIỆN' : 'ẨN',
+)
 
 const handleCommand = (cmd: string, row: RoscaContribution) => {
   if (cmd === 'detail') {
