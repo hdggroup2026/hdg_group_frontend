@@ -51,6 +51,14 @@ export const telegramService = {
       body: JSON.stringify({ message, chat_ids: chatIds }),
     });
 
+    if (response.status === 401) {
+      // MỤC 624 — 13/14 lời gọi trong file này đã có dòng này, riêng
+      // add_users bị sót. Sót một chỗ thì tới lúc gửi tin hàng loạt mới
+      // lộ, và lộ dưới dạng "gửi tin thất bại" chứ không phải "hết
+      // phiên" — sai hẳn hướng chẩn đoán.
+      authService.handle401();
+    }
+
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
       console.error('Add Users Error:', response.status, errorData);

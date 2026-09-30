@@ -229,6 +229,14 @@ const tai = async () => {
       },
     })
 
+    if (r.status === 401) {
+      // MỤC 624 (18/09/2026) — tách 401 ra khỏi nhánh lỗi chung.
+      // 401 = hết phiên, đăng nhập lại là xong. 403 = không đủ quyền,
+      // đăng nhập lại cũng vô ích. Gộp chung thì người dùng nhận câu
+      // "lỗi kết nối" cho một chuyện không hề là lỗi kết nối.
+      authService.handle401()
+      return
+    }
     if (r.status === 403) {
       // Nói RÕ đây là chuyện quyền, không phải hệ thống hỏng.
       loi.value = 'Chỉ quản trị viên mới xem được nhật ký.'

@@ -14,6 +14,8 @@
  * tính sẵn, frontend chỉ hiển thị. Sửa cách tính thì sửa một chỗ.
  */
 import { getApiUrl, getApiHeaders } from './apiConfig'
+// MỤC 624 (18/09/2026) — xử lý token hết hạn, xem ghi chú trong laySoLieu.
+import { authService } from './auth'
 
 export const trangChuService = {
   /**
@@ -29,6 +31,16 @@ export const trangChuService = {
       method: 'GET',
       headers: getApiHeaders(),
     })
+
+    if (response.status === 401) {
+      // MỤC 624 (18/09/2026) — CẢ BA LỜI GỌI TRANG CHỦ ĐỀU THIẾU.
+      // Token sống 30 phút. Hết hạn mà không đẩy về màn đăng nhập
+      // thì trang chủ chỉ hiện chữ đỏ "Không đọc được số liệu" —
+      // người dùng tưởng máy chủ hỏng, F5 mấy lần rồi gọi điện.
+      // Trang chủ là màn ai cũng mở đầu tiên nên đây là chỗ hụt
+      // gây phiền nhất trong bốn chỗ còn sót.
+      authService.handle401()
+    }
 
     if (!response.ok) {
       const chiTiet = await response.json().catch(() => ({}))
@@ -59,6 +71,16 @@ export const trangChuService = {
       headers: getApiHeaders(),
       body: JSON.stringify({ cau_hoi: cauHoi }),
     })
+
+    if (response.status === 401) {
+      // MỤC 624 (18/09/2026) — CẢ BA LỜI GỌI TRANG CHỦ ĐỀU THIẾU.
+      // Token sống 30 phút. Hết hạn mà không đẩy về màn đăng nhập
+      // thì trang chủ chỉ hiện chữ đỏ "Không đọc được số liệu" —
+      // người dùng tưởng máy chủ hỏng, F5 mấy lần rồi gọi điện.
+      // Trang chủ là màn ai cũng mở đầu tiên nên đây là chỗ hụt
+      // gây phiền nhất trong bốn chỗ còn sót.
+      authService.handle401()
+    }
 
     if (!response.ok) {
       const chiTiet = await response.json().catch(() => ({}))
@@ -108,6 +130,16 @@ async function goiNhatKy(duong: string, tenGoVao: string): Promise<any> {
     headers: getApiHeaders(),
     body: JSON.stringify({ ten_go_vao: tenGoVao }),
   })
+
+  if (response.status === 401) {
+    // MỤC 624 (18/09/2026) — CẢ BA LỜI GỌI TRANG CHỦ ĐỀU THIẾU.
+    // Token sống 30 phút. Hết hạn mà không đẩy về màn đăng nhập
+    // thì trang chủ chỉ hiện chữ đỏ "Không đọc được số liệu" —
+    // người dùng tưởng máy chủ hỏng, F5 mấy lần rồi gọi điện.
+    // Trang chủ là màn ai cũng mở đầu tiên nên đây là chỗ hụt
+    // gây phiền nhất trong bốn chỗ còn sót.
+    authService.handle401()
+  }
 
   if (!response.ok) {
     const chiTiet = await response.json().catch(() => ({}))
