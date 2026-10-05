@@ -201,7 +201,12 @@
               </template>
             </el-table-column>
             <el-table-column prop="gio_lam" label="Giờ làm" width="90" />
-            <el-table-column prop="di_tre" label="Trễ" width="80" />
+            <!-- MỤC 655 (06/10/2026) — `late_time` trong database là SỐ PHÚT.
+                 Nhãn cũ chỉ ghi "Trễ" nên người đọc tự hiểu là giờ: dòng
+                 check-in 08:34 hiện "Trễ 4" trông như trễ 4 tiếng. Ghi rõ
+                 đơn vị ngay trên đầu cột — nhân sự đọc cột này để quyết
+                 trừ lương. -->
+            <el-table-column prop="di_tre" label="Trễ (phút)" width="100" />
             <el-table-column label="Tăng ca" width="110">
               <template #default="{ row }">
                 <span v-if="!row.tang_ca">—</span>
@@ -247,7 +252,7 @@
                 <span>{{ row.gio_vao || '—' }} → {{ row.gio_ra || '—' }}</span>
               </div>
               <div class="text-sm text-gray-600 dark:text-gray-400">
-                Giờ làm {{ row.gio_lam }} · Trễ {{ row.di_tre }} ·
+                Giờ làm {{ row.gio_lam }} · Trễ {{ row.di_tre }} phút ·
                 Tăng ca {{ row.tang_ca }}
               </div>
               <div

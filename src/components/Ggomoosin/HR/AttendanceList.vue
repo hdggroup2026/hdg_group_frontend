@@ -662,13 +662,17 @@ import { employeeService } from '@/api/employeeService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 654 (06/10/2026) — tháng mặc định tính ra, KHÔNG ghim cứng.
+import { thangNay } from '@/utils/thangMacDinh'
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 
 // Filters (bound to inputs)
 const filters = reactive({
   search: '',
-  month: '2026-06'
+  // MỤC 654 — màn Chấm công mở ra ở THÁNG HIỆN TẠI: người dùng vào đây để
+  // soi công đang diễn ra. Bản cũ ghim '2026-06' nên bấm Tìm kiếm là rỗng.
+  month: thangNay()
 })
 
 const hasSearched = ref(false)

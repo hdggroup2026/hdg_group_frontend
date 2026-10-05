@@ -223,6 +223,8 @@ import { Search, Download, Check } from '@element-plus/icons-vue'
 import { ElNotification, ElMessageBox } from 'element-plus'
 import * as XLSX from 'xlsx-js-style'
 import { employeeService } from '@/api/employeeService'
+// MỤC 654 (06/10/2026) — tháng mặc định tính ra, KHÔNG ghim cứng.
+import { thangTruoc, nhanKyLuong } from '@/utils/thangMacDinh'
 
 // Employee ID prefix this tab is scoped to
 const PRE_ID = 'G'
@@ -230,15 +232,20 @@ const PRE_ID = 'G'
 type DateRange = [string, string] | null
 
 // Filters — month and day-range are mutually exclusive; picking one clears the other
+// MỤC 654 — tính MỘT LẦN rồi dùng cho cả ba chỗ. Gọi `thangTruoc()` ba
+// lần thì ngay sau nửa đêm mùng 1 ba lần có thể ra hai tháng khác nhau, và
+// nhãn kỳ lương lệch với bộ lọc mà không ai hiểu vì sao.
+const THANG_MAC_DINH = thangTruoc()
+
 const filters = reactive({
-  month: '2026-06' as string | null,
+  month: THANG_MAC_DINH as string | null,
   dateRange: null as DateRange
 })
 const activeFilters = reactive({
-  month: '2026-06' as string | null,
+  month: THANG_MAC_DINH as string | null,
   dateRange: null as DateRange,
   isRange: false,
-  periodLabel: 'Tháng 06/2026'
+  periodLabel: nhanKyLuong(THANG_MAC_DINH)
 })
 
 const dateShortcuts = [

@@ -345,19 +345,23 @@ import { employeeService } from '@/api/employeeService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+// MỤC 654 (06/10/2026) — tháng mặc định tính ra, KHÔNG ghim cứng.
+import { thangTruoc } from '@/utils/thangMacDinh'
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 
 // Filters (bound to inputs)
 const filters = reactive({
   search: '',
-  month: '2026-06'
+  // MỤC 654 — bảng lương luôn là của THÁNG ĐÃ KHÉP.
+  month: thangTruoc()
 })
 
 // Active Filters (used for actual table filtering on search click)
 const activeFilters = reactive({
   search: '',
-  month: '2026-06'
+  // MỤC 654 — bảng lương luôn là của THÁNG ĐÃ KHÉP.
+  month: thangTruoc()
 })
 
 const hasSearched = ref(false)

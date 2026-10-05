@@ -1,0 +1,30 @@
+==========================================================================
+  FRONTEND  —  MUC 654 · 655                   06/10/2026
+==========================================================================
+
+  CAI DAT:  xa nen -> mo thu muc vua xa ra -> Ctrl+A -> keo de thu muc src\
+            vao thu muc frontend -> day len Cloudflare.
+
+  Nam tep:
+      src\utils\thangMacDinh.ts                          (MOI)
+      src\components\Ggomoosin\HR\AttendanceList.vue
+      src\components\Ggomoosin\HR\SalaryList.vue
+      src\components\Ggomoosin\HR\SalaryExport.vue
+      src\components\Ggomoosin\HR\LichSuCheckInOut.vue
+
+  MUC 654 — Ba man HR deu ghim cung thang '2026-06' trong ma, nen mo ra la
+            dang loc mot thang khong con du lieu, bam Tim kiem ra rong.
+            Nay:  Cham cong        -> thang HIEN TAI
+                  Danh sach Luong  -> thang TRUOC
+                  Xuat luong       -> thang TRUOC
+
+  MUC 655 — Cot "Tre" doi thanh "Tre (phut)". Cot nay trong database la SO
+            PHUT; nhan cu khong ghi don vi nen dong check-in 08:34 hien
+            "Tre 4" trong nhu tre 4 tieng. Nhan su doc cot nay de quyet
+            tru luong.
+
+  ⚠️ CAN CA GOI BACKEND cung ngay 06/10 moi du. Rieng frontend thi tab
+     Xuat luong van bao "Yeu cau quyen: admin".
+
+  KIEM: dang nhap tai khoan quyen ggomoosin, vao Ggomoosin > Nhan su.
+        Bon tab deu phai MO RA DA DUNG THANG, khong phai chon tay.
