@@ -192,6 +192,64 @@ export const employeeService = {
     return await response.json();
   },
 
+  /**
+   * MỤC 649 (05/10/2026) — LỊCH SỬ CHECK IN/OUT CỦA CẢ MỘT DỰ ÁN.
+   *
+   * s68 05/10: nhân sự phải mở từng nhóm Telegram của từng người để soi
+   * công. Đường này gom cả dự án về một lần gọi.
+   *
+   * ⚠️ KHÁC `getAttendance`: hàm kia bắt buộc có `employeeId` và chỉ trả
+   * MỘT người trong MỘT tháng. Đừng gọi nó trong vòng lặp để thay hàm
+   * này — 30 nhân viên là 30 lượt gọi mạng, và nếu lượt thứ 17 hỏng thì
+   * màn hình hiện một bảng thiếu người mà không ai biết thiếu ai.
+   */
+  async layLichSuCheckInOut(
+    duAn: string,
+    tuNgay: string,
+    denNgay: string,
+    chiBatThuong = false,
+  ): Promise<any> {
+    const BASE_URL = await getApiUrl();
+    const token = authService.getToken();
+    const tokenType = localStorage.getItem('token_type') || 'Bearer';
+    const authHeader = `${tokenType} ${token}`;
+
+    const queryParams = new URLSearchParams();
+    queryParams.append('du_an', duAn);
+    queryParams.append('tu_ngay', tuNgay);
+    queryParams.append('den_ngay', denNgay);
+    if (chiBatThuong) queryParams.append('chi_bat_thuong', 'true');
+
+    const response = await fetch(
+      `${BASE_URL}/lich-su-check-in-out?${queryParams.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader,
+          'ngrok-skip-browser-warning': 'true',
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('layLichSuCheckInOut API Error:', response.status, errorData);
+
+      if (response.status === 401) {
+        authService.handle401();
+      }
+
+      // Backend đã trả câu tiếng Việt ở `detail`. Giữ nguyên câu đó thay
+      // vì ghép thêm chữ Anh — người đọc là nhân sự, không phải lập trình.
+      throw new Error(
+        errorData.detail || `Lỗi ${response.status}: không đọc được lịch sử chấm công.`,
+      );
+    }
+
+    return await response.json();
+  },
+
   async addAttendance(attendanceData: any): Promise<any> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();

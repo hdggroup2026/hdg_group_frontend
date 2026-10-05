@@ -1,0 +1,29 @@
+==========================================================================
+  FRONTEND  —  MUC 649 (tab Lich su Check in/out)      05/10/2026
+==========================================================================
+
+  🔴 GOI TRUOC (HDG_MUC_648_651) DONG SAI: co thu muc boc ngoai
+     `hdg_group_frontend-main\`. Goi nay da sua: xa nen ra la thay NGAY
+     thu muc  src\  o goc.
+
+--------------------------------------------------------------------------
+  CAI DAT
+--------------------------------------------------------------------------
+
+  1. Keo de thu muc  src\  vao thu muc frontend
+  2. Day len Cloudflare nhu moi lan
+
+  Ba tep thay doi:
+      src\components\Ggomoosin\HR\LichSuCheckInOut.vue   (MOI)
+      src\components\Ggomoosin\HR\Index.vue              (them tab)
+      src\api\employeeService.ts                         (them ham goi)
+
+--------------------------------------------------------------------------
+  KIEM
+--------------------------------------------------------------------------
+
+  Ggomoosin > Nhan su > phai co tab thu 3 ten "Lich su Check in/out"
+  (nam giua Cham cong va Danh sach Luong).
+
+  ⚠️ Tab nay CAN CA GOI BACKEND moi ra du lieu. Cai mot minh frontend thi
+  tab hien ra nhung bam Tim la bao loi quyen.

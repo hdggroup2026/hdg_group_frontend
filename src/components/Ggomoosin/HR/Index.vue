@@ -19,6 +19,21 @@
         </template>
         <AttendanceList />
       </el-tab-pane>
+      <!--
+        MỤC 649 (05/10/2026) — đặt NGAY SAU "Chấm công", trước "Lương".
+        Thứ tự tab là thứ tự công việc: xem công cả dự án -> sửa chỗ sai
+        -> rồi mới chốt lương. Nhét xuống cuối là người dùng chốt lương
+        xong mới thấy tab soi công.
+      -->
+      <el-tab-pane name="lich-su-check">
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><Clock /></el-icon>
+            <span>Lịch sử Check in/out</span>
+          </span>
+        </template>
+        <LichSuCheckInOut />
+      </el-tab-pane>
       <el-tab-pane name="salary">
         <template #label>
           <span class="custom-tabs-label">
@@ -43,9 +58,10 @@
 
 <script setup lang="ts">
 import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
-import { UserFilled, Calendar, Wallet, Document } from '@element-plus/icons-vue'
+import { UserFilled, Calendar, Wallet, Document, Clock } from '@element-plus/icons-vue'
 import EmployeeList from './EmployeeList.vue'
 import AttendanceList from './AttendanceList.vue'
+import LichSuCheckInOut from './LichSuCheckInOut.vue'   // MỤC 649
 import SalaryList from './SalaryList.vue'
 import SalaryExport from './SalaryExport.vue'
 
