@@ -1,0 +1,51 @@
+==========================================================================
+  FRONTEND  —  MUC 669   LOGO DU AN GGOMOOSIN        06/10/2026
+==========================================================================
+
+  Goi nay chi co 2 tep, va KHONG lien quan gi den backend.
+  Cai rieng, khong can tat bot.
+
+--------------------------------------------------------------------------
+  CAI DAT
+--------------------------------------------------------------------------
+  1. Xa nen -> MO thu muc vua xa ra -> Ctrl+A
+  2. Keo de sang thu muc  hdg_group_frontend-main
+     ("Replace the files in the destination")
+  3. Build lai web nhu moi lan (lenh build anh van dung)
+  4. Mo web, bam vao du an  Ggomoosin
+
+--------------------------------------------------------------------------
+  THAY DOI GI
+--------------------------------------------------------------------------
+
+  Dau thanh ben trai cua trang Ggomoosin:
+
+      TRUOC:  chu "Ggomoosin" mau xanh
+      NAY:    logo GGOMOOSIN day du (co dong "Giay tap di cho tre den tu
+              Han Quoc"), thanh cao them tu 56px len 76px de chua tron
+              dong chu ma khong bop meo logo
+
+  Thu gon thanh ben (keo hep lai) thi ve lai chu "G" nhu cu - logo chu dai
+  nhet vao be rong ~48px se thanh mot vet xanh khong doc duoc.
+
+--------------------------------------------------------------------------
+  2 TEP TRONG GOI
+--------------------------------------------------------------------------
+
+  src\assets\logo_ggomoosin.png                   (tep anh, 38 KB)
+  src\components\Ggomoosin\Sidebar.vue            (dung logo)
+
+--------------------------------------------------------------------------
+  KIEM SAU KHI BUILD
+--------------------------------------------------------------------------
+
+  1. Mo web -> bam du an Ggomoosin -> goc tren trai phai thay LOGO,
+     khong con chu xanh "Ggomoosin"
+
+  2. Keo hep khung trai lai -> phai thay chu "G"
+
+  3. Logo khong duoc meo (keo gian). Neu meo thi chup man hinh gui toi.
+
+  >> Neu sau khi build ma CHO DO TRONG khong co logo: bao toi ngay. Do la
+     dau hieu tep anh khong duoc dong goi vao ban build, va no khong bao
+     loi gi ca - trang van chay binh thuong.
