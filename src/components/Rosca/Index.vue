@@ -5,7 +5,7 @@
       <Sidebar v-model:activeMenu="activeMenu" />
     </el-splitter-panel>
     <el-splitter-panel :min="200" v-loading="loading">
-<div id="hdg-noi-dung-rosca" class="h-full"></div>
+<div id="hdg-noi-dung-rosca-may-tinh" class="h-full"></div>
     </el-splitter-panel>
   </el-splitter>
  
@@ -89,7 +89,7 @@
  
         <!-- Content Area -->
         <div class="h-full overflow-hidden" v-loading="loading">
-<div id="hdg-noi-dung-rosca" class="h-full"></div>
+<div id="hdg-noi-dung-rosca-dien-thoai" class="h-full"></div>
         </div>
       </div>
     </template>
@@ -105,7 +105,7 @@
  
       <!-- Content Area -->
       <div class="flex-1 overflow-hidden" v-loading="loading">
-<div id="hdg-noi-dung-rosca" class="h-full"></div>
+<div id="hdg-noi-dung-rosca-may-tinh-bang" class="h-full"></div>
       </div>
     </template>
   </div>
@@ -137,7 +137,19 @@
        ⚠️ `id` mang tên mảng. Trùng id giữa hai mảng là nội dung mảng này
        nhảy vào khung mảng kia.
        ══════════════════════════════════════════════════════════════════ -->
-  <Teleport defer to="#hdg-noi-dung-rosca">
+  <!-- ══ MỤC 676 (08/10/2026) — ĐỔI CỠ CỬA SỔ BỊ TRẮNG, PHẢI F5 ══
+       s68 báo 08/10: kéo cửa sổ to/nhỏ là trắng hết nội dung.
+       NGUYÊN NHÂN: ba ô trống dùng CHUNG một id, nên `to` không bao giờ
+       đổi. Vue CHỈ dời nội dung khi giá trị `to` đổi — đổi nhánh thì ô
+       cũ bị gỡ (mang theo nội dung), ô mới trống trơn, mà Teleport không
+       biết để dời. Lời ghi MỤC 429/450 ở trên ("đổi nhánh thì Teleport
+       DỜI") là SAI chỗ này; giữ nguyên để thấy lịch sử.
+       ĐÃ SỬA: mỗi nhánh một id riêng, `to` đổi theo bố cục → Vue dời
+       nội dung sang ô mới, component vẫn sống nguyên (không mất bộ lọc,
+       trang đang xem) — đúng mục đích của MỤC 450.
+       ⚠️ KHÔNG sửa bằng `:key` trên Teleport: hết trắng thật nhưng mỗi
+       lần đổi cỡ là dựng lại từ đầu, mất hết thứ người dùng đang gõ. -->
+  <Teleport defer :to="'#hdg-noi-dung-rosca-' + cheDoBoCuc">
     <PlayersManagement v-if="activeMenu === 'players'" />
     <ListManagement v-else-if="activeMenu === 'list'" />
     <ScheduledNotificationTabWrapper v-else-if="activeMenu === 'scheduled-notifications'" module-key="rosca" />
@@ -205,6 +217,8 @@ const isDark = useDark({
 const isDesktop = computed(() => windowWidth.value >= 1024)
 const isTablet = computed(() => windowWidth.value >= 768 && windowWidth.value < 1024)
 const isMobile = computed(() => windowWidth.value < 768)
+// MỤC 676 — hậu tố id ô chứa nội dung của nhánh đang hiện. Xem lời ghi ở <Teleport>.
+const cheDoBoCuc = computed(() => isDesktop.value ? 'may-tinh' : isMobile.value ? 'dien-thoai' : 'may-tinh-bang')
  
 const sidebarMenuItems = [
   { index: 'players', label: 'Người chơi', icon: User },

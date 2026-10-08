@@ -2234,6 +2234,37 @@ export const tienNgaService = {
     return await response.json();
   },
 
+  /**
+   * MỤC 682 (08/10/2026) — mỗi nhóm một dòng kèm nick owner.
+   * KHÔNG cắt 1000 dòng như `getTelegramProjectMembers` (đường đó trả tối
+   * đa 1000 NGƯỜI; database 08/10 có 2704 ➜ thiếu mà không báo).
+   */
+  async getTelegramGroupOwners(params: {
+    project_id?: string;
+    chat_id?: string;
+    owner?: string;
+    role?: string;
+  }): Promise<any[]> {
+    const BASE_URL = await getApiUrl();
+    const token = authService.getToken();
+    const tokenType = localStorage.getItem('token_type') || 'Bearer';
+    const query = new URLSearchParams();
+    if (params.project_id) query.append('project_id', params.project_id);
+    if (params.chat_id) query.append('chat_id', params.chat_id);
+    if (params.owner) query.append('owner', params.owner);
+    if (params.role) query.append('role', params.role);
+    const response = await fetch(`${BASE_URL}/projects/get-telegram-group-owners?${query.toString()}`, {
+      method: 'GET',
+      headers: { 'Authorization': `${tokenType} ${token}`, 'ngrok-skip-browser-warning': 'true' }
+    });
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      if (response.status === 401) authService.handle401();
+      throw new Error(errorData.detail || `Error ${response.status}: Failed to get group owners`);
+    }
+    return await response.json();
+  },
+
   async addTelegramProjectMembers(payload: any[]): Promise<any[]> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();

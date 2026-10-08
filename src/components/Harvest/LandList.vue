@@ -65,7 +65,12 @@
 
            Đã bỏ 0 cột ghim ở bảng này.
            ══════════════════════════════════════════════════════════ -->
-      <el-table v-if="hienBang" v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1" height="100%" @sort-change="handleSortChange">
+      <!-- MỤC 685 (08/10/2026) — s68: "Thêm dòng tổng để biết tổng số lượng các
+           thông tin như diện tích, số cây". `show-summary` + `tinhDongTong`:
+           cộng TOÀN BỘ danh sách đang lọc, KHÔNG chỉ trang đang xem — mặc định
+           Element Plus chỉ cộng 10 dòng của trang, đọc vào tưởng là tổng. -->
+      <el-table v-if="hienBang" v-loading="loading" :data="paginatedData" style="width: 100%" class="flex-1 bang-dat" height="100%" @sort-change="handleSortChange"
+                show-summary :summary-method="tinhDongTong">
         <!-- STT Column -->
         <el-table-column label="STT" width="52" align="center">
           <template #default="{ $index }">
@@ -104,7 +109,10 @@
         </el-table-column>
         <el-table-column prop="empty_area" label="Diện tích trống (ha)" width="115" align="right">
           <template #default="{ row }">
-            <span class="font-semibold text-amber-500 dark:text-amber-400">{{ formatNumber(row.empty_area) }}</span>
+            <!-- MỤC 685 — máy chủ tính sẵn = tổng − (thu hoạch + đang trồng). ÂM tô
+                 đỏ: thu hoạch + đang trồng vượt tổng ➜ dữ liệu sai, cần sửa. -->
+            <span class="font-semibold" :class="Number(row.empty_area) < 0 ? 'text-red-600 font-bold' : 'text-amber-500 dark:text-amber-400'"
+                  :title="Number(row.empty_area) < 0 ? 'Đang thu hoạch + Đang trồng VƯỢT Tổng diện tích — kiểm tra lại lô đất này' : ''">{{ formatNumber(row.empty_area) }}</span>
           </template>
         </el-table-column>
         <el-table-column prop="harvesting_trees" :label="cropType === 'cao_su' ? 'Cây thu hoạch' : 'Số cây thu hoạch'" width="101" align="right">
@@ -257,6 +265,16 @@
       </div>
 
       <!-- Pagination -->
+      <!-- MỤC 685 — s68: "thêm thông tin hiển thị ở dưới tham khảo. Ghi Chú: 1 hecta
+           trồng 500 cây cao su". Chỉ hiện ở Cao su (chuẩn này không áp cho sầu riêng).
+           Số "theo chuẩn" chỉ để SO, không ghi vào đâu cả. -->
+      <div v-if="cropType === 'cao_su' && filteredLands.length" class="shrink-0 px-4 pt-2 text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+        <b>Ghi chú:</b> 1 ha trồng {{ CAY_MOI_HA }} cây cao su (tham khảo).
+        Theo chuẩn: đang thu hoạch {{ formatNumber(tong.harvest_area) }} ha ≈ <b>{{ formatInt(Math.round(tong.harvest_area * CAY_MOI_HA)) }}</b> cây
+        (thực tế {{ formatInt(tong.harvesting_trees) }})
+        · đang trồng {{ formatNumber(tong.planting_area) }} ha ≈ <b>{{ formatInt(Math.round(tong.planting_area * CAY_MOI_HA)) }}</b> cây
+        (thực tế {{ formatInt(tong.planting_trees) }}).
+      </div>
       <div class="mt-auto shrink-0 p-4 flex justify-end border-t border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800">
         <el-pagination
           v-model:current-page="currentPage"
@@ -350,8 +368,14 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="Diện tích trống (ha)" prop="empty_area">
-                  <el-input-number v-model="form.empty_area" :precision="2" :step="0.5" :min="0" class="w-full" style="width: 100%" />
+                <!-- MỤC 685 — KHÔNG nhập nữa: tự tính = Tổng − (Đang thu hoạch + Đang trồng).
+                     Máy chủ cũng tính lại khi lưu, số ở đây chỉ để xem trước. -->
+                <el-form-item label="Diện tích trống (ha) — tự tính">
+                  <div class="w-full rounded px-3 py-1 font-semibold"
+                       :class="trongTrongForm < 0 ? 'bg-red-50 text-red-600' : 'bg-gray-50 dark:bg-gray-800 text-amber-600'">
+                    {{ formatNumber(trongTrongForm) }}
+                    <span v-if="trongTrongForm < 0" class="text-xs font-normal"> — Đang thu hoạch + Đang trồng vượt Tổng diện tích</span>
+                  </div>
                 </el-form-item>
               </el-col>
             </el-row>
@@ -666,6 +690,37 @@ watch(() => props.cropType, () => {
   fetchLands()
 })
 
+// ══ MỤC 685 (08/10/2026) — DÒNG TỔNG + DIỆN TÍCH TRỐNG TỰ TÍNH ══
+const CAY_MOI_HA = 500   // s68: "1 hecta trồng 500 cây cao su" — chỉ để tham khảo
+
+// Cộng trên TOÀN BỘ danh sách đang lọc (mọi trang), không chỉ trang đang xem.
+const tong = computed(() => {
+  const t = { total_area: 0, harvest_area: 0, planting_area: 0, empty_area: 0, harvesting_trees: 0, planting_trees: 0 }
+  for (const l of filteredLands.value as any[]) {
+    for (const k of Object.keys(t) as (keyof typeof t)[]) t[k] += Number(l[k]) || 0
+  }
+  return t
+})
+
+const tinhDongTong = ({ columns }: { columns: any[] }) =>
+  columns.map((c: any, i: number) => {
+    // MỤC 686 — cột STT rộng 52px nên chữ "TỔNG" bị cắt còn "T…". Đặt chữ ở
+    // cột TÊN ĐẤT (rộng). Đã thử cho chữ tràn từ ô STT sang: ô kế bên tô nền
+    // đè lên, vẫn thấy "TỔNC" (đo trên Mac 08/10) — bỏ cách đó.
+    if (i === 0) return ''
+    if (c.property === 'land_name') return `TỔNG · ${filteredLands.value.length} lô`
+    if (['total_area', 'harvest_area', 'planting_area', 'empty_area'].includes(c.property))
+      return formatNumber((tong.value as any)[c.property])
+    if (['harvesting_trees', 'planting_trees'].includes(c.property))
+      return formatInt((tong.value as any)[c.property])
+    return ''
+  })
+
+// Ô "Diện tích trống" trong form: xem trước, cùng công thức với máy chủ
+// (bot/utils/dien_tich_dat.py → dien_tich_trong).
+const trongTrongForm = computed(() =>
+  Math.round(((Number(form.total_area) || 0) - (Number(form.harvest_area) || 0) - (Number(form.planting_area) || 0)) * 10000) / 10000)
+
 const formatNumber = (value: any, _decimals?: number) => {
   // ══ MỤC 372 (28/08/2026) — SỐ ĐO GIỮ PHẦN LẺ ══
   //
@@ -744,10 +799,12 @@ const submitForm = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid: boolean) => {
     if (valid) {
-      if (form.total_area < (form.harvest_area + form.planting_area + form.empty_area)) {
-        ElMessage.warning('Tổng diện tích phải lớn hơn hoặc bằng tổng diện tích thành phần!')
+      // MỤC 685 — trống = tổng − (thu hoạch + đang trồng); âm là nhập sai.
+      if (trongTrongForm.value < 0) {
+        ElMessage.warning('Đang thu hoạch + Đang trồng đang VƯỢT Tổng diện tích. Kiểm tra lại số ha.')
         return
       }
+      form.empty_area = trongTrongForm.value
 
       if (isEdit.value) {
         const payload: AgriculturalLand = {
@@ -869,6 +926,26 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* ══ MỤC 686 (08/10/2026) — DÒNG TỔNG NỔI BẬT ══
+   s68: "dòng tổng cho chữ lớn và đậm hơn. màu nổi bật tí. chữ Tổng hiện rõ,
+   không ...". Nền xanh lá nhạt + viền trên đậm, chữ to/đậm.
+   Chữ "TỔNG" nằm ở cột Tên đất (xem tinhDongTong). */
+.bang-dat :deep(.el-table__footer-wrapper td.el-table__cell) {
+  background-color: #ecfdf5 !important;
+  border-top: 2px solid #10b981;
+  color: #065f46;
+  font-size: 15px;
+  font-weight: 800;
+}
+.bang-dat :deep(.el-table__footer-wrapper td.el-table__cell .cell) {
+  white-space: nowrap;
+  text-overflow: clip;
+}
+html.dark .bang-dat :deep(.el-table__footer-wrapper td.el-table__cell) {
+  background-color: #064e3b !important;
+  color: #a7f3d0;
+}
+
 .lands-container {
   height: 100%;
 }

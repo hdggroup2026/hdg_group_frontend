@@ -486,8 +486,23 @@ const displayMode = ref<'list' | 'card'>('list')
 // trên điện thoại vẫn ở chế độ "list" — tức dựng bảng 22 cột trên màn
 // 390px, đúng thứ MỤC 396-398 dựng ra để tránh. `watch` chỉ chạy khi giá
 // trị ĐỔI, mà lúc mở màn nó chưa đổi lần nào.
-watch(laManHep, (hep) => {
-  if (hep) displayMode.value = 'card'
+//
+// ══ MỤC 678 (08/10/2026) — MỞ RỘNG LẠI THÌ TRẢ VỀ CHẾ ĐỘ CŨ ══
+// s68 báo: thu nhỏ cửa sổ ➜ thành "Card"; kéo to lại ➜ VẪN "Card", không
+// về "List". Nguyên nhân: watch chỉ ép SANG thẻ, không bao giờ trả lại.
+// Nay nhớ chế độ người dùng đang chọn ngay trước khi bị ép, hết hẹp thì
+// trả đúng chế độ đó (không ép cứng về "list": ai đang chọn Card trên
+// màn rộng thì phải giữ Card).
+// ⚠️ Lúc màn hẹp ô chọn List/Card bị ẩn, nên trong lúc hẹp người dùng
+// không thể chọn gì khác — trả lại chế độ đã nhớ là đúng ý họ.
+const cheDoTruocKhiHep = ref<'list' | 'card'>('list')
+watch(laManHep, (hep, hepCu) => {
+  if (hep) {
+    if (hepCu === false) cheDoTruocKhiHep.value = displayMode.value
+    displayMode.value = 'card'
+  } else if (hepCu === true) {
+    displayMode.value = cheDoTruocKhiHep.value
+  }
 }, { immediate: true })
 
 const searchQuery = ref('')

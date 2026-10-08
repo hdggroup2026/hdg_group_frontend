@@ -5,7 +5,7 @@
       <Sidebar v-model:activeMenu="activeMenu" />
     </el-splitter-panel>
     <el-splitter-panel :min="200" v-loading="loading">
-<div id="hdg-noi-dung-other" class="h-full"></div>
+<div id="hdg-noi-dung-other-may-tinh" class="h-full"></div>
     </el-splitter-panel>
   </el-splitter>
  
@@ -89,7 +89,7 @@
  
         <!-- Content area -->
         <div class="h-full overflow-hidden" v-loading="loading">
-<div id="hdg-noi-dung-other" class="h-full"></div>
+<div id="hdg-noi-dung-other-dien-thoai" class="h-full"></div>
         </div>
       </div>
     </template>
@@ -105,7 +105,7 @@
  
       <!-- Nội dung chính -->
       <div class="flex-1 overflow-hidden" v-loading="loading">
-<div id="hdg-noi-dung-other" class="h-full"></div>
+<div id="hdg-noi-dung-other-may-tinh-bang" class="h-full"></div>
       </div>
     </template>
   </div>
@@ -127,7 +127,19 @@
        ⚠️ `defer` LÀ BẮT BUỘC. Thiếu nó, Teleport tìm `#hdg-noi-dung-other` khi ô
        trống chưa gắn vào DOM, và hỏng thành MÀN TRẮNG. Có từ Vue 3.5.
        ══════════════════════════════════════════════════════════════════ -->
-  <Teleport defer to="#hdg-noi-dung-other">
+  <!-- ══ MỤC 676 (08/10/2026) — ĐỔI CỠ CỬA SỔ BỊ TRẮNG, PHẢI F5 ══
+       s68 báo 08/10: kéo cửa sổ to/nhỏ là trắng hết nội dung.
+       NGUYÊN NHÂN: ba ô trống dùng CHUNG một id, nên `to` không bao giờ
+       đổi. Vue CHỈ dời nội dung khi giá trị `to` đổi — đổi nhánh thì ô
+       cũ bị gỡ (mang theo nội dung), ô mới trống trơn, mà Teleport không
+       biết để dời. Lời ghi MỤC 429/450 ở trên ("đổi nhánh thì Teleport
+       DỜI") là SAI chỗ này; giữ nguyên để thấy lịch sử.
+       ĐÃ SỬA: mỗi nhánh một id riêng, `to` đổi theo bố cục → Vue dời
+       nội dung sang ô mới, component vẫn sống nguyên (không mất bộ lọc,
+       trang đang xem) — đúng mục đích của MỤC 450.
+       ⚠️ KHÔNG sửa bằng `:key` trên Teleport: hết trắng thật nhưng mỗi
+       lần đổi cỡ là dựng lại từ đầu, mất hết thứ người dùng đang gõ. -->
+  <Teleport defer :to="'#hdg-noi-dung-other-' + cheDoBoCuc">
     <DeviceManagement v-if="activeMenu === '1-1'" />
     <VehicleManagement v-else-if="activeMenu === '1-2'" />
     <DocumentManagement v-else-if="activeMenu === '1-3'" />
@@ -228,6 +240,8 @@ const isDark = useDark({
 const isDesktop = computed(() => windowWidth.value >= 1024)
 const isTablet = computed(() => windowWidth.value >= 768 && windowWidth.value < 1024)
 const isMobile = computed(() => windowWidth.value < 768)
+// MỤC 676 — hậu tố id ô chứa nội dung của nhánh đang hiện. Xem lời ghi ở <Teleport>.
+const cheDoBoCuc = computed(() => isDesktop.value ? 'may-tinh' : isMobile.value ? 'dien-thoai' : 'may-tinh-bang')
  
 // ══════════════════════════════════════════════════════════════════
 // MỤC 517 (05/09/2026) — MENU CỦA ĐIỆN THOẠI VÀ MÁY TÍNH BẢNG THIẾU

@@ -179,3 +179,43 @@ h1, h2, h3, h4, th, .font-medium, .font-semibold, .font-bold {
 .el-descriptions__cell {
   padding-bottom: 8px !important;
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   MỤC 684 (08/10/2026) — TIÊU ĐỀ CỘT CỦA MỌI BẢNG XUỐNG DÒNG, KHÔNG CÒN "…"
+   s68: "kiểm tra tất cả header đang bị ... thì fix hết thành double line
+   để không mất nội dung tiêu đề" (ảnh: "Th...", "Mã Cổ đ...", "Số tiền góp v...").
+
+   Vì sao MỘT quy tắc ở đây, không sửa từng bảng: web có hàng chục bảng,
+   sửa tay từng cột là sót, và bảng thêm sau này lại "…" như cũ.
+
+   ⚠️ `!important` có chủ ý — đo trên Mac 08/10 (MỤC 681): Element Plus ép
+   tiêu đề 1 dòng (`white-space: nowrap`, `display: flow-root`) bằng bộ
+   chọn mạnh hơn; không có !important thì quy tắc này không ăn.
+   ⚠️ CHỈ tiêu đề. Ô nội dung KHÔNG đụng: nhiều bảng cố ý 1 dòng + di chuột
+   xem đủ (show-overflow-tooltip); đổi chung là bảng nào cũng cao gấp đôi.
+   ⚠️ Ô tích chọn và ô có mũi tên sắp xếp giữ nguyên kiểu cũ (`:has`) —
+   bọc chúng bằng -webkit-box làm lệch ô tích / mũi tên.
+   ══════════════════════════════════════════════════════════════════════ */
+.el-table th.el-table__cell > .cell:not(:has(.el-checkbox)):not(:has(.caret-wrapper)) {
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical;
+  /* Kẹp 3, không phải 2 — đo trên Mac 08/10, mọi màn có bảng: cỡ chữ
+     thường thì tiêu đề dài nhất cần ĐÚNG 2 dòng; chữ to hơn 20% (máy s68
+     hiển thị chữ to hơn) thì 6 tiêu đề cần 3 dòng ("Nghỉ không phép",
+     "Người thực hiện"…). Kẹp 2 là 6 cái đó lại bị cắt — trái ý "không mất
+     nội dung". Dòng thứ 3 chỉ xuất hiện khi thật sự cần. */
+  -webkit-line-clamp: 3;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: clip !important;
+  line-height: 1.25;
+}
+/* Ô có mũi tên sắp xếp: cho chữ xuống dòng nhưng giữ dòng ngang với mũi tên */
+.el-table th.el-table__cell > .cell:has(.caret-wrapper) {
+  white-space: normal !important;
+  word-break: normal !important;
+  text-overflow: clip !important;
+  line-height: 1.25;
+}

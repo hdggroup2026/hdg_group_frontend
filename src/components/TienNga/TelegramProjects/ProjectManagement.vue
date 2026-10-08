@@ -3,7 +3,7 @@
 
     <!-- ================= SECTION 1: QUẢN LÝ DỰ ÁN ================= -->
     <div class="shrink-0" v-loading="loading">
-      <div class="flex items-center justify-between mb-4">
+      <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
         <h3 class="text-lg font-bold text-gray-700 dark:text-gray-300 flex items-center gap-2">
           <span class="w-2.5 h-2.5 bg-blue-500 dark:bg-blue-400 rounded-full"></span>
           QUẢN LÝ DỰ ÁN
@@ -11,71 +11,115 @@
             {{ projects.length }}
           </span>
         </h3>
-        <el-button 
-          type="primary" 
-          class="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 border-none rounded-xl font-semibold shadow-md transition-all duration-300 hover:shadow-lg text-white flex items-center"
-          @click="handleOpenCreateProjectDialog"
-        >
-          <el-icon class="mr-1.5"><Plus /></el-icon>
-          Thêm dự án
-        </el-button>
+        <div class="flex items-center gap-2">
+          <!-- MỤC 680 — s68: "Thêm 1 ô search tên nhóm bên trái nút thêm dự án".
+               Tìm trên MỌI dự án, gõ không dấu cũng ra. Chỉ superowner (dùng
+               chung đường đọc tin — người khác máy chủ trả 403). -->
+          <el-input v-if="laSuperowner" v-model="oTim" clearable placeholder="Tìm tên nhóm…"
+                    style="width: 220px" :prefix-icon="Search" />
+          <el-button 
+            type="primary" 
+            class="bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 border-none rounded-xl font-semibold shadow-md transition-all duration-300 hover:shadow-lg text-white flex items-center"
+            @click="handleOpenCreateProjectDialog"
+          >
+            <el-icon class="mr-1.5"><Plus /></el-icon>
+            Thêm dự án
+          </el-button>
+        </div>
       </div>
 
-      <!-- Single Row Project Cards Container with Horizontal Scroll -->
-      <div v-if="projects.length > 0" class="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-5 p-1 pb-4">
+      <!-- ══ MỤC 680 (08/10/2026) — Ô DỰ ÁN DẸP LẠI CÒN ~1/2 ══
+           s68: "bố cục lại nút dẹp lại = 1/2 hiện tại. số tin chưa đọc hiện
+           số màu đỏ ngay góc chân bên phải ... để giảm bớt 1 dòng".
+           Trước: tên / ID / nhãn chưa đọc / chân "Xem nhóm Main" = 4 tầng.
+           Nay: tên (+ID khi di chuột) / chân "Xem nhóm Main" + số đỏ = 2 tầng. -->
+      <!-- ══ MỤC 688 (08/10/2026) — CHIA ĐÔI MÀN HÌNH (chỉ superowner, màn ≥1024px) ══
+           s68: "nút dự án xếp dọc 2 cột nửa màn hình bên phải. còn danh sách
+           nhóm dọc thay thế 2 cột ô ở giữa. như vậy để thấy được 1 màn hình
+           danh sách nhiều nhóm hơn".
+           · `lg:flex-row-reverse`: trong mã ô dự án vẫn đứng TRƯỚC (điện thoại
+             xếp chồng: ô dự án trên, danh sách dưới — như cũ), lên màn rộng
+             thì đảo: danh sách TRÁI, ô dự án PHẢI.
+           · Người không phải superowner không có danh sách tin ➜ giữ lưới 4 cột cũ.
+           · Danh sách cao gần hết màn, cuộn riêng (DocTinDuAn.vue). -->
+      <!-- MỤC 689 (08/10/2026) — s68: "2 cột nút chiều ngang hơi rộng … thu gọn lại
+           chiều ngang nút, đủ thấy nội dung hết là vừa, để màn giữa thấy nội dung
+           chat được nhiều hơn". Cột ô dự án: nửa màn ➜ CỐ ĐỊNH 400px (2 ô ~195px,
+           đo trên Mac: đủ "HDG Backend", "Xem nhóm Main" + "3621 · 0"); phần
+           còn lại cho danh sách nhóm. -->
+      <div :class="laSuperowner ? 'lg:flex lg:flex-row-reverse lg:items-start lg:gap-3' : ''">
+      <div v-if="projects.length > 0"
+           :class="laSuperowner ? 'grid grid-cols-2 gap-2 p-1 pb-2 lg:w-[400px] lg:shrink-0'
+                                : 'grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2.5 sm:gap-3 p-1 pb-2'">
+        <!-- MỤC 680 — ô "Tất cả nhóm": mọi nhóm, tin mới nhất lên trên -->
+        <div v-if="laSuperowner"
+             class="group relative rounded-xl border bg-white dark:bg-gray-800 px-3 py-2.5 cursor-pointer transition-all duration-300 hover:shadow-lg flex flex-col justify-between"
+             :class="!duAnDoc && !timApDung ? 'border-2 border-emerald-500 ring-2 ring-emerald-500/20' : 'border-gray-100 dark:border-gray-700/80'"
+             @click="chonTatCa">
+          <div class="flex items-center gap-2">
+            <div class="p-1.5 rounded-lg text-white shrink-0 bg-emerald-500 flex items-center justify-center">
+              <el-icon :size="16"><ChatLineRound /></el-icon>
+            </div>
+            <h4 class="font-bold text-gray-800 dark:text-gray-100 text-[14px] line-clamp-1 flex-1">Tất Cả Nhóm</h4>
+          </div>
+          <div class="mt-2 pt-1.5 border-t border-gray-50 dark:border-gray-700/40 flex items-center justify-between text-[11px]">
+            <span class="text-gray-500">Tin mới nhất ở trên</span>
+            <span class="tabular-nums" v-html="chuChuaDoc(tongTatCa)"></span>
+          </div>
+        </div>
+
         <div
           v-for="(proj, idx) in projects"
           :key="proj.id"
-          class="group relative rounded-2xl border bg-white dark:bg-gray-800 p-3 sm:p-5 cursor-pointer transition-all duration-300 hover:shadow-xl hover:-translate-y-1 flex flex-col justify-between"
-          :class="selectedProject?.id === proj.id ? 'border-2 border-blue-500 shadow-lg ring-2 ring-blue-500/20 bg-blue-50/10 dark:bg-blue-900/10' : 'border-gray-100 dark:border-gray-700/80'"
+          class="group relative rounded-xl border bg-white dark:bg-gray-800 px-3 py-2.5 cursor-pointer transition-all duration-300 hover:shadow-lg flex flex-col justify-between"
+          :class="selectedProject?.id === proj.id || duAnDoc?.id === proj.id ? 'border-2 border-blue-500 shadow-lg ring-2 ring-blue-500/20 bg-blue-50/10 dark:bg-blue-900/10' : 'border-gray-100 dark:border-gray-700/80'"
+          @click="chonDuAnDocTin(proj)"
         >
-          <div>
-            <div class="flex items-start gap-3">
-              <div
-                class="p-2.5 rounded-xl text-white shadow-sm flex items-center justify-center shrink-0 transition-transform duration-300 group-hover:scale-110"
-                :style="{ backgroundColor: getCardColor(idx) }"
-              >
-                <el-icon :size="20"><Connection /></el-icon>
-              </div>
-              <div class="flex-1 min-w-0 text-left">
-                <div class="flex items-center justify-between gap-1">
-                  <h4 class="font-bold text-gray-800 dark:text-gray-100 text-[15px] line-clamp-2 leading-snug flex-1">
-                    {{ proj.project_name }}
-                  </h4>
-
-                  <!-- Dropdown Action Menu for Project -->
-                  <el-dropdown trigger="click" @command="(cmd: string) => handleProjectCommand(cmd, proj)">
-                    <el-button link type="info" class="p-1 !text-gray-400 hover:!text-gray-600 dark:hover:!text-gray-200" @click.stop>
-                      <el-icon :size="16"><MoreFilled /></el-icon>
-                    </el-button>
-                    <template #dropdown>
-                      <el-dropdown-menu>
-                        <el-dropdown-item command="edit">
-                          <el-icon class="mr-1"><Edit /></el-icon>
-                          Đổi tên
-                        </el-dropdown-item>
-                        <el-dropdown-item command="delete" divided class="!text-red-500">
-                          <el-icon class="mr-1"><Delete /></el-icon>
-                          Xóa dự án
-                        </el-dropdown-item>
-                      </el-dropdown-menu>
-                    </template>
-                  </el-dropdown>
-                </div>
-                <div class="text-[11px] text-gray-400 mt-2">
-                  ID: {{ proj.id.substring(0, 8) }}...
-                </div>
-              </div>
+          <div class="flex items-center gap-2">
+            <div
+              class="p-1.5 rounded-lg text-white shadow-sm flex items-center justify-center shrink-0"
+              :style="{ backgroundColor: getCardColor(idx) }"
+            >
+              <el-icon :size="16"><Connection /></el-icon>
             </div>
+            <!-- ID dời vào `title` (di chuột vào tên là thấy) — bớt một dòng -->
+            <h4 class="font-bold text-gray-800 dark:text-gray-100 text-[14px] line-clamp-1 leading-snug flex-1 min-w-0"
+                :title="'ID: ' + proj.id">
+              {{ proj.project_name }}
+            </h4>
+
+            <!-- Dropdown Action Menu for Project -->
+            <el-dropdown trigger="click" @command="(cmd: string) => handleProjectCommand(cmd, proj)">
+              <el-button link type="info" class="p-1 !text-gray-400 hover:!text-gray-600 dark:hover:!text-gray-200" @click.stop>
+                <el-icon :size="16"><MoreFilled /></el-icon>
+              </el-button>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item command="edit">
+                    <el-icon class="mr-1"><Edit /></el-icon>
+                    Đổi tên
+                  </el-dropdown-item>
+                  <el-dropdown-item command="delete" divided class="!text-red-500">
+                    <el-icon class="mr-1"><Delete /></el-icon>
+                    Xóa dự án
+                  </el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
           </div>
 
-          <div 
-            class="mt-5 pt-3 border-t border-gray-50 dark:border-gray-700/40 flex items-center justify-between text-[11px] font-semibold transition-colors cursor-pointer hover:underline"
-            :class="selectedProject?.id === proj.id ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500 opacity-70 group-hover:opacity-100'"
-            @click.stop="toggleProjectMainGroupView(proj)"
-          >
-            <span>{{ selectedProject?.id === proj.id ? 'Đang xem nhóm Main' : 'Xem nhóm Main' }}</span>
-            <el-icon class="ml-1 transition-transform duration-300 group-hover:translate-x-1"><ArrowRight /></el-icon>
+          <div class="mt-2 pt-1.5 border-t border-gray-50 dark:border-gray-700/40 flex items-center justify-between gap-2 text-[11px] font-semibold">
+            <span
+              class="flex items-center transition-colors cursor-pointer hover:underline"
+              :class="selectedProject?.id === proj.id ? 'text-blue-600 dark:text-blue-400 font-bold' : 'text-gray-500 opacity-70 group-hover:opacity-100'"
+              @click.stop="toggleProjectMainGroupView(proj)"
+            >
+              {{ selectedProject?.id === proj.id ? 'Đang xem nhóm Main' : 'Xem nhóm Main' }}
+              <el-icon class="ml-1"><ArrowRight /></el-icon>
+            </span>
+            <!-- MỤC 677/680 — tổng chưa đọc, góc chân phải, số đỏ. Chỉ superowner. -->
+            <span v-if="laSuperowner && chuaDocDuAn[proj.id]" class="tabular-nums"
+                  v-html="chuChuaDoc(chuaDocDuAn[proj.id])"></span>
           </div>
         </div>
       </div>
@@ -86,8 +130,17 @@
         <p class="text-base font-medium">Chưa có dự án nào</p>
         <el-button type="primary" link class="mt-1 font-bold" @click="handleOpenCreateProjectDialog">Thêm dự án đầu tiên</el-button>
       </div>
-    </div>
 
+      <!-- ================= MỤC 677: TIN NHẮN TELEGRAM CỦA DỰ ÁN (chỉ superowner) ================= -->
+      <!-- MỤC 680 — ưu tiên: đang gõ tìm ➜ kết quả tìm; bấm ô dự án ➜ nhóm của dự án.
+           MỤC 688 — chưa chọn gì thì hiện "Tất cả nhóm" (nửa trái không để trống). -->
+      <div v-if="laSuperowner" class="mt-4 lg:mt-0 lg:flex-1 lg:min-w-0">
+        <DocTinDuAn v-if="timApDung" che-do="tim" :tim="timApDung" @da-ghim="taiChuaDoc" />
+        <DocTinDuAn v-else-if="duAnDoc" :project-id="duAnDoc.id" :ten-du-an="duAnDoc.project_name" @da-ghim="taiChuaDoc" />
+        <DocTinDuAn v-else che-do="tat-ca" @da-ghim="taiChuaDoc" />
+      </div>
+      </div>
+    </div>
 
     <!-- ================= SECTION 2: DANH SÁCH NHÓM MAIN ================= -->
     <div v-if="selectedProject" class="shrink-0 transition-all duration-300" v-loading="mainGroupsLoading">
@@ -459,11 +512,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, reactive } from 'vue'
+import { ref, onMounted, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Connection, ChatLineRound, ArrowRight, User, MoreFilled, View, CopyDocument, Plus, Edit, Delete } from '@element-plus/icons-vue'
+import { Connection, ChatLineRound, ArrowRight, User, MoreFilled, View, CopyDocument, Plus, Edit, Delete, Search } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 677 — đọc tin Telegram (chỉ superowner)
+import { docTinService } from '@/api/docTinService'
+import DocTinDuAn from './DocTinDuAn.vue'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
@@ -726,8 +782,71 @@ const handleDeleteProject = (proj: Project) => {
   }).catch(() => {})
 }
 
+// ══ MỤC 677 (08/10/2026) — ĐỌC TIN TELEGRAM, CHỈ SUPEROWNER ══
+// Hỏi máy chủ: 403 ➜ không phải superowner ➜ không hiện gì thêm, màn này
+// chạy y như cũ. Lỗi khác (máy chủ chưa cài MỤC 677…) cũng im lặng ẩn —
+// phần này là PHỤ, không được làm hỏng màn quản lý dự án.
+const laSuperowner = ref(false)
+const chuaDocDuAn = ref<Record<string, Record<string, number | null>>>({})
+const duAnDoc = ref<Project | null>(null)
+
+const taiChuaDoc = async () => {
+  try {
+    const kq = await docTinService.tongTheoDuAn()
+    laSuperowner.value = true
+    // Tổng của ô "Tất cả nhóm" — nhóm gắn hai dự án chỉ đếm MỘT lần (máy chủ gộp).
+    docTinService.tatCa().then(t => { tongTatCa.value = t.chua_doc }).catch(() => {})
+    const m: Record<string, Record<string, number | null>> = {}
+    for (const d of kq.du_an || []) m[d.project_id] = d.chua_doc
+    chuaDocDuAn.value = m
+  } catch (e: any) {
+    laSuperowner.value = false
+    if (e?.status !== 403) console.warn('[MỤC 677] Không đọc được số chưa đọc:', e)
+  }
+}
+
+// Bấm vào ô dự án ➜ mở/đóng khung tin nhắn của dự án đó.
+const chonDuAnDocTin = (proj: Project) => {
+  if (!laSuperowner.value) return
+  xemTatCa.value = false
+  oTim.value = ''
+  duAnDoc.value = duAnDoc.value?.id === proj.id ? null : proj
+}
+
+// ══ MỤC 680 — "Tất cả nhóm", ô tìm, số chưa đọc ở góc ══
+const xemTatCa = ref(false)
+const tongTatCa = ref<Record<string, number | null> | null>(null)
+const chonTatCa = () => {
+  // MỤC 688 — "Tất cả nhóm" là trạng thái MẶC ĐỊNH (không chọn dự án nào),
+  // nên bấm vào chỉ cần bỏ chọn dự án và xoá ô tìm.
+  duAnDoc.value = null
+  oTim.value = ''
+  xemTatCa.value = true
+}
+
+// Gõ tới đâu tìm tới đó thì mỗi phím một lượt gọi máy chủ — chờ 400ms
+// sau phím cuối mới tìm.
+const oTim = ref('')
+const timApDung = ref('')
+let henTim: ReturnType<typeof setTimeout> | null = null
+watch(oTim, (v) => {
+  if (henTim) clearTimeout(henTim)
+  henTim = setTimeout(() => { timApDung.value = (v || '').trim() }, 400)
+})
+
+// Số chưa đọc ở góc: >0 đỏ đậm · 0 xám · "?" cam (số lỗi/chưa đăng nhập ≠ 0).
+// Hai số điện thoại thì nối "12 · 3" theo thứ tự Số 1, Số 2.
+const chuChuaDoc = (cd: Record<string, number | null> | null | undefined) => {
+  if (!cd) return ''
+  return Object.values(cd).map(v =>
+    v === null ? '<span class="text-amber-600 font-bold">?</span>'
+      : v ? `<span class="text-rose-600 font-extrabold text-sm">${v}</span>`
+        : '<span class="text-gray-300">0</span>').join('<span class="text-gray-300"> · </span>')
+}
+
 onMounted(() => {
   fetchProjects()
+  taiChuaDoc()
 })
 </script>
 

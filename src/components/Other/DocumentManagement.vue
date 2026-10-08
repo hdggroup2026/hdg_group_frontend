@@ -105,10 +105,20 @@
                 </template>
               </el-table-column>
 
-              <!-- Tiêu đề / Tên -->
-              <el-table-column prop="title" label="Tên tài liệu / Tiêu đề" min-width="130" show-overflow-tooltip>
+              <!-- Tiêu đề / Tên
+                   MỤC 675 (08/10/2026) — s68: "Tên tài liệu thu gọn lại, nếu
+                   dài thì cho xuống thành 2 dòng".
+                   Trước: `min-width` + `show-overflow-tooltip` → cột phình
+                   ra chiếm chỗ của cột khác, tên dài thì bị "…" một dòng.
+                   Nay: rộng CỐ ĐỊNH 190, chữ tự xuống dòng, tối đa 2 dòng
+                   (`line-clamp-2`). Dài hơn 2 dòng mới cắt "…", và di chuột
+                   vào vẫn đọc đủ (thuộc tính `title`).
+                   ⚠️ `break-normal`: ô của Element Plus mặc định cắt chữ giữa
+                   từ (`word-break: break-all`) — "Hộ Chiếu" sẽ thành "Hộ Chi /
+                   ếu". Dòng này bắt xuống dòng ở khoảng trắng. -->
+              <el-table-column prop="title" label="Tên tài liệu / Tiêu đề" width="190">
                 <template #default="{ row }">
-                  <span class="font-bold text-gray-850 dark:text-gray-100">{{ row.title }}</span>
+                  <span class="font-bold text-gray-850 dark:text-gray-100 line-clamp-2 break-normal" :title="row.title">{{ row.title }}</span>
                 </template>
               </el-table-column>
 
@@ -122,30 +132,40 @@
               </el-table-column>
 
               <!-- Chủ sở hữu -->
-              <el-table-column prop="owner_name" label="Người sở hữu" width="101" show-overflow-tooltip>
+              <!-- MỤC 675 (08/10/2026) — s68: "cột Người sở hữu hiện đủ thông
+                   tin, không để ...". Bỏ `show-overflow-tooltip` (chính nó
+                   cắt "…"), nới 101 → 150 và cho xuống dòng theo từ. KHÔNG
+                   giới hạn số dòng: cắt bớt tên người là đúng điều s68 bảo
+                   đừng làm. -->
+              <el-table-column prop="owner_name" label="Người sở hữu" width="150">
                 <template #default="{ row }">
-                  <span class="text-xs text-gray-800 dark:text-gray-200 font-bold">{{ row.owner_name || '—' }}</span>
+                  <span class="text-xs text-gray-800 dark:text-gray-200 font-bold break-normal">{{ row.owner_name || '—' }}</span>
                 </template>
               </el-table-column>
 
               <!-- Ngày cấp -->
-              <el-table-column prop="issue_date" label="Ngày cấp" width="86" align="center">
+              <!-- MỤC 675 — Ngày cấp / Hạn: 86/94 → 112 + `whitespace-nowrap` (100 vẫn cắt "20/02/20…", đã đo trên Mac).
+                   Ảnh s68 gửi 08/10 cho thấy ngày bị gãy giữa số năm
+                   ("20/02/2" / "020") — đọc nhầm ngày được. -->
+              <el-table-column prop="issue_date" label="Ngày cấp" width="112" align="center">
                 <template #default="{ row }">
-                  <span class="font-mono text-xs">{{ formatDate(row.issue_date) }}</span>
+                  <span class="font-mono text-xs whitespace-nowrap">{{ formatDate(row.issue_date) }}</span>
                 </template>
               </el-table-column>
 
               <!-- Ngày hết hạn -->
-              <el-table-column prop="expiry_date" label="Hạn bảo hành / Hết hạn" width="94" align="center">
+              <el-table-column prop="expiry_date" label="Hạn bảo hành / Hết hạn" width="112" align="center">
                 <template #default="{ row }">
-                  <span class="font-mono text-xs" :class="isExpired(row.expiry_date) ? 'text-red-500 font-bold' : ''">
+                  <span class="font-mono text-xs whitespace-nowrap" :class="isExpired(row.expiry_date) ? 'text-red-500 font-bold' : ''">
                     {{ formatDate(row.expiry_date) }}
                   </span>
                 </template>
               </el-table-column>
 
               <!-- Trạng thái -->
-              <el-table-column prop="status" label="Trạng thái" width="94" align="center">
+              <!-- MỤC 675 — 94 → 130: nhãn "Đang hoạt động" bị cắt còn
+                   "Đang hoạt độn" (ảnh s68 08/10). -->
+              <el-table-column prop="status" label="Trạng thái" width="130" align="center">
                 <template #default="{ row }">
                   <el-tag size="small" :type="getStatusTagType(row.status)" effect="dark" class="font-bold">
                     {{ getStatusLabel(row.status) }}

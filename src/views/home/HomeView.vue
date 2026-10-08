@@ -270,10 +270,19 @@
                         {{ d.ghi_chu }}
                       </div>
                     </td>
+                    <!-- MỤC 674 (08/10/2026) — di chuột / bấm vào số để xem
+                         số đó cộng từ những mục nào. Backend chưa cài MỤC
+                         674 thì `chi_tiet_*` không có, ô in số trơn như cũ. -->
                     <td class="px-3 py-2.5 text-right align-top tabular-nums"
-                        :class="o(d.tai_san)">{{ tien(d.tai_san) }}</td>
+                        :class="o(d.tai_san)">
+                      <ChiTietO :so="d.tai_san" :ct="d.chi_tiet_tai_san"
+                                :tieu-de="'Tài sản ' + d.du_an" />
+                    </td>
                     <td class="px-3 py-2.5 text-right align-top tabular-nums"
-                        :class="o(d.cong_no)">{{ tien(d.cong_no) }}</td>
+                        :class="o(d.cong_no)">
+                      <ChiTietO :so="d.cong_no" :ct="d.chi_tiet_cong_no"
+                                :tieu-de="'Công nợ ' + d.du_an" />
+                    </td>
                     <td class="px-3 py-2.5 text-right align-top tabular-nums font-medium"
                         :class="mauChenh(d.chenh_lech)">{{ tien(d.chenh_lech) }}</td>
                   </tr>
@@ -427,13 +436,22 @@
                   <div v-for="d in b.dong" :key="d.du_an"
                        class="mb-2 pb-2 border-b border-gray-100 dark:border-gray-700/50 last:border-0">
                     <div class="font-medium text-gray-800 dark:text-gray-100">{{ d.du_an }}</div>
+                    <!-- MỤC 674 — cùng dòng với bảng Cân đối ở trên (backend
+                         `_bang_dich_vu` lấy lại dòng đó), nên cùng có chi tiết.
+                         Một chỗ có, một chỗ không thì người xem tưởng hỏng. -->
                     <div class="flex justify-between gap-2 mt-0.5">
                       <span class="text-gray-500 dark:text-gray-400">Tài sản</span>
-                      <span class="tabular-nums" :class="o(d.tai_san)">{{ tien(d.tai_san) }}</span>
+                      <span class="tabular-nums" :class="o(d.tai_san)">
+                        <ChiTietO :so="d.tai_san" :ct="d.chi_tiet_tai_san"
+                                  :tieu-de="'Tài sản ' + d.du_an" />
+                      </span>
                     </div>
                     <div class="flex justify-between gap-2">
                       <span class="text-gray-500 dark:text-gray-400">Công nợ</span>
-                      <span class="tabular-nums" :class="o(d.cong_no)">{{ tien(d.cong_no) }}</span>
+                      <span class="tabular-nums" :class="o(d.cong_no)">
+                        <ChiTietO :so="d.cong_no" :ct="d.chi_tiet_cong_no"
+                                  :tieu-de="'Công nợ ' + d.du_an" />
+                      </span>
                     </div>
                     <div v-if="d.ghi_chu" class="mt-1 text-[11px] leading-snug text-amber-700 dark:text-amber-300">
                       {{ d.ghi_chu }}
@@ -1317,6 +1335,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'   // MỤC 526 — thêm computed
 import { mauSo } from '@/utils/mauSo'
+import ChiTietO from './ChiTietO.vue'   // MỤC 674
 import { useRouter } from 'vue-router'
 import { layQuyen, danhSachDuocVao, type DuAn } from '@/constants/duAn'
 import { trangChuService } from '@/api/trangChu'

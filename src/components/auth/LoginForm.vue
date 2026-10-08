@@ -1,5 +1,7 @@
 <template>
-    <div class="bg-white/3 backdrop-blur-lg border border-white/40 p-10 rounded-[40px] shadow-2xl w-[400px] text-center">
+    <!-- MỤC 683 (08/10/2026) — thêm `max-w-[92vw]` và lề nhỏ hơn trên điện thoại:
+         khung rộng cứng 400px tràn hai mép màn 375px (đo trên Mac, có từ trước). -->
+    <div class="bg-white/3 backdrop-blur-lg border border-white/40 p-6 sm:p-10 rounded-[40px] shadow-2xl w-[400px] max-w-[92vw] text-center">
         <!-- ══ MỤC 407 (29/08/2026) — LOGO HDG THAY BIỂU TƯỢNG NGƯỜI ══
              s68: *"vòng tròn lấy avatar trên trang chủ gắn vào luôn"*.
              Logo đã có sẵn ở `public/logo-hdg.png`, cùng file thanh điều

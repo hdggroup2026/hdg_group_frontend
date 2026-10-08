@@ -1,8 +1,17 @@
 <template>
-  <main class="min-h-screen w-full flex items-center justify-center relative overflow-hidden bg-gradient-to-b from-[#87CEEB] to-[#4682B4]">
-    <div class="absolute top-20 -left-20 w-80 h-80 bg-white/40 rounded-full blur-[80px]"></div>
-    <div class="absolute bottom-10 -right-20 w-96 h-96 bg-white/30 rounded-full blur-[100px]"></div>
-    <div class="absolute top-1/2 left-10 w-60 h-60 bg-white/20 rounded-full blur-[60px]"></div>
+  <!-- ══ MỤC 683 (08/10/2026) — ẢNH NỀN MÀN ĐĂNG NHẬP ══
+       s68 gửi ảnh, yêu cầu làm hình nền màn đăng nhập.
+       · Ảnh để trong `src/assets/` và `import` vào — Vite đóng gói kèm bản
+         build. Để `public/` mà gõ đường dẫn tay thì dễ 404 im lặng (bài học
+         MỤC 669: lên bản build mất ảnh mà trang vẫn chạy bình thường).
+       · Máy tính (≥768px): khung đăng nhập dời sang PHẢI để không che người
+         trong ảnh (hai bé đứng giữa ảnh). Điện thoại: khung ở giữa như cũ —
+         màn hẹp không có chỗ để né.
+       · Nền dự phòng giữ màu trời xanh cũ: ảnh chưa tải xong vẫn có nền. -->
+  <main class="min-h-screen w-full flex items-center justify-center md:justify-end md:pr-[6vw] relative overflow-hidden bg-gradient-to-b from-[#87CEEB] to-[#4682B4] bg-cover bg-center"
+        :style="{ backgroundImage: `url(${anhNen})` }">
+    <!-- Lớp tối nhẹ phía phải để chữ trong khung đăng nhập dễ đọc trên ảnh nhiều màu -->
+    <div class="absolute inset-0 bg-gradient-to-l from-black/35 via-black/5 to-transparent pointer-events-none"></div>
 
     <section class="z-10">
       <transition name="fade-scale" mode="out-in">
@@ -16,6 +25,7 @@
 
 <script setup>
 import { computed } from 'vue'
+import anhNen from '@/assets/nen_dang_nhap.jpg'   // MỤC 683
 import { useRoute, useRouter } from 'vue-router'
 import LoginForm from './LoginForm.vue'
 import RegisterForm from './RegisterForm.vue'
