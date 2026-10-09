@@ -331,6 +331,11 @@
              là vuốt ngang liên tục. Dùng thẻ dọc theo
              `tai_lieu_ai/quy_uoc_bo_cuc_the.md`.
              ═══════════════════════════════════════════════════════════ -->
+        <!-- MỤC 696 (09/10/2026) — s68: *"chữ đang nhỏ hơn số đúng không? cho chữ
+             tiêu đề lớn bằng số, còn chữ nội dung lớn hơn tí — giao diện còn nhiều
+             khoảng trống"*. Đúng: số dùng font không chân (main.css `.tabular-nums`)
+             nên CÙNG cỡ text-sm vẫn trông to hơn chữ Times. Nhãn lên text-base,
+             ghi chú 11px ➜ 13px, nguồn 11px ➜ text-xs. CHỈ trong khối này. -->
         <section v-if="baBang && baBang.bang" class="mb-8">
           <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
             Hạch toán độc lập từng mảng
@@ -345,7 +350,7 @@
             <div v-for="b in baBang.bang" :key="b.ten"
                  class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 overflow-hidden flex flex-col">
               <div class="px-3 py-2.5 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30">
-                <span class="font-semibold text-sm text-gray-800 dark:text-gray-100">
+                <span class="font-semibold text-base text-gray-800 dark:text-gray-100">
                   {{ b.ten }}
                 </span>
               </div>
@@ -353,13 +358,13 @@
               <div class="p-3 space-y-3 flex-1 text-sm">
                 <!-- Tài sản -->
                 <div v-if="b.tai_san && b.tai_san.length">
-                  <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Tài sản</div>
+                  <div class="text-xs uppercase tracking-wide text-gray-400 mb-1">Tài sản</div>
                   <div v-for="[ten, ke] in b.tai_san" :key="'ts-' + ten" class="mb-1.5">
                     <div class="flex justify-between gap-2">
-                      <span class="text-gray-500 dark:text-gray-400">{{ ten }}</span>
+                      <span class="text-base text-gray-600 dark:text-gray-300">{{ ten }}</span>
                       <span class="tabular-nums" :class="o(ke.so)">{{ tien(ke.so) }}</span>
                     </div>
-                    <div v-if="ke.ghi_chu" class="text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                    <div v-if="ke.ghi_chu" class="text-[13px] leading-snug text-amber-700 dark:text-amber-300">
                       {{ ke.ghi_chu }}
                     </div>
                     <!-- ══ MỤC 399 (29/08/2026) — HIỆN NGUỒN CỦA TỪNG Ô ══
@@ -371,7 +376,7 @@
                          Thấy một con số lạ mà không biết nó lấy từ đâu
                          thì không soi được gì — phải mở mã nguồn ra đọc,
                          và lúc đó công cụ mất tác dụng. -->
-                    <div v-if="ke.nguon" class="text-[11px] leading-snug text-gray-400 dark:text-gray-500">
+                    <div v-if="ke.nguon" class="text-xs leading-snug text-gray-400 dark:text-gray-500">
                       {{ ke.nguon }}
                     </div>
                   </div>
@@ -379,13 +384,13 @@
 
                 <!-- Công nợ -->
                 <div v-if="b.cong_no && b.cong_no.length">
-                  <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">Công nợ</div>
+                  <div class="text-xs uppercase tracking-wide text-gray-400 mb-1">Công nợ</div>
                   <div v-for="[ten, ke] in b.cong_no" :key="'cn-' + ten" class="mb-1.5">
                     <div class="flex justify-between gap-2">
-                      <span class="text-gray-500 dark:text-gray-400">{{ ten }}</span>
+                      <span class="text-base text-gray-600 dark:text-gray-300">{{ ten }}</span>
                       <span class="tabular-nums" :class="o(ke.so)">{{ tien(ke.so) }}</span>
                     </div>
-                    <div v-if="ke.ghi_chu" class="text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                    <div v-if="ke.ghi_chu" class="text-[13px] leading-snug text-amber-700 dark:text-amber-300">
                       {{ ke.ghi_chu }}
                     </div>
                     <!-- ══ MỤC 399 (29/08/2026) — HIỆN NGUỒN CỦA TỪNG Ô ══
@@ -397,7 +402,7 @@
                          Thấy một con số lạ mà không biết nó lấy từ đâu
                          thì không soi được gì — phải mở mã nguồn ra đọc,
                          và lúc đó công cụ mất tác dụng. -->
-                    <div v-if="ke.nguon" class="text-[11px] leading-snug text-gray-400 dark:text-gray-500">
+                    <div v-if="ke.nguon" class="text-xs leading-snug text-gray-400 dark:text-gray-500">
                       {{ ke.nguon }}
                     </div>
                   </div>
@@ -405,15 +410,15 @@
 
                 <!-- Hiệu quả trong năm -->
                 <div v-if="b.hieu_qua && b.hieu_qua.length">
-                  <div class="text-[11px] uppercase tracking-wide text-gray-400 mb-1">
+                  <div class="text-xs uppercase tracking-wide text-gray-400 mb-1">
                     Hiệu quả từ đầu năm
                   </div>
                   <div v-for="[ten, ke] in b.hieu_qua" :key="'hq-' + ten" class="mb-1.5">
                     <div class="flex justify-between gap-2">
-                      <span class="text-gray-500 dark:text-gray-400">{{ ten }}</span>
+                      <span class="text-base text-gray-600 dark:text-gray-300">{{ ten }}</span>
                       <span class="tabular-nums" :class="o(ke.so)">{{ tien(ke.so) }}</span>
                     </div>
-                    <div v-if="ke.ghi_chu" class="text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                    <div v-if="ke.ghi_chu" class="text-[13px] leading-snug text-amber-700 dark:text-amber-300">
                       {{ ke.ghi_chu }}
                     </div>
                     <!-- ══ MỤC 399 (29/08/2026) — HIỆN NGUỒN CỦA TỪNG Ô ══
@@ -425,7 +430,7 @@
                          Thấy một con số lạ mà không biết nó lấy từ đâu
                          thì không soi được gì — phải mở mã nguồn ra đọc,
                          và lúc đó công cụ mất tác dụng. -->
-                    <div v-if="ke.nguon" class="text-[11px] leading-snug text-gray-400 dark:text-gray-500">
+                    <div v-if="ke.nguon" class="text-xs leading-snug text-gray-400 dark:text-gray-500">
                       {{ ke.nguon }}
                     </div>
                   </div>
@@ -435,30 +440,30 @@
                 <div v-if="b.dong && b.dong.length">
                   <div v-for="d in b.dong" :key="d.du_an"
                        class="mb-2 pb-2 border-b border-gray-100 dark:border-gray-700/50 last:border-0">
-                    <div class="font-medium text-gray-800 dark:text-gray-100">{{ d.du_an }}</div>
+                    <div class="font-medium text-base text-gray-800 dark:text-gray-100">{{ d.du_an }}</div>
                     <!-- MỤC 674 — cùng dòng với bảng Cân đối ở trên (backend
                          `_bang_dich_vu` lấy lại dòng đó), nên cùng có chi tiết.
                          Một chỗ có, một chỗ không thì người xem tưởng hỏng. -->
                     <div class="flex justify-between gap-2 mt-0.5">
-                      <span class="text-gray-500 dark:text-gray-400">Tài sản</span>
+                      <span class="text-base text-gray-600 dark:text-gray-300">Tài sản</span>
                       <span class="tabular-nums" :class="o(d.tai_san)">
                         <ChiTietO :so="d.tai_san" :ct="d.chi_tiet_tai_san"
                                   :tieu-de="'Tài sản ' + d.du_an" />
                       </span>
                     </div>
                     <div class="flex justify-between gap-2">
-                      <span class="text-gray-500 dark:text-gray-400">Công nợ</span>
+                      <span class="text-base text-gray-600 dark:text-gray-300">Công nợ</span>
                       <span class="tabular-nums" :class="o(d.cong_no)">
                         <ChiTietO :so="d.cong_no" :ct="d.chi_tiet_cong_no"
                                   :tieu-de="'Công nợ ' + d.du_an" />
                       </span>
                     </div>
-                    <div v-if="d.ghi_chu" class="mt-1 text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                    <div v-if="d.ghi_chu" class="mt-1 text-[13px] leading-snug text-amber-700 dark:text-amber-300">
                       {{ d.ghi_chu }}
                     </div>
                   </div>
                   <div class="flex justify-between gap-2 pt-1 font-semibold">
-                    <span class="text-gray-700 dark:text-gray-200">Cộng ba mảng</span>
+                    <span class="text-base text-gray-700 dark:text-gray-200">Cộng ba mảng</span>
                     <span class="tabular-nums" :class="mauChenh(b.tong?.chenh_lech)">
                       {{ tien(b.tong?.chenh_lech) }}
                     </span>
@@ -469,7 +474,7 @@
               <!-- Lãi / lỗ — dòng cuối, chữ to nhất trong thẻ -->
               <div v-if="b.lai_lo" class="px-3 py-2.5 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/30">
                 <div class="flex justify-between items-baseline gap-2">
-                  <span class="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                  <span class="text-lg font-semibold text-gray-700 dark:text-gray-200">
                     {{ b.lai_lo.so !== null && b.lai_lo.so < 0 ? 'Lỗ' : 'Lãi' }}
                   </span>
                   <span class="text-base font-bold tabular-nums" :class="mauChenh(b.lai_lo.so)">
@@ -479,7 +484,7 @@
                 <!-- ⚠️ Ghi chú ở đây là thứ CẦN ĐỌC, không phải chú thích
                      phụ: nó nói số này còn thiếu chi phí gì. -->
                 <div v-if="b.lai_lo.ghi_chu"
-                     class="mt-1 text-[11px] leading-snug text-amber-700 dark:text-amber-300">
+                     class="mt-1 text-[13px] leading-snug text-amber-700 dark:text-amber-300">
                   {{ b.lai_lo.ghi_chu }}
                 </div>
               </div>
@@ -559,7 +564,8 @@
                     <ul class="space-y-1">
                       <li v-for="m in k.khoi.danh_sach.slice(0, 8)" :key="m.ma"
                           class="flex justify-between gap-2 text-xs">
-                        <span class="text-gray-700 dark:text-gray-200 break-all">{{ m.ma }}</span>
+                        <!-- MỤC 694 — rê chuột / bấm vào mã hiện thông tin hợp đồng. -->
+                        <span class="text-gray-700 dark:text-gray-200 min-w-0"><ThongTinHopDong :ma="m.ma" :tt="m.thong_tin" /></span>
                         <span class="shrink-0 tabular-nums"
                               :class="m.trang_thai === 'da_thu'
                                 ? 'text-emerald-600 dark:text-emerald-400'
@@ -598,7 +604,8 @@
               <ul v-else class="space-y-1">
                 <li v-for="m in bang.rental.danh_sach.slice(0, 8)" :key="m.ma"
                     class="flex justify-between gap-2 text-xs">
-                  <span class="text-gray-700 dark:text-gray-200 break-all">{{ m.ma }}</span>
+                  <!-- MỤC 694 — rê chuột / bấm vào mã hiện thông tin hợp đồng. -->
+                  <span class="text-gray-700 dark:text-gray-200 min-w-0"><ThongTinHopDong :ma="m.ma" :tt="m.thong_tin" /></span>
                   <span class="shrink-0 tabular-nums"
                         :class="m.trang_thai === 'da_thu'
                           ? 'text-emerald-600 dark:text-emerald-400'
@@ -1240,6 +1247,24 @@
                 <span class="tabular-nums font-medium text-gray-800 dark:text-gray-100">
                   {{ bang.telegram.tong_so_nhom }}
                 </span>
+                <!-- MỤC 695 (09/10/2026) — s68: *"dòng tổng số nhóm cũng hiện
+                     luôn bao nhiêu nhóm main, bao nhiêu nhóm member luôn. click
+                     vào hiện danh sách luôn."* Backend gửi `tong` cùng khuôn
+                     với một dòng dự án ➜ dùng lại đúng hộp danh sách MỤC 526.
+                     Máy chủ cũ không gửi `tong` thì không in gì (không bịa số). -->
+                <span v-if="bang.telegram.tong"
+                      class="tabular-nums text-[11px] text-gray-400 dark:text-gray-500">
+                  (<button v-if="bang.telegram.tong.nhom_main?.length" type="button"
+                           class="underline decoration-dotted underline-offset-2 hover:text-blue-600 dark:hover:text-blue-400"
+                           :title="`Xem ${bang.telegram.tong.so_nhom_main} nhóm main toàn hệ thống`"
+                           @click.stop="moDsNhom(bang.telegram.tong, 'main')">{{ bang.telegram.tong.so_nhom_main }}</button><template
+                           v-else>{{ bang.telegram.tong.so_nhom_main }}</template> main ·
+                  <button v-if="bang.telegram.tong.nhom_member?.length" type="button"
+                          class="underline decoration-dotted underline-offset-2 hover:text-blue-600 dark:hover:text-blue-400"
+                          :title="`Xem ${bang.telegram.tong.so_nhom_member} nhóm member toàn hệ thống`"
+                          @click.stop="moDsNhom(bang.telegram.tong, 'member')">{{ bang.telegram.tong.so_nhom_member }}</button><template
+                          v-else>{{ bang.telegram.tong.so_nhom_member }}</template> member)
+                </span>
               </div>
               <ul class="space-y-1">
                 <li v-for="t in bang.telegram.theo_du_an" :key="t.du_an_id"
@@ -1311,12 +1336,28 @@
       </template>
 
       <div class="max-h-[60vh] overflow-y-auto">
+        <!-- MỤC 696 — dòng tiêu đề cột. -->
+        <div v-if="dsNhomDangXem.length"
+             class="flex items-baseline gap-2 text-[11px] uppercase tracking-wide text-gray-400 pb-1 border-b border-gray-200 dark:border-gray-700">
+          <span class="w-7 shrink-0"></span>
+          <span class="flex-1">Tên nhóm</span>
+          <span class="shrink-0 w-[9.5rem]">Owner</span>
+          <span class="shrink-0 hidden sm:inline">Chat ID</span>
+        </div>
         <ol v-if="dsNhomDangXem.length" class="space-y-1">
           <li v-for="(n, i) in dsNhomDangXem" :key="n.chat_id"
               class="flex items-baseline gap-2 text-sm py-1 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
             <span class="w-7 shrink-0 text-right tabular-nums text-gray-400">{{ i + 1 }}.</span>
-            <span class="flex-1 min-w-0 break-words text-gray-800 dark:text-gray-100">{{ n.ten }}</span>
-            <span class="shrink-0 font-mono text-[11px] text-gray-400 select-all">{{ n.chat_id }}</span>
+            <span class="flex-1 min-w-0 break-words text-gray-800 dark:text-gray-100">
+              {{ n.ten }}
+              <!-- MỤC 695 — danh sách toàn hệ thống ghi kèm nhóm thuộc dự án nào. -->
+              <span v-if="n.du_an" class="block text-[11px] text-gray-400">{{ n.du_an }}</span>
+            </span>
+            <!-- MỤC 696 (09/10/2026) — s68: *"hiển thị thêm cột owner"*. Không có
+                 owner (nhóm chưa quét quyền) thì ghi "—", không đoán. -->
+            <span class="shrink-0 w-[9.5rem] break-all text-xs text-gray-600 dark:text-gray-300"
+                  :class="n.owner ? '' : 'text-gray-400'">{{ n.owner || '—' }}</span>
+            <span class="shrink-0 font-mono text-[11px] text-gray-400 select-all hidden sm:inline">{{ n.chat_id }}</span>
           </li>
         </ol>
         <div v-else class="text-center text-gray-400 py-6 text-sm">
@@ -1336,6 +1377,7 @@
 import { ref, computed, onMounted } from 'vue'   // MỤC 526 — thêm computed
 import { mauSo } from '@/utils/mauSo'
 import ChiTietO from './ChiTietO.vue'   // MỤC 674
+import ThongTinHopDong from './ThongTinHopDong.vue'   // MỤC 694
 import { useRouter } from 'vue-router'
 import { layQuyen, danhSachDuocVao, type DuAn } from '@/constants/duAn'
 import { trangChuService } from '@/api/trangChu'
@@ -1366,7 +1408,7 @@ const dsNhomDangXem = computed<any[]>(() => {
 // Hộp rộng 640px trên máy tính, 95% bề ngang trên điện thoại — hộp cố
 // định trên màn 390px là tràn ra ngoài mép (bài học MỤC 519).
 const rongHopNhom = computed(() =>
-  (typeof window !== 'undefined' && window.innerWidth < 768) ? '95%' : '640px')
+  (typeof window !== 'undefined' && window.innerWidth < 768) ? '95%' : '760px')  // MỤC 696 — thêm cột Owner
 
 const moDsNhom = (duAn: any, loai: 'main' | 'member') => {
   duAnDangXem.value = duAn
