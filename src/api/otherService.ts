@@ -128,6 +128,13 @@ export const otherService = {
       { method: 'POST', body: JSON.stringify(apps) });
   },
 
+  /** MỤC 697 — đổi mã app (đổi cả liên kết thiết bị, một giao dịch). */
+  async doiMaApplication(maCu: string, maMoi: string): Promise<any> {
+    return await this._goi(
+      `/other/update-application-id?ma_cu=${encodeURIComponent(maCu)}&ma_moi=${encodeURIComponent(maMoi)}`,
+      { method: 'POST' });
+  },
+
   async deleteApplications(ids: string[]): Promise<any> {
     return await this._goi('/other/delete-applications',
       { method: 'DELETE', body: JSON.stringify(ids) });
@@ -156,6 +163,18 @@ export const otherService = {
   async setDevicesOfApp(appId: string, thietBi: any[]): Promise<any> {
     return await this._goi('/other/set-devices-of-app',
       { method: 'POST', body: JSON.stringify({ app_id: appId, thiet_bi: thietBi }) });
+  },
+
+  /** MỤC 699 — đặt SIM chính của máy (các SIM khác cùng máy tự bỏ cờ). */
+  async datSimChinh(simId: string): Promise<any> {
+    return await this._goi(`/other/update-sim-chinh?sim_id=${encodeURIComponent(simId)}`,
+      { method: 'POST' });
+  },
+
+  /** MỤC 698 — ĐẶT LẠI danh sách app của MỘT thiết bị (bỏ tick là gỡ). */
+  async setAppsOfDevice(deviceId: string, appIds: string[], deviceType = 'smartphone'): Promise<any> {
+    return await this._goi('/other/set-apps-of-device',
+      { method: 'POST', body: JSON.stringify({ device_id: deviceId, device_type: deviceType, app_ids: appIds }) });
   },
 
   // ===================== SMARTPHONES =====================

@@ -25,7 +25,7 @@
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Tìm kiếm:</span>
           <el-input
             v-model="searchQuery"
-            placeholder="Dòng máy, hãng, IMEI, Serial..."
+            placeholder="Tên thiết bị, hãng, IMEI, Serial..."
             clearable
             class="w-64 custom-dark-input"
             style="width: 256px"
@@ -101,10 +101,53 @@
           </template>
         </el-table-column>
 
-        <!-- Dòng máy -->
-        <el-table-column prop="model_name" label="Dòng máy" min-width="130" show-overflow-tooltip>
+        <!-- Dòng máy — MỤC 699: s68 đổi nhãn thành "Tên Thiết Bị" (cột vẫn là model_name) -->
+        <el-table-column prop="model_name" label="Tên Thiết Bị" min-width="150">
           <template #default="{ row }">
-            <span class="font-bold text-gray-850 dark:text-gray-100">{{ row.model_name }}</span>
+            <!-- MỤC 698 — s68: *"đưa chuột vào tên thiết bị (cột dòng máy) thì sẽ
+                 hiện danh sách app liên kết đến thiết bị đó"*. Rê chuột HOẶC bấm
+                 (điện thoại). Máy chưa gắn app thì chữ trơn, không gạch chân. -->
+            <!-- MỤC 700 — dùng chung `OTenMay.vue` (3 tab). -->
+            <OTenMay :ma="row.id" :ten="row.model_name" :apps="appCua(row.id)" />
+          </template>
+        </el-table-column>
+
+        <!-- MỤC 699 — s68: *"thêm cột: Mật Khẩu Thiết Bị, và pass thì ẩn giống cột
+             mật khẩu"*. Mật khẩu MỞ MÁY (cột mới `device_password`), khác mật khẩu
+             tài khoản. Khoá ẩn/hiện riêng (`id|tb`): bấm mắt cột này không lộ cột kia.
+             s68 09/10: *"mật khẩu thiết bị đưa ra bên phải cột tên thiết bị để không
+             bị nhầm"* ➜ đặt ngay sau Tên Thiết Bị, xa cột Mật khẩu tài khoản. -->
+        <el-table-column label="Mật khẩu thiết bị" width="104" show-overflow-tooltip>
+          <template #default="{ row }">
+            <OMatKhauAn :gia-tri="row.device_password" />   <!-- MỤC 700 — dùng chung -->
+          </template>
+        </el-table-column>
+
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 699 (09/10/2026) — CỘT SĐT ĐI THEO MÁY
+             s68: *"thêm cột SĐT đi theo thiết bị. khi đưa chuột vào số điện thoại
+             thì hiện thông tin liên quan ... esim hay sim vật lý. 1 điện thoại sẽ
+             1 sim chính và có thể có nhiều sim, esim kèm theo. nếu 2 sim trở lên
+             thì hiện thêm dấu + ... đưa chuột vào thì hiện danh sách sim kèm theo"*.
+             SIM lấy từ `sim_cards.device_id` (CÙNG lời gọi đếm phụ kiện MỤC 443).
+             SIM chính = `la_sim_chinh`; chưa chọn ➜ hiện SIM đầu, ghi "chưa chọn".
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column label="SĐT" width="150">
+          <template #default="{ row }">
+            <!-- MỤC 700 — dùng chung `OSdtMay.vue` (3 tab). -->
+            <OSdtMay :ma="row.id" :sims="simCua(row.id)" @dat-chinh="datSimChinh" />
+          </template>
+        </el-table-column>
+
+        <!-- MỤC 698 — s68: *"bên trái cột phân loại thêm cột + App ... bấm vào thì
+             hiện danh sách app để add vào từng thiết bị"*. -->
+        <el-table-column label="+ App" width="78" align="center">
+          <template #default="{ row }">
+            <el-button size="small" circle plain type="primary" :title="`Gắn app cho ${row.id}`"
+                       @click.stop="moGanApp(row)">
+              <span v-if="appCua(row.id).length" class="text-xs font-bold">{{ appCua(row.id).length }}</span>
+              <el-icon v-else><Plus /></el-icon>
+            </el-button>
           </template>
         </el-table-column>
 
@@ -149,7 +192,10 @@
              thừa chỗ cũng không giãn; `min-width` cho cột ăn thêm phần
              trống sau khi đã ẩn mười cột ở trên.
              ══════════════════════════════════════════════════════════ -->
-        <el-table-column prop="account" label="Tài khoản" min-width="220" show-overflow-tooltip>
+        <!-- MỤC 699 — s68: *"cột mật khẩu thu sát lại cột tài khoản để giảm khoảng
+             trống"*. Tài khoản đổi min-width ➜ width cố định: chỗ dư dồn sang cột
+             Tên Thiết Bị (min-width), không còn nằm giữa Tài khoản và Mật khẩu. -->
+        <el-table-column prop="account" label="Tài khoản" width="230" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="font-semibold text-gray-700 dark:text-gray-300 text-xs">{{ row.account || '—' }}</span>
           </template>
@@ -167,7 +213,6 @@
             <span v-else class="text-gray-400">—</span>
           </template>
         </el-table-column>
-
 
 
 
@@ -251,9 +296,18 @@
                 </span>
               </div>
               <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Dòng máy:</span>
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên thiết bị:</span>
                 <span class="text-right break-words min-w-0">
                   <span class="font-bold text-gray-850 dark:text-gray-100">{{ row.model_name }}</span>
+                </span>
+              </div>
+              <!-- MỤC 698 — thẻ đi theo bảng: app đã gắn + nút gắn. -->
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">App:</span>
+                <span class="text-right break-words min-w-0 text-xs">
+                  <span class="uppercase">{{ appCua(row.id).map((a: any) => a.app_name).join(', ') || '—' }}</span>
+                  <button type="button" class="ml-2 text-blue-600 dark:text-blue-400 font-bold underline decoration-dotted"
+                          @click.stop="moGanApp(row)">+ App</button>
                 </span>
               </div>
               <div class="flex justify-between gap-3">
@@ -280,6 +334,19 @@
                                 </el-button>
                               </div>
                               <span v-else class="text-gray-400">—</span>
+                </span>
+              </div>
+              <!-- MỤC 699 — thẻ đi theo bảng. -->
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">SĐT:</span>
+                <span class="text-right break-words min-w-0 text-xs font-mono">
+                  {{ simCua(row.id).map((x: any) => x.phone_number + (x.la_sim_chinh ? ' (chính)' : '')).join(', ') || '—' }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">MK thiết bị:</span>
+                <span class="text-right break-words min-w-0">
+                  <OMatKhauAn :gia-tri="row.device_password" />
                 </span>
               </div>
               <!-- MỤC 443 — NGUYÊN VĂN nội dung cột Phụ kiện của bảng. -->
@@ -345,11 +412,12 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Hãng sản xuất" prop="brand">
-                  <el-input v-model="form.brand" placeholder="VD: Apple, Samsung, Xiaomi..." />
+                  <!-- MỤC 698 — chọn sẵn; chọn "Khác" mới nhập tay. -->
+                  <ChonHoacNhap v-model="form.brand" :options="dsHang" placeholder="Chọn hãng" />
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="Dòng máy" prop="model_name">
+                <el-form-item label="Tên thiết bị" prop="model_name">
                   <el-input v-model="form.model_name" placeholder="VD: iPhone 15 Pro Max..." />
                 </el-form-item>
               </el-col>
@@ -432,7 +500,7 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Dung lượng bộ nhớ" prop="storage_capacity">
-                  <el-input v-model="form.storage_capacity" placeholder="VD: 128 GB, 256 GB..." />
+                  <ChonHoacNhap v-model="form.storage_capacity" :options="dsDungLuong" placeholder="Chọn dung lượng" />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -484,6 +552,14 @@
               <el-col :span="12">
                 <el-form-item label="Mật khẩu tài khoản" prop="account_password">
                   <el-input v-model="form.account_password" type="password" show-password placeholder="Nhập mật khẩu..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <!-- MỤC 699 — mật khẩu MỞ MÁY (mã màn hình khoá). -->
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Mật khẩu thiết bị" prop="device_password">
+                  <el-input v-model="form.device_password" type="password" show-password placeholder="Mã mở màn hình..." />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -607,6 +683,10 @@
                 <div class="text-xxs font-semibold text-gray-400">Mật khẩu đăng nhập</div>
                 <div class="text-xs font-mono font-bold text-gray-850 dark:text-gray-200 mt-0.5 select-all">{{ selectedPhone.account_password || '—' }}</div>
               </div>
+              <div>
+                <div class="text-xxs font-semibold text-gray-400">Mật khẩu thiết bị</div>
+                <div class="text-xs font-mono font-bold text-gray-850 dark:text-gray-200 mt-0.5 select-all">{{ selectedPhone.device_password || '—' }}</div>
+              </div>
             </div>
           </div>
           <div>
@@ -669,6 +749,10 @@
          máy tính bảng — hộp cố định 960px trên màn 390px thì tràn ra
          ngoài mép, còn tệ hơn cũ.
          ══════════════════════════════════════════════════════════════ -->
+    <!-- MỤC 698 / 700 — HỘP GẮN APP CHO MỘT MÁY (dùng chung `HopGanApp.vue`). -->
+    <HopGanApp v-model="hienGanApp" :may="mayGanApp" loai="smartphone" :ds-app="dsTatCaApp"
+               :app-cua-may="appCua(mayGanApp?.id)" :nap-lai="napApp" :hep="laManHep" />
+
     <el-dialog v-model="hienPhuKien" :width="laManHep ? '95%' : '960px'" align-center destroy-on-close>
       <template #header>
         <span class="font-bold">
@@ -787,6 +871,12 @@ import { DEVICE_STATUS_OPTIONS, getDeviceStatusLabel, getDeviceStatusTagType, is
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+import ChonHoacNhap from './ChonHoacNhap.vue'   // MỤC 698
+import OTenMay from './OTenMay.vue'   // MỤC 700 — 4 bộ phận dùng chung 3 tab
+import OSdtMay from './OSdtMay.vue'
+import OMatKhauAn from './OMatKhauAn.vue'
+import HopGanApp from './HopGanApp.vue'
+import { dungThietBiPhu } from '@/composables/thietBiPhu'
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 
@@ -894,6 +984,7 @@ const form = reactive({
   accessories: '',
   account: '',
   account_password: '',
+  device_password: '',   // MỤC 699
   classification: 'Công việc'
 })
 
@@ -979,6 +1070,7 @@ const openAddDialog = () => {
   form.accessories = ''
   form.account = ''
   form.account_password = ''
+  form.device_password = ''   // MỤC 699
   form.notes = ''
   dialogVisible.value = true
 }
@@ -1000,6 +1092,7 @@ const openEditDialog = (row: any) => {
   form.accessories = row.accessories
   form.account = row.account
   form.account_password = row.account_password
+  form.device_password = row.device_password || ''   // MỤC 699
   form.notes = row.notes || ''
   dialogVisible.value = true
 }
@@ -1025,6 +1118,7 @@ const submitForm = async () => {
         accessories: form.accessories,
         account: form.account,
         account_password: form.account_password,
+        device_password: form.device_password,   // MỤC 699
         notes: form.notes || null
       }
 
@@ -1101,7 +1195,37 @@ const handleDelete = async (row: any) => {
 // nên hộp thoại luôn gọi lại `get-phu-kien-cua-may` — số đếm chỉ để nhìn
 // nhanh, con số trong hộp thoại mới là số thật.
 // ══════════════════════════════════════════════════════════════════════
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 698 (09/10/2026) — DANH SÁCH CHỌN SẴN + APP GẮN VÀO TỪNG MÁY
+//
+// Danh sách hãng / dung lượng = danh sách gốc + MỌI giá trị đang có trong
+// dữ liệu (để máy cũ gõ "Redmi" vẫn chọn lại được, không phải gõ lại).
+//
+// App của từng máy: MỘT lời gọi lấy hết `installed_apps` + MỘT lời gọi lấy
+// hồ sơ app, gom tại chỗ — không gọi một lần cho mỗi máy (bẫy HDG_131).
+// Chỉ tính dòng loại "smartphone" hoặc chưa khai loại (MỤC 436: sáu bảng
+// thiết bị, mã có thể trùng giữa các loại).
+// ══════════════════════════════════════════════════════════════════════
+const HANG_GOC = ['Apple', 'Samsung', 'Xiaomi', 'Oppo', 'Vivo', 'Realme', 'Huawei', 'Nokia', 'Google']
+const DUNG_LUONG_GOC = ['32 GB', '64 GB', '128 GB', '256 GB', '512 GB', '1 TB']
+const gopDs = (goc: string[], cot: string) => {
+  const ra = [...goc]
+  for (const s of smartphones.value as any[]) {
+    const v = String(s[cot] || '').trim()
+    if (v && !ra.some((x) => x.toLowerCase() === v.toLowerCase())) ra.push(v)
+  }
+  return ra
+}
+const dsHang = computed(() => gopDs(HANG_GOC, 'brand'))
+const dsDungLuong = computed(() => gopDs(DUNG_LUONG_GOC, 'storage_capacity'))
+
+// MỤC 700 — app + SIM theo máy chuyển về `composables/thietBiPhu.ts` (dùng chung
+// 3 tab). Phần viết riêng của MỤC 698/699 ở đây đã gỡ — cùng hành vi.
+const { dsTatCaApp, napApp, appCua, ghiSim, simCua, datSimChinh,
+        hienGanApp, mayGanApp, moGanApp } = dungThietBiPhu('smartphone')
+
 const soPhuKien = reactive<Record<string, number>>({})
+
 const hienPhuKien = ref(false)
 const dangTaiPK = ref(false)
 const mayXemPK = ref<any>(null)
@@ -1114,6 +1238,8 @@ const napSoPhuKien = async () => {
       otherService.getSimCards(),
     ])
     for (const k of Object.keys(soPhuKien)) delete soPhuKien[k]
+    // MỤC 699/700 — giữ luôn danh sách SIM theo máy cho cột SĐT (không gọi thêm).
+    ghiSim(sim || [])
     for (const m of [...(pk || []), ...(sim || [])]) {
       if (m.device_id) soPhuKien[m.device_id] = (soPhuKien[m.device_id] || 0) + 1
     }
@@ -1261,6 +1387,7 @@ const getStatusTagType = (status: string) => {
 onMounted(() => {
   fetchSmartphones()
   napSoPhuKien()   // MỤC 443
+  napApp()   // MỤC 698 / 700
 })
 </script>
 

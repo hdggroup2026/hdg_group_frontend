@@ -262,6 +262,33 @@ export const vehicleService = {
   },
 
   // ── MỤC 532 — lịch bảo trì, bảo dưỡng ────────────────────────────
+  // ═══════ MỤC 702 — ĐĂNG KIỂM + TÓM TẮT XE ═══════
+  async getDangKiemXe(vehicleId?: string): Promise<any[]> {
+    const duoi = vehicleId ? `?vehicle_id=${encodeURIComponent(vehicleId)}` : '';
+    return await this._goi(`/vehicle/get-dang-kiem-xe${duoi}`, { method: 'GET' });
+  },
+
+  async addDangKiemXe(duLieu: any): Promise<any> {
+    return await this._goi('/vehicle/add-dang-kiem-xe',
+      { method: 'POST', body: JSON.stringify(duLieu) });
+  },
+
+  async updateDangKiemXe(duLieu: any): Promise<any> {
+    return await this._goi('/vehicle/update-dang-kiem-xe',
+      { method: 'POST', body: JSON.stringify(duLieu) });
+  },
+
+  async deleteDangKiemXe(dangKiemId: string): Promise<any> {
+    return await this._goi(
+      `/vehicle/delete-dang-kiem-xe?dang_kiem_id=${encodeURIComponent(dangKiemId)}`,
+      { method: 'DELETE' });
+  },
+
+  /** {vehicle_id: tóm tắt} — khung rê chuột vào biển số. CÙNG hàm với bộ nhắc. */
+  async getTomTatXe(): Promise<Record<string, any>> {
+    return await this._goi('/vehicle/get-tom-tat-xe', { method: 'GET' });
+  },
+
   async getBaoTriXe(params?: { vehicle_id?: string; trang_thai?: string }): Promise<any[]> {
     const q = new URLSearchParams();
     if (params?.vehicle_id) q.append('vehicle_id', params.vehicle_id);

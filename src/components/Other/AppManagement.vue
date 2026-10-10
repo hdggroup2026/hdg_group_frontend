@@ -15,6 +15,12 @@
   bản kia — bài học MỤC 424.
 
   ⚠️ KHÔNG có cột `fixed` nào (MỤC 391).
+  ↳ MỤC 697 (09/10/2026) — ĐẢO có điều kiện, không xoá ghi chú trên. s68:
+    *"dòng stt và cột Tài khoản cố định để roll cho dễ thấy thông tin"*.
+    MỤC 391 cấm `fixed` vì trên ĐIỆN THOẠI cột ghim ăn hết vùng cuộn. Màn
+    này dưới 768px đã dùng THẺ DỌC (không có bảng), và chỉ ghim khi bề ngang
+    cửa sổ ≥ 1100px (`ghimCot`) — 4 cột ghim ~430px vẫn chừa >500px để cuộn.
+    Dòng tiêu đề đứng yên khi cuộn dọc nhờ `max-height` của bảng.
 -->
 <template>
   <div class="p-4 h-full overflow-auto bg-gray-50 dark:bg-gray-900">
@@ -32,6 +38,15 @@
         <el-option label="Đã huỷ" value="cancelled" />
       </el-select>
 
+      <!-- MỤC 697 — s68: *"thêm 3 nút: All, icloud, Google, Others"*. s68 chốt
+           09/10: lọc theo TÊN APP (cột "Đăng nhập bằng" gần như trống). -->
+      <el-radio-group v-model="locNhom" size="default" @change="trang = 1">
+        <el-radio-button value="all">All</el-radio-button>
+        <el-radio-button value="icloud">iCloud</el-radio-button>
+        <el-radio-button value="google">Google</el-radio-button>
+        <el-radio-button value="others">Others</el-radio-button>
+      </el-radio-group>
+
       <div class="flex-1"></div>
 
       <el-button :icon="Refresh" circle @click="taiDanhSach" />
@@ -40,20 +55,23 @@
 
     <!-- ══════════════════ BẢNG — MÀN RỘNG ══════════════════ -->
     <el-table v-if="hienBang" :data="trangHienTai" v-loading="dangTai"
-              border stripe size="small" class="w-full">
-      <el-table-column label="STT" width="52" align="center">
+              border stripe size="small" class="w-full" max-height="calc(100vh - 230px)">
+      <el-table-column label="STT" width="52" align="center" :fixed="ghimCot">
         <template #default="{ $index }">{{ (trang - 1) * moiTrang + $index + 1 }}</template>
       </el-table-column>
 
-      <el-table-column prop="id" label="Mã App" width="96" show-overflow-tooltip>
+      <el-table-column prop="id" label="Mã App" width="96" show-overflow-tooltip :fixed="ghimCot">
         <template #default="{ row }">
           <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.id }}</span>
         </template>
       </el-table-column>
 
-      <el-table-column prop="app_name" label="Tên app" min-width="130" show-overflow-tooltip />
+      <!-- MỤC 698 — s68 09/10: *"Tên app sửa thành viết HOA hết"*. -->
+      <el-table-column prop="app_name" label="Tên app" min-width="130" show-overflow-tooltip :fixed="ghimCot">
+        <template #default="{ row }"><span class="uppercase">{{ row.app_name }}</span></template>
+      </el-table-column>
 
-      <el-table-column prop="account_email" label="Tài khoản" min-width="150" show-overflow-tooltip>
+      <el-table-column prop="account_email" label="Tài khoản" min-width="150" show-overflow-tooltip :fixed="ghimCot">
         <template #default="{ row }">
           <span class="text-xs font-semibold">{{ row.account_email || '—' }}</span>
         </template>
@@ -157,7 +175,7 @@
         <div class="flex items-start justify-between gap-2 mb-2 pb-2 border-b border-gray-100 dark:border-gray-700">
           <div class="min-w-0 break-words">
             <span class="font-mono font-bold text-blue-600 dark:text-blue-400">{{ row.id }}</span>
-            <span class="ml-2 font-semibold text-gray-800 dark:text-gray-100">{{ row.app_name }}</span>
+            <span class="ml-2 font-semibold uppercase text-gray-800 dark:text-gray-100">{{ row.app_name }}</span>
           </div>
           <el-dropdown trigger="click" @command="(c: string) => chonLenh(c, row)">
             <el-button link><el-icon><MoreFilled /></el-icon></el-button>
@@ -248,10 +266,14 @@
               <!-- ⚠️ Khoá khi sửa: `installed_apps.app_id` nối bằng CHUỖI
                    này, không phải khoá ngoại. Đổi mã là mọi liên kết
                    thiết bị thành mồ côi — cùng loại lỗi mã HĐ ở MỤC 426. -->
-              <el-input v-model="form.id" :disabled="dangSua" placeholder="VD: APP001" />
-              <span v-if="dangSua" class="text-xs text-gray-400">
-                Không sửa được — đổi mã sẽ mất liên kết thiết bị.
-              </span>
+              <!-- MỤC 697 — chữ mờ là MÃ KẾ TIẾP (APP022…); để trống thì lưu
+                   bằng đúng mã đó. Sửa: nút "Đổi mã" đổi cả liên kết thiết bị. -->
+              <el-input v-model="form.id" :disabled="dangSua" :placeholder="maKeTiep" />
+              <div v-if="dangSua" class="flex items-center gap-2">
+                <span class="text-xs text-gray-400">Đổi mã sẽ đổi luôn liên kết thiết bị.</span>
+                <el-button link type="primary" size="small" @click="doiMa">Đổi mã</el-button>
+              </div>
+              <span v-else class="text-xs text-gray-400">Để trống = dùng {{ maKeTiep }}</span>
             </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="8">
@@ -317,7 +339,13 @@
           </el-col>
 
           <el-col :xs="24" :sm="8">
-            <el-form-item label="Người giữ tài khoản"><el-input v-model="form.holder" /></el-form-item>
+            <!-- MỤC 697 — chọn từ người đã có, hoặc GÕ tên mới rồi Enter để thêm. -->
+            <el-form-item label="Người giữ tài khoản">
+              <el-select v-model="form.holder" style="width: 100%" clearable filterable allow-create
+                         default-first-option placeholder="Chọn hoặc gõ tên mới">
+                <el-option v-for="h in dsNguoiGiu" :key="h" :label="h" :value="h" />
+              </el-select>
+            </el-form-item>
           </el-col>
           <el-col :xs="24" :sm="8">
             <el-form-item label="Gói dịch vụ"><el-input v-model="form.subscription_plan" placeholder="VD: Premium 4 màn hình" /></el-form-item>
@@ -396,7 +424,7 @@
     <!-- ══════════════════ GÁN THIẾT BỊ ══════════════════ -->
     <el-dialog v-model="hienGan" width="620px" align-center destroy-on-close>
       <template #header>
-        <span class="font-bold">GÁN THIẾT BỊ CHO <span class="text-blue-600">{{ appDangGan?.app_name }}</span></span>
+        <span class="font-bold">GÁN THIẾT BỊ CHO <span class="text-blue-600 uppercase">{{ appDangGan?.app_name }}</span></span>
       </template>
 
       <div v-loading="dangTaiMay" class="space-y-3">
@@ -440,7 +468,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, onBeforeUnmount } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { MoreFilled, Plus, Refresh, View, Hide } from '@element-plus/icons-vue'
 import { otherService } from '@/api/otherService'
@@ -453,6 +481,17 @@ const soMayTheoApp = reactive<Record<string, number>>({})
 const dangTai = ref(false)
 const tuKhoa = ref('')
 const locTrangThai = ref('')
+// MỤC 697 — nút lọc theo TÊN APP (s68 chốt 09/10). Sai chính tả có thật trong
+// dữ liệu ("ICOUD") nên bắt cả "icoud".
+const locNhom = ref<'all' | 'icloud' | 'google' | 'others'>('all')
+const RE_ICLOUD = /icloud|icoud|apple/i
+const RE_GOOGLE = /gmail|google|drive|youtube/i
+const nhomCuaApp = (a: any): 'icloud' | 'google' | 'others' => {
+  const ten = String(a.app_name || '')
+  if (RE_ICLOUD.test(ten)) return 'icloud'
+  if (RE_GOOGLE.test(ten)) return 'google'
+  return 'others'
+}
 const trang = ref(1)
 const moiTrang = ref(10)
 const hienMatKhau = reactive<Record<string, boolean>>({})
@@ -461,6 +500,7 @@ const daLoc = computed(() => {
   const k = tuKhoa.value.trim().toLowerCase()
   return dsApp.value.filter((a) => {
     if (locTrangThai.value && a.status !== locTrangThai.value) return false
+    if (locNhom.value !== 'all' && nhomCuaApp(a) !== locNhom.value) return false
     if (!k) return true
     return [a.id, a.app_name, a.account_email, a.holder, a.service_category]
       .some((v) => String(v || '').toLowerCase().includes(k))
@@ -519,6 +559,51 @@ const formRong = () => ({
 
 const form = reactive<any>(formRong())
 
+// MỤC 697 — mã kế tiếp = số lớn nhất trong các mã đúng khuôn APP + 3 chữ số,
+// cộng 1. Chỉ xét đúng 3 chữ số: mã gõ nhầm kiểu "APP0144" mà tính vào là
+// nhảy lên APP145.
+const maKeTiep = computed(() => {
+  let lon = 0
+  for (const a of dsApp.value) {
+    const m = /^APP(\d{3})$/i.exec(String(a.id || '').trim())
+    if (m) lon = Math.max(lon, Number(m[1]))
+  }
+  return 'APP' + String(lon + 1).padStart(3, '0')
+})
+
+// MỤC 697 — danh sách người giữ đã có, xếp ABC, không trùng.
+const dsNguoiGiu = computed(() =>
+  [...new Set(dsApp.value.map((a) => String(a.holder || '').trim()).filter(Boolean))]
+    .sort((x, y) => x.localeCompare(y, 'vi')))
+
+// MỤC 697 — chỉ ghim cột khi cửa sổ đủ rộng (xem ghi chú đầu file).
+const rongCuaSo = ref(typeof window !== 'undefined' ? window.innerWidth : 1200)
+const capNhatRong = () => { rongCuaSo.value = window.innerWidth }
+onMounted(() => window.addEventListener('resize', capNhatRong))
+onBeforeUnmount(() => window.removeEventListener('resize', capNhatRong))
+const ghimCot = computed<'left' | false>(() => (rongCuaSo.value >= 1100 ? 'left' : false))
+
+// MỤC 697 — s68: *"APP0144 đúng là APP014. đánh nhầm không edit được."*
+const doiMa = async () => {
+  const maCu = form.id
+  let maMoi = ''
+  try {
+    const kq: any = await ElMessageBox.prompt(
+      `Mã hiện tại: ${maCu}. Nhập mã mới (liên kết thiết bị đổi theo):`,
+      'Đổi mã app', { confirmButtonText: 'Đổi', cancelButtonText: 'Hủy', inputValue: maCu })
+    maMoi = String(kq.value || '').trim()
+  } catch { return }
+  if (!maMoi || maMoi === maCu) return
+  try {
+    const kq = await otherService.doiMaApplication(maCu, maMoi)
+    ElMessage.success(`Đã đổi ${maCu} → ${maMoi} (${kq?.so_lien_ket ?? 0} liên kết thiết bị).`)
+    form.id = maMoi
+    await taiDanhSach()
+  } catch (e: any) {
+    ElMessage.error(e?.message || 'Không đổi được mã.')
+  }
+}
+
 const moThem = () => {
   Object.assign(form, formRong())
   dangSua.value = false
@@ -532,6 +617,11 @@ const moSua = (row: any) => {
 }
 
 const luuForm = async () => {
+  // MỤC 698 — lưu tên app IN HOA (s68 09/10). App cũ chưa sửa vẫn HIỆN in hoa
+  // nhờ CSS; mở ra sửa và lưu là tên trong database thành in hoa luôn.
+  if (form.app_name) form.app_name = String(form.app_name).trim().toUpperCase()
+  // MỤC 697 — thêm mới mà để trống mã ➜ dùng mã kế tiếp (chữ mờ).
+  if (!dangSua.value && !form.id?.trim()) form.id = maKeTiep.value
   if (!form.id?.trim() || !form.app_name?.trim()) {
     ElMessage.warning('Phải có Mã App và Tên app.')
     return

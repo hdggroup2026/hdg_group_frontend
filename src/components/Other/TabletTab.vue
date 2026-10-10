@@ -25,7 +25,7 @@
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Tìm kiếm:</span>
           <el-input
             v-model="searchQuery"
-            placeholder="Dòng máy, hãng, IMEI, Serial..."
+            placeholder="Tên thiết bị, hãng, IMEI, Serial..."
             clearable
             class="w-64 custom-dark-input"
             style="width: 256px"
@@ -101,10 +101,36 @@
           </template>
         </el-table-column>
 
-        <!-- Dòng máy -->
-        <el-table-column prop="model_name" label="Dòng máy" min-width="130" show-overflow-tooltip>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 700 (10/10/2026) — s68 chốt: cột "+ App", "Mật khẩu thiết bị",
+             "SĐT" của tab Điện thoại (MỤC 698/699) làm luôn cho Máy tính bảng.
+             Dùng CHUNG 4 bộ phận với tab Điện thoại (`OTenMay`, `OMatKhauAn`,
+             `OSdtMay`, `HopGanApp` + `composables/thietBiPhu.ts`), loại máy
+             'tablet'. Nhãn "Dòng máy" ➜ "Tên Thiết Bị" như tab Điện thoại.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="model_name" label="Tên Thiết Bị" min-width="150">
           <template #default="{ row }">
-            <span class="font-bold text-gray-850 dark:text-gray-100">{{ row.model_name }}</span>
+            <OTenMay :ma="row.id" :ten="row.model_name" :apps="appCua(row.id)" />
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Mật khẩu thiết bị" width="104">
+          <template #default="{ row }"><OMatKhauAn :gia-tri="row.device_password" /></template>
+        </el-table-column>
+
+        <el-table-column label="SĐT" width="150">
+          <template #default="{ row }">
+            <OSdtMay :ma="row.id" :sims="simCua(row.id)" @dat-chinh="datSimChinh" />
+          </template>
+        </el-table-column>
+
+        <el-table-column label="+ App" width="78" align="center">
+          <template #default="{ row }">
+            <el-button size="small" circle plain type="primary" :title="`Gắn app cho ${row.id}`"
+                       @click.stop="moGanApp(row)">
+              <span v-if="appCua(row.id).length" class="text-xs font-bold">{{ appCua(row.id).length }}</span>
+              <el-icon v-else><Plus /></el-icon>
+            </el-button>
           </template>
         </el-table-column>
 
@@ -149,7 +175,8 @@
              thừa chỗ cũng không giãn; `min-width` cho cột ăn thêm phần
              trống sau khi đã ẩn mười cột ở trên.
              ══════════════════════════════════════════════════════════ -->
-        <el-table-column prop="account" label="Tài khoản" min-width="220" show-overflow-tooltip>
+        <!-- MỤC 700 — width cố định như tab Điện thoại (MỤC 699): mật khẩu sát tài khoản. -->
+        <el-table-column prop="account" label="Tài khoản" width="230" show-overflow-tooltip>
           <template #default="{ row }">
             <span class="font-semibold text-gray-700 dark:text-gray-300 text-xs">{{ row.account || '—' }}</span>
           </template>
@@ -251,9 +278,28 @@
                 </span>
               </div>
               <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Dòng máy:</span>
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên thiết bị:</span>
                 <span class="text-right break-words min-w-0">
                   <span class="font-bold text-gray-850 dark:text-gray-100">{{ row.model_name }}</span>
+                </span>
+              </div>
+              <!-- MỤC 700 — thẻ đi theo bảng. -->
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">MK thiết bị:</span>
+                <span class="text-right min-w-0"><OMatKhauAn :gia-tri="row.device_password" /></span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">SĐT:</span>
+                <span class="text-right break-words min-w-0 text-xs font-mono">
+                  {{ simCua(row.id).map((x: any) => x.phone_number + (x.la_sim_chinh ? ' (chính)' : '')).join(', ') || '—' }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">App:</span>
+                <span class="text-right break-words min-w-0 text-xs">
+                  <span class="uppercase">{{ appCua(row.id).map((a: any) => a.app_name).join(', ') || '—' }}</span>
+                  <button type="button" class="ml-2 text-blue-600 dark:text-blue-400 font-bold underline decoration-dotted"
+                          @click.stop="moGanApp(row)">+ App</button>
                 </span>
               </div>
               <div class="flex justify-between gap-3">
@@ -349,7 +395,7 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="Dòng máy" prop="model_name">
+                <el-form-item label="Tên thiết bị" prop="model_name">
                   <el-input v-model="form.model_name" placeholder="VD: iPad Pro 11 inch..." />
                 </el-form-item>
               </el-col>
@@ -477,6 +523,14 @@
                 </el-form-item>
               </el-col>
             </el-row>
+            <!-- MỤC 700 — mật khẩu MỞ MÁY. -->
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Mật khẩu thiết bị" prop="device_password">
+                  <el-input v-model="form.device_password" type="password" show-password placeholder="Mã mở màn hình..." />
+                </el-form-item>
+              </el-col>
+            </el-row>
             <el-row :gutter="20">
               <el-col :span="24">
                 <el-form-item label="Ghi chú chi tiết" prop="notes">
@@ -597,6 +651,10 @@
                 <div class="text-xxs font-semibold text-gray-400">Mật khẩu đăng nhập</div>
                 <div class="text-xs font-mono font-bold text-gray-850 dark:text-gray-200 mt-0.5 select-all">{{ selectedTablet.account_password || '—' }}</div>
               </div>
+              <div>
+                <div class="text-xxs font-semibold text-gray-400">Mật khẩu thiết bị</div>
+                <div class="text-xs font-mono font-bold text-gray-850 dark:text-gray-200 mt-0.5 select-all">{{ selectedTablet.device_password || '—' }}</div>
+              </div>
             </div>
           </div>
           <div>
@@ -659,6 +717,10 @@
          máy tính bảng — hộp cố định 960px trên màn 390px thì tràn ra
          ngoài mép, còn tệ hơn cũ.
          ══════════════════════════════════════════════════════════════ -->
+    <!-- MỤC 700 — hộp gắn app dùng chung. -->
+    <HopGanApp v-model="hienGanApp" :may="mayGanApp" loai="tablet" :ds-app="dsTatCaApp"
+               :app-cua-may="appCua(mayGanApp?.id)" :nap-lai="napApp" :hep="laManHep" />
+
     <el-dialog v-model="hienPhuKien" :width="laManHep ? '95%' : '960px'" align-center destroy-on-close>
       <template #header>
         <span class="font-bold">
@@ -777,6 +839,11 @@ import { DEVICE_STATUS_OPTIONS, getDeviceStatusLabel, getDeviceStatusTagType, is
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+import OTenMay from './OTenMay.vue'   // MỤC 700 — bộ phận dùng chung với tab Điện thoại
+import OSdtMay from './OSdtMay.vue'
+import OMatKhauAn from './OMatKhauAn.vue'
+import HopGanApp from './HopGanApp.vue'
+import { dungThietBiPhu } from '@/composables/thietBiPhu'
 
 const { laManHep, hienBang, hienThe } = dungManHep()
 
@@ -884,6 +951,7 @@ const form = reactive({
   accessories: '',
   account: '',
   account_password: '',
+  device_password: '',   // MỤC 700
   classification: 'Công việc'
 })
 
@@ -969,6 +1037,7 @@ const openAddDialog = () => {
   form.accessories = ''
   form.account = ''
   form.account_password = ''
+  form.device_password = ''   // MỤC 700
   form.notes = ''
   dialogVisible.value = true
 }
@@ -990,6 +1059,7 @@ const openEditDialog = (row: any) => {
   form.accessories = row.accessories
   form.account = row.account
   form.account_password = row.account_password
+  form.device_password = row.device_password || ''   // MỤC 700
   form.notes = row.notes || ''
   dialogVisible.value = true
 }
@@ -1015,6 +1085,7 @@ const submitForm = async () => {
         accessories: form.accessories,
         account: form.account,
         account_password: form.account_password,
+        device_password: form.device_password,   // MỤC 700
         notes: form.notes || null
       }
 
@@ -1092,6 +1163,9 @@ const handleDelete = async (row: any) => {
 // nhanh, con số trong hộp thoại mới là số thật.
 // ══════════════════════════════════════════════════════════════════════
 const soPhuKien = reactive<Record<string, number>>({})
+// MỤC 700 — app + SIM theo máy (loại 'tablet'), dùng chung `thietBiPhu.ts`.
+const { dsTatCaApp, napApp, appCua, ghiSim, simCua, datSimChinh,
+        hienGanApp, mayGanApp, moGanApp } = dungThietBiPhu('tablet')
 const hienPhuKien = ref(false)
 const dangTaiPK = ref(false)
 const mayXemPK = ref<any>(null)
@@ -1104,6 +1178,7 @@ const napSoPhuKien = async () => {
       otherService.getSimCards(),
     ])
     for (const k of Object.keys(soPhuKien)) delete soPhuKien[k]
+    ghiSim(sim || [])   // MỤC 700 — SIM theo máy cho cột SĐT, cùng lời gọi
     for (const m of [...(pk || []), ...(sim || [])]) {
       if (m.device_id) soPhuKien[m.device_id] = (soPhuKien[m.device_id] || 0) + 1
     }
@@ -1256,6 +1331,7 @@ const getStatusTagType = (status: string) => {
 onMounted(() => {
   fetchTablets()
   napSoPhuKien()   // MỤC 443
+  napApp()   // MỤC 700
 })
 </script>
 

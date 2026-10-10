@@ -100,9 +100,11 @@
               </el-table-column>
 
               <!-- Biển số xe -->
-              <el-table-column prop="license_plate" label="Biển số" width="101" show-overflow-tooltip>
+              <!-- MỤC 702 — rê chuột / bấm biển số hiện bảo hiểm, đăng kiểm, bảo trì.
+                   Chấm đỏ = xe còn thiếu thông tin (cùng danh sách tin thứ Hai). -->
+              <el-table-column prop="license_plate" label="Biển số" width="120">
                 <template #default="{ row }">
-                  <span class="font-bold text-gray-850 dark:text-gray-100">{{ row.license_plate }}</span>
+                  <OTomTatXe :bien="row.license_plate" :tt="tomTat[row.id]" />
                 </template>
               </el-table-column>
 
@@ -205,7 +207,7 @@
                         {{ row.vehicle_code }}
                       </span>
                       <span v-else class="text-xs text-amber-600 dark:text-amber-400">chưa có mã</span>
-                      <span class="ml-2 font-bold text-gray-800 dark:text-gray-100">{{ row.license_plate }}</span>
+                      <span class="ml-2"><OTomTatXe :bien="row.license_plate" :tt="tomTat[row.id]" /></span>
                     </div>
                     <div class="shrink-0">
                       <el-dropdown trigger="click" @command="(cmd) => handleCommand(cmd, row)">
@@ -328,6 +330,18 @@
           </span>
         </template>
         <VehicleInsuranceTab />
+      </el-tab-pane>
+
+      <!-- MỤC 702 — tab Đăng kiểm (ô tô). Đặt trước Bảo trì: s68 "quan trọng nhất
+           là đăng kiểm". -->
+      <el-tab-pane name="dangkiem">
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><Stamp /></el-icon>
+            <span>Đăng kiểm</span>
+          </span>
+        </template>
+        <VehicleInspectionTab />
       </el-tab-pane>
 
       <el-tab-pane name="baotri">
@@ -640,10 +654,12 @@
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted } from 'vue'
 import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
-import { Van, Refresh, Plus, MoreFilled, ChatDotRound, Tickets, Tools } from '@element-plus/icons-vue'   // MỤC 530–532
+import { Van, Refresh, Plus, MoreFilled, ChatDotRound, Tickets, Tools, Stamp } from '@element-plus/icons-vue'   // MỤC 530–532
 import VehicleGroupTab from './VehicleGroupTab.vue'             // MỤC 530
 import VehicleInsuranceTab from './VehicleInsuranceTab.vue'     // MỤC 531
 import VehicleMaintenanceTab from './VehicleMaintenanceTab.vue' // MỤC 532
+import VehicleInspectionTab from './VehicleInspectionTab.vue'   // MỤC 702
+import OTomTatXe from './OTomTatXe.vue'                         // MỤC 702
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { vehicleService } from '@/api/vehicleService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
@@ -666,9 +682,17 @@ const currentPage = ref(1)
 const pageSize = ref(10)
 
 // Fetch vehicles list from GET API
+// MỤC 702 — tóm tắt từng xe cho khung rê chuột biển số (một lời gọi cho cả
+// danh sách). Hỏng thì biển số hiện trơn — KHÔNG chặn bảng xe vì một phần phụ.
+const tomTat = ref<Record<string, any>>({})
+const napTomTat = async () => {
+  try { tomTat.value = await vehicleService.getTomTatXe() || {} } catch { tomTat.value = {} }
+}
+
 const fetchVehicles = async () => {
   loading.value = true
   currentPage.value = 1
+  napTomTat()   // MỤC 702 — song song, không chờ
   try {
     const data = await vehicleService.getVehicles({
       license_plate: searchLicensePlate.value || undefined,

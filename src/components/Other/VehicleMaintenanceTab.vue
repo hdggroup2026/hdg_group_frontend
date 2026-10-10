@@ -100,6 +100,13 @@
     <el-dialog v-model="hienForm" :title="dangSua ? 'Chỉnh sửa lịch' : 'Thêm lịch bảo trì, bảo dưỡng'"
                :width="hepMan ? '95%' : '600px'" align-center destroy-on-close>
       <el-form :model="form" label-position="top">
+        <!-- MỤC 702 — ghi THẲNG một lần đã làm (vd lần bảo dưỡng gần nhất trước khi
+             có hệ thống). Hạn bảo trì định kỳ (xe máy 2 tháng, ô tô 3 tháng) tính
+             từ ngày này. Chỉ khi THÊM; sửa thì giữ đúng loại dòng đang có. -->
+        <el-radio-group v-if="!dangSua" v-model="form.kieu" class="mb-3">
+          <el-radio-button value="hen">Lịch hẹn sắp tới</el-radio-button>
+          <el-radio-button value="da_lam">Ghi lần ĐÃ LÀM</el-radio-button>
+        </el-radio-group>
         <el-row :gutter="14">
           <el-col :xs="24" :sm="12">
             <el-form-item label="Xe">
@@ -120,12 +127,15 @@
           </el-col>
 
           <el-col :xs="24" :sm="12">
-            <el-form-item label="Ngày hẹn">
+            <el-form-item :label="form.kieu === 'da_lam' ? 'Ngày đã làm' : 'Ngày hẹn'">
               <el-date-picker v-model="form.ngay_hen" type="date"
                               value-format="YYYY-MM-DD" style="width: 100%" />
+              <span v-if="form.kieu === 'da_lam'" class="text-xs text-gray-400">
+                Bot tự nhắc lần sau: xe máy sau 2 tháng, ô tô sau 3 tháng (nếu chưa đặt lịch hẹn).
+              </span>
             </el-form-item>
           </el-col>
-          <el-col :xs="24" :sm="12">
+          <el-col v-if="form.kieu !== 'da_lam'" :xs="24" :sm="12">
             <el-form-item label="Nhắc trước bao nhiêu ngày">
               <el-input-number v-model="form.nhac_truoc_ngay" :min="0" :max="60"
                                controls-position="right" style="width: 100%" />
@@ -250,6 +260,7 @@ const locTrangThai = ref('')
 const formRong = () => ({
   id: null as any, vehicle_id: '', loai: 'bao_duong', noi_dung: '',
   ngay_hen: null as any, nhac_truoc_ngay: 3,
+  kieu: 'hen' as 'hen' | 'da_lam',   // MỤC 702
 })
 const form = ref<any>(formRong())
 
@@ -375,7 +386,9 @@ const luuForm = async () => {
     return
   }
   if (!form.value.ngay_hen) {
-    ElMessage.warning('Phải có ngày hẹn, nếu không bot không nhắc được.')
+    ElMessage.warning(form.value.kieu === 'da_lam'
+      ? 'Phải có ngày đã làm, nếu không bot không tính được hạn lần sau.'
+      : 'Phải có ngày hẹn, nếu không bot không nhắc được.')
     return
   }
   dangLuu.value = true
@@ -387,12 +400,14 @@ const luuForm = async () => {
       ngay_hen: form.value.ngay_hen,
       nhac_truoc_ngay: form.value.nhac_truoc_ngay ?? 3,
     }
+    // MỤC 702 — lần đã làm: máy chủ ghi dòng `da_xong` với ngày hoàn thành này.
+    if (!dangSua.value && form.value.kieu === 'da_lam') goi.da_lam_ngay = form.value.ngay_hen
     if (dangSua.value) {
       await vehicleService.updateBaoTriXe({ ...goi, id: form.value.id })
     } else {
       await vehicleService.addBaoTriXe(goi)
     }
-    ElMessage.success('Đã lưu lịch.')
+    ElMessage.success(goi.da_lam_ngay ? 'Đã ghi lần bảo trì đã làm.' : 'Đã lưu lịch.')
     hienForm.value = false
     await taiTatCa()
   } catch (e: any) {

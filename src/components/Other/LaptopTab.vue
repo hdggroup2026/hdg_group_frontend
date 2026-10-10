@@ -25,7 +25,7 @@
           <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Tìm kiếm:</span>
           <el-input
             v-model="searchQuery"
-            placeholder="Dòng máy, hãng, CPU, Service Tag..."
+            placeholder="Tên thiết bị, hãng, CPU, Service Tag..."
             clearable
             class="w-64 custom-dark-input"
             style="width: 256px"
@@ -101,10 +101,35 @@
           </template>
         </el-table-column>
 
-        <!-- Dòng máy -->
-        <el-table-column prop="model_name" label="Dòng máy" min-width="130" show-overflow-tooltip>
+        <!-- ══════════════════════════════════════════════════════════
+             MỤC 700 (10/10/2026) — s68 chốt: cột "+ App", "Mật khẩu thiết bị",
+             "SĐT" làm luôn cho Laptop. Dùng CHUNG bộ phận với tab Điện thoại
+             (loại máy 'laptop'). Bảng laptop không có cột tài khoản nên không
+             có "mật khẩu tài khoản" để nhầm — chỉ có mật khẩu MỞ MÁY.
+             ══════════════════════════════════════════════════════════ -->
+        <el-table-column prop="model_name" label="Tên Thiết Bị" min-width="150">
           <template #default="{ row }">
-            <span class="font-bold text-gray-850 dark:text-gray-100">{{ row.model_name }}</span>
+            <OTenMay :ma="row.id" :ten="row.model_name" :apps="appCua(row.id)" />
+          </template>
+        </el-table-column>
+
+        <el-table-column label="Mật khẩu thiết bị" width="104">
+          <template #default="{ row }"><OMatKhauAn :gia-tri="row.device_password" /></template>
+        </el-table-column>
+
+        <el-table-column label="SĐT" width="150">
+          <template #default="{ row }">
+            <OSdtMay :ma="row.id" :sims="simCua(row.id)" @dat-chinh="datSimChinh" />
+          </template>
+        </el-table-column>
+
+        <el-table-column label="+ App" width="78" align="center">
+          <template #default="{ row }">
+            <el-button size="small" circle plain type="primary" :title="`Gắn app cho ${row.id}`"
+                       @click.stop="moGanApp(row)">
+              <span v-if="appCua(row.id).length" class="text-xs font-bold">{{ appCua(row.id).length }}</span>
+              <el-icon v-else><Plus /></el-icon>
+            </el-button>
           </template>
         </el-table-column>
 
@@ -170,9 +195,28 @@
                 </span>
               </div>
               <div class="flex justify-between gap-3">
-                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Dòng máy:</span>
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Tên thiết bị:</span>
                 <span class="text-right break-words min-w-0">
                   <span class="font-bold text-gray-850 dark:text-gray-100">{{ row.model_name }}</span>
+                </span>
+              </div>
+              <!-- MỤC 700 — thẻ đi theo bảng. -->
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">MK thiết bị:</span>
+                <span class="text-right min-w-0"><OMatKhauAn :gia-tri="row.device_password" /></span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">SĐT:</span>
+                <span class="text-right break-words min-w-0 text-xs font-mono">
+                  {{ simCua(row.id).map((x: any) => x.phone_number + (x.la_sim_chinh ? ' (chính)' : '')).join(', ') || '—' }}
+                </span>
+              </div>
+              <div class="flex justify-between gap-3">
+                <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">App:</span>
+                <span class="text-right break-words min-w-0 text-xs">
+                  <span class="uppercase">{{ appCua(row.id).map((a: any) => a.app_name).join(', ') || '—' }}</span>
+                  <button type="button" class="ml-2 text-blue-600 dark:text-blue-400 font-bold underline decoration-dotted"
+                          @click.stop="moGanApp(row)">+ App</button>
                 </span>
               </div>
               <div class="flex justify-between gap-3">
@@ -213,6 +257,10 @@
     </div>
 
     <!-- Dialog: Add / Edit Laptop -->
+    <!-- MỤC 700 — hộp gắn app dùng chung. -->
+    <HopGanApp v-model="hienGanApp" :may="mayGanApp" loai="laptop" :ds-app="dsTatCaApp"
+               :app-cua-may="appCua(mayGanApp?.id)" :nap-lai="napApp" :hep="laManHep" />
+
     <el-dialog
       v-model="dialogVisible"
       :title="isEdit ? 'CHỈNH SỬA THÔNG TIN LAPTOP' : 'THÊM LAPTOP MỚI'"
@@ -243,7 +291,7 @@
                 </el-form-item>
               </el-col>
               <el-col :span="12">
-                <el-form-item label="Dòng máy" prop="model_name">
+                <el-form-item label="Tên thiết bị" prop="model_name">
                   <el-input v-model="form.model_name" placeholder="VD: Dell XPS 13, MacBook Pro M3..." />
                 </el-form-item>
               </el-col>
@@ -260,6 +308,14 @@
                     <el-option label="Công việc" value="Công việc" />
                     <el-option label="Cá nhân" value="Cá nhân" />
                   </el-select>
+                </el-form-item>
+              </el-col>
+            </el-row>
+            <!-- MỤC 700 — mật khẩu MỞ MÁY. -->
+            <el-row :gutter="20">
+              <el-col :span="12">
+                <el-form-item label="Mật khẩu thiết bị" prop="device_password">
+                  <el-input v-model="form.device_password" type="password" show-password placeholder="Mật khẩu đăng nhập máy..." />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -410,6 +466,10 @@
             <div class="text-sm text-gray-700 dark:text-gray-300">{{ selectedLaptop.accessories || 'Không có' }}</div>
           </div>
           <div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Mật khẩu thiết bị</div>
+            <div class="text-sm font-mono text-gray-700 dark:text-gray-300 select-all">{{ selectedLaptop.device_password || '—' }}</div>
+          </div>
+          <div>
             <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Trạng thái</div>
             <div>
               <el-tag size="small" :type="getStatusTagType(selectedLaptop.status)" effect="dark" class="font-bold">
@@ -469,8 +529,16 @@ import { DEVICE_STATUS_OPTIONS, getDeviceStatusLabel, getDeviceStatusTagType, is
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
+import OTenMay from './OTenMay.vue'   // MỤC 700 — bộ phận dùng chung với tab Điện thoại
+import OSdtMay from './OSdtMay.vue'
+import OMatKhauAn from './OMatKhauAn.vue'
+import HopGanApp from './HopGanApp.vue'
+import { dungThietBiPhu } from '@/composables/thietBiPhu'
 
 const { laManHep, hienBang, hienThe } = dungManHep()
+// MỤC 700 — app + SIM theo máy (loại 'laptop').
+const { dsTatCaApp, napApp, appCua, napSim, simCua, datSimChinh,
+        hienGanApp, mayGanApp, moGanApp } = dungThietBiPhu('laptop')
 
 // Search, Classification filters
 const searchQuery = ref('')
@@ -558,7 +626,8 @@ const form = reactive({
   warranty_expiry: '',
   status: 'available',
   accessories: '',
-  classification: 'Công việc'
+  classification: 'Công việc',
+  device_password: ''   // MỤC 700
 })
 
 const rules = reactive({
@@ -637,6 +706,7 @@ const openAddDialog = () => {
   form.warranty_expiry = ''
   form.accessories = ''
   form.classification = 'Công việc'
+  form.device_password = ''   // MỤC 700
   dialogVisible.value = true
 }
 
@@ -655,6 +725,7 @@ const openEditDialog = (row: any) => {
   form.warranty_expiry = row.warranty_expiry || ''
   form.accessories = row.accessories || ''
   form.classification = row.classification || 'Công việc'
+  form.device_password = row.device_password || ''   // MỤC 700
   dialogVisible.value = true
 }
 
@@ -676,7 +747,8 @@ const submitForm = async () => {
         status: form.status,
         warranty_expiry: form.warranty_expiry || null,
         accessories: form.accessories || null,
-        classification: form.classification || null
+        classification: form.classification || null,
+        device_password: form.device_password || null   // MỤC 700
       }
 
       try {
@@ -754,6 +826,8 @@ const getStatusTagType = (status: string) => {
 
 onMounted(() => {
   fetchLaptops()
+  napApp()   // MỤC 700
+  napSim()   // MỤC 700 — laptop chưa có cột phụ kiện nên tự nạp SIM
 })
 </script>
 
