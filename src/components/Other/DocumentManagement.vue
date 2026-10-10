@@ -15,6 +15,20 @@
           <!-- Filter Bar -->
           <div class="flex flex-wrap justify-between items-center gap-4 mb-4 shrink-0">
             <div class="flex flex-wrap items-center gap-4">
+              <!-- ══════════════════════════════════════════════════════════
+                   MỤC 703 (10/10/2026) — HAI MỤC: GIẤY TỜ / PHIẾU BẢO HÀNH
+                   s68: *"chia làm 2 mục: Giấy Tờ và Phiếu Bảo Hành ... giấy tờ là
+                   Hết Hạn, còn phiếu bảo hành là Hạn Sử Dụng. giấy tờ hay phiếu bảo
+                   hành hết hạn thì cột trạng thái auto chuyển sang hết hạn"*.
+                   Phân theo MÃ: phiếu bảo hành mang mã BH… (BH001–BH004 đúng là 4
+                   dòng s68 chỉ), giấy tờ mang mã DOC_…. Không thêm cột / không sửa
+                   dữ liệu — dữ liệu đã theo đúng quy ước này.
+                   ══════════════════════════════════════════════════════════ -->
+              <el-radio-group v-model="mucTaiLieu" @change="currentPage = 1">
+                <el-radio-button value="giay_to">Giấy Tờ ({{ soTheoMuc.giay_to }})</el-radio-button>
+                <el-radio-button value="bao_hanh">Phiếu Bảo Hành ({{ soTheoMuc.bao_hanh }})</el-radio-button>
+              </el-radio-group>
+
               <!-- Status select -->
               <div class="flex items-center gap-2">
                 <span class="whitespace-nowrap text-sm font-medium text-gray-700 dark:text-gray-300">Trạng thái:</span>
@@ -154,7 +168,8 @@
               </el-table-column>
 
               <!-- Ngày hết hạn -->
-              <el-table-column prop="expiry_date" label="Hạn bảo hành / Hết hạn" width="112" align="center">
+              <!-- MỤC 703 — tiêu đề theo mục: Giấy tờ "Hết Hạn", Phiếu BH "Hạn Sử Dụng". -->
+              <el-table-column prop="expiry_date" :label="nhanHan" width="112" align="center">
                 <template #default="{ row }">
                   <span class="font-mono text-xs whitespace-nowrap" :class="isExpired(row.expiry_date) ? 'text-red-500 font-bold' : ''">
                     {{ formatDate(row.expiry_date) }}
@@ -167,8 +182,8 @@
                    "Đang hoạt độn" (ảnh s68 08/10). -->
               <el-table-column prop="status" label="Trạng thái" width="130" align="center">
                 <template #default="{ row }">
-                  <el-tag size="small" :type="getStatusTagType(row.status)" effect="dark" class="font-bold">
-                    {{ getStatusLabel(row.status) }}
+                  <el-tag size="small" :type="getStatusTagType(trangThai(row))" effect="dark" class="font-bold">
+                    {{ getStatusLabel(trangThai(row)) }}
                   </el-tag>
                 </template>
               </el-table-column>
@@ -268,7 +283,7 @@
                       </span>
                     </div>
                     <div class="flex justify-between gap-3">
-                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Hạn bảo hành / Hết hạn:</span>
+                      <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">{{ nhanHan }}:</span>
                       <span class="text-right break-words min-w-0">
                         <span class="font-mono text-xs" :class="isExpired(row.expiry_date) ? 'text-red-500 font-bold' : ''">
                                             {{ formatDate(row.expiry_date) }}
@@ -278,8 +293,8 @@
                     <div class="flex justify-between gap-3">
                       <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Trạng thái:</span>
                       <span class="text-right break-words min-w-0">
-                        <el-tag size="small" :type="getStatusTagType(row.status)" effect="dark" class="font-bold">
-                                            {{ getStatusLabel(row.status) }}
+                        <el-tag size="small" :type="getStatusTagType(trangThai(row))" effect="dark" class="font-bold">
+                                            {{ getStatusLabel(trangThai(row)) }}
                                           </el-tag>
                       </span>
                     </div>
@@ -467,7 +482,7 @@
             <div class="text-sm font-mono text-gray-750 dark:text-gray-300">{{ formatDate(selectedDocument.issue_date) }}</div>
           </div>
           <div>
-            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Hạn bảo hành / Ngày hết hạn</div>
+            <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">{{ laPhieuBaoHanh(selectedDocument) ? 'Hạn Sử Dụng' : 'Hết Hạn' }}</div>
             <div class="text-sm font-mono text-gray-750 dark:text-gray-300" :class="isExpired(selectedDocument.expiry_date) ? 'text-red-500 font-bold' : ''">
               {{ formatDate(selectedDocument.expiry_date) }}
               <span v-if="isExpired(selectedDocument.expiry_date)" class="ml-1 text-xs text-red-500">(Đã hết hiệu lực)</span>
@@ -476,8 +491,8 @@
           <div>
             <div class="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Trạng thái</div>
             <div>
-              <el-tag size="small" :type="getStatusTagType(selectedDocument.status)" effect="dark" class="font-bold">
-                {{ getStatusLabel(selectedDocument.status) }}
+              <el-tag size="small" :type="getStatusTagType(trangThai(selectedDocument))" effect="dark" class="font-bold">
+                {{ getStatusLabel(trangThai(selectedDocument)) }}
               </el-tag>
             </div>
           </div>
@@ -529,9 +544,10 @@ const fetchDocuments = async () => {
   loading.value = true
   currentPage.value = 1
   try {
+    // MỤC 703 — KHÔNG gửi `status` lên máy chủ nữa: "Đã hết hạn" giờ tính từ
+    // ngày hết hạn (máy chủ không biết), nên lọc trạng thái làm tại chỗ.
     const data = await documentService.getDocuments({
       category: filterCategory.value || undefined,
-      status: filterStatus.value || undefined
     })
     documents.value = data
   } catch (error: any) {
@@ -544,8 +560,37 @@ const fetchDocuments = async () => {
 }
 
 const handleStatusChange = () => {
-  fetchDocuments()
+  currentPage.value = 1   // MỤC 703 — lọc tại chỗ, không cần tải lại
 }
+
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 703 (10/10/2026) — GIẤY TỜ / PHIẾU BẢO HÀNH + TRẠNG THÁI TỰ HẾT HẠN
+// ══════════════════════════════════════════════════════════════════════
+const mucTaiLieu = ref<'giay_to' | 'bao_hanh'>('giay_to')
+const laPhieuBaoHanh = (row: any) => /^BH/i.test(String(row?.id || ''))
+const thuocMuc = (row: any) => (laPhieuBaoHanh(row) ? 'bao_hanh' : 'giay_to')
+const soTheoMuc = computed(() => ({
+  giay_to: documents.value.filter((d) => thuocMuc(d) === 'giay_to').length,
+  bao_hanh: documents.value.filter((d) => thuocMuc(d) === 'bao_hanh').length,
+}))
+const nhanHan = computed(() => (mucTaiLieu.value === 'bao_hanh' ? 'Hạn Sử Dụng' : 'Hết Hạn'))
+
+// Trạng thái HIỂN THỊ: đang hoạt động mà đã qua ngày hết hạn ➜ "Đã hết hạn".
+// 🔴 Tính lúc hiện, KHÔNG ghi đè cột `status` trong database: ghi đè thì gia
+// hạn xong (sửa ngày) vẫn kẹt "hết hạn" tới khi ai đó nhớ đổi lại tay. "Vô
+// hiệu" do người dùng chọn thì giữ nguyên.
+const trangThai = (row: any) =>
+  (row?.status === 'ACTIVE' || !row?.status) && isExpired(row?.expiry_date) ? 'EXPIRED' : row?.status
+
+// Mã phiếu bảo hành kế tiếp: BH + 3 chữ số (máy chủ chỉ tự sinh mã DOC_).
+const maBHKeTiep = computed(() => {
+  let lon = 0
+  for (const d of documents.value) {
+    const m = /^BH(\d{3})$/i.exec(String(d.id || ''))
+    if (m) lon = Math.max(lon, Number(m[1]))
+  }
+  return 'BH' + String(lon + 1).padStart(3, '0')
+})
 
 const handleCategoryChange = () => {
   fetchDocuments()
@@ -554,6 +599,8 @@ const handleCategoryChange = () => {
 // Filter Computeds
 const filteredDocuments = computed(() => {
   return documents.value.filter(item => {
+    if (thuocMuc(item) !== mucTaiLieu.value) return false        // MỤC 703
+    if (filterStatus.value && trangThai(item) !== filterStatus.value) return false   // MỤC 703
     const q = searchQuery.value.toLowerCase()
     const matchesSearch = !q ||
       item.title.toLowerCase().includes(q) ||
@@ -618,6 +665,8 @@ const openAddDialog = () => {
   form.issue_date = ''
   form.expiry_date = ''
   form.status = 'ACTIVE'
+  // MỤC 703 — đang ở mục Phiếu bảo hành thì điền sẵn mã BH kế tiếp (sửa được).
+  if (mucTaiLieu.value === 'bao_hanh') form.id = maBHKeTiep.value
   dialogVisible.value = true
 }
 

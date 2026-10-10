@@ -569,6 +569,12 @@
             </div>
           </template>
         </el-form>
+
+        <!-- MỤC 704 — khi SỬA xe: bảo hiểm · đăng kiểm · bảo dưỡng của xe ngay tại
+             đây (cùng dữ liệu với các tab). Thêm mới xe vẫn dùng khối MỤC 536. -->
+        <div v-if="isEdit && form.id" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <HoSoPhuXe :vehicle-id="form.id" :vehicle-type="form.vehicle_type" @doi="napTomTat" />
+        </div>
       </div>
       <template #footer>
         <span class="dialog-footer">
@@ -660,6 +666,7 @@ import VehicleInsuranceTab from './VehicleInsuranceTab.vue'     // MỤC 531
 import VehicleMaintenanceTab from './VehicleMaintenanceTab.vue' // MỤC 532
 import VehicleInspectionTab from './VehicleInspectionTab.vue'   // MỤC 702
 import OTomTatXe from './OTomTatXe.vue'                         // MỤC 702
+import HoSoPhuXe from './HoSoPhuXe.vue'                         // MỤC 704
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { vehicleService } from '@/api/vehicleService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
