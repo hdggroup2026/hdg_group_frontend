@@ -386,7 +386,8 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Mật khẩu thiết bị" prop="login_password">
-                  <el-input v-model="form.login_password" type="password" show-password placeholder="Nhập mật khẩu..." />
+                  <!-- MỤC 705 (15/10/2026) — new-password: chặn Chrome tự điền MẬT KHẨU WEB vào ô này (xem SimTab.vue) -->
+                  <el-input v-model="form.login_password" type="password" autocomplete="new-password" show-password placeholder="Nhập mật khẩu..." />
                 </el-form-item>
               </el-col>
             </el-row>

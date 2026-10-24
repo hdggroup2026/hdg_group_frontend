@@ -471,7 +471,8 @@
         <el-input v-model="addForm.username" placeholder="Nhập tên tài khoản..." />
       </el-form-item>
       <el-form-item label="Mật khẩu" prop="password">
-        <el-input v-model="addForm.password" type="password" placeholder="Nhập mật khẩu..." show-password />
+        <!-- MỤC 705 (15/10/2026) — new-password: chặn Chrome tự điền MẬT KHẨU WEB vào ô này (xem SimTab.vue) -->
+        <el-input v-model="addForm.password" type="password" autocomplete="new-password" placeholder="Nhập mật khẩu..." show-password />
       </el-form-item>
       <el-form-item label="Mã Nhân Viên" prop="employee_id">
         <el-input v-model="addForm.employee_id" placeholder="Nhập mã nhân viên (khớp với mã nhân sự)..." />
@@ -505,7 +506,8 @@
         <el-input v-model="editForm.username" placeholder="Nhập tên đăng nhập..." />
       </el-form-item>
       <el-form-item label="Mật khẩu mới" prop="password">
-        <el-input v-model="editForm.password" type="password" placeholder="Để trống nếu giữ nguyên..." show-password />
+        <!-- MỤC 705 (15/10/2026) — new-password: chặn Chrome tự điền MẬT KHẨU WEB vào ô này (xem SimTab.vue) -->
+        <el-input v-model="editForm.password" type="password" autocomplete="new-password" placeholder="Để trống nếu giữ nguyên..." show-password />
       </el-form-item>
       <el-form-item label="Mã Nhân Viên">
         <el-input v-model="editForm.employee_id" disabled />

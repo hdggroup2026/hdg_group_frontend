@@ -301,7 +301,8 @@
             <el-form-item label="Tài khoản đăng ký"><el-input v-model="form.account_email" /></el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12">
-            <el-form-item label="Mật khẩu"><el-input v-model="form.password" type="password" show-password /></el-form-item>
+            <!-- MỤC 705 (15/10/2026) — new-password: chặn Chrome tự điền MẬT KHẨU WEB vào ô này (xem SimTab.vue) -->
+            <el-form-item label="Mật khẩu"><el-input v-model="form.password" type="password" autocomplete="new-password" show-password /></el-form-item>
           </el-col>
 
           <el-col :xs="24" :sm="12">

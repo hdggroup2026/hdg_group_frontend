@@ -91,11 +91,16 @@
       <!-- 🔴 Cột chính của màn này, theo đúng yêu cầu s68 ngày 01/09. -->
       <el-table-column prop="expiry_date" label="Hạn sử dụng" width="110" align="center">
         <template #default="{ row }">
-          <div v-if="row.expiry_date" class="font-mono text-xs" :class="lopHan(row.expiry_date)">
+          <!-- MỤC 706 (15/10/2026) — SIM trả sau không có hạn; SIM MoMo tự nạp ghi số tiền. -->
+          <span v-if="row.tra_sau" class="text-xs text-gray-500">Trả sau</span>
+          <div v-else-if="row.expiry_date" class="font-mono text-xs" :class="lopHan(row.expiry_date)">
             {{ ngayDayDu(row.expiry_date) }}
             <div class="text-[10px] font-normal">{{ chuConLai(row.expiry_date) }}</div>
           </div>
           <span v-else class="text-xs text-amber-600 dark:text-amber-400">Chưa khai</span>
+          <div v-if="!row.tra_sau && row.tu_nap_so_tien" class="text-[10px] text-blue-600 dark:text-blue-400">
+            MoMo {{ tienK(row.tu_nap_so_tien) }}{{ row.tu_nap_so_ngay ? ` · +${row.tu_nap_so_ngay} ngày` : ' · chưa học' }}
+          </div>
         </template>
       </el-table-column>
 
@@ -167,8 +172,10 @@
           <div class="flex justify-between gap-3">
             <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Hạn sử dụng:</span>
             <span class="text-right break-words min-w-0 font-mono text-xs" :class="lopHan(row.expiry_date)">
-              <template v-if="row.expiry_date">
+              <template v-if="row.tra_sau">Trả sau — không có hạn</template>
+              <template v-else-if="row.expiry_date">
                 {{ ngayDayDu(row.expiry_date) }} — {{ chuConLai(row.expiry_date) }}
+                <template v-if="row.tu_nap_so_tien"> · MoMo {{ tienK(row.tu_nap_so_tien) }}</template>
               </template>
               <span v-else class="text-amber-600 dark:text-amber-400">Chưa khai</span>
             </span>
@@ -317,11 +324,15 @@
           </el-col>
 
           <el-col :xs="24" :sm="12">
-            <el-form-item label="ICCID (20 số trên phôi SIM)"><el-input v-model="form.iccid" /></el-form-item>
+            <el-form-item label="ICCID (20 số trên phôi SIM)"><el-input v-model="form.iccid" autocomplete="off" /></el-form-item>
           </el-col>
           <el-col :xs="24" :sm="12">
             <el-form-item label="Mã PUK">
-              <el-input v-model="form.puk_code" type="password" show-password />
+              <!-- MỤC 705 (15/10/2026) — Chrome thấy "ô chữ + ô mật khẩu" tưởng là form
+                   đăng nhập, tự điền tên đăng nhập vào ICCID và MẬT KHẨU WEB vào PUK
+                   (s68 chụp 15/10). `new-password` = báo đây là mật khẩu MỚI ➜ Chrome
+                   không điền mật khẩu đã lưu. Không dùng `off`: Chrome bỏ qua `off`. -->
+              <el-input v-model="form.puk_code" type="password" show-password autocomplete="new-password" />
             </el-form-item>
           </el-col>
 
@@ -370,6 +381,30 @@
             </el-form-item>
           </el-col>
 
+          <!-- ══ MỤC 706 (15/10/2026) — MoMo tự nạp mỗi tháng / SIM trả sau ══
+               Số ngày mỗi lần nạp để TRỐNG = bot tự học (hỏi HSD cuối tháng và sau
+               ngày 1). Đổi số tiền ➜ backend tự xoá số ngày cũ để học lại. -->
+          <el-col :xs="24" :sm="8">
+            <el-form-item label="MoMo tự nạp mỗi tháng (đ)">
+              <el-input-number v-model="form.tu_nap_so_tien" :min="0" :step="10000" :disabled="form.tra_sau"
+                               controls-position="right" style="width: 100%" />
+              <span class="text-xs text-gray-400">0 = không tự nạp. Bot cộng hạn lúc 22:00 ngày 1.</span>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="8">
+            <el-form-item label="Số ngày mỗi lần nạp">
+              <el-input-number v-model="form.tu_nap_so_ngay" :min="1" :value-on-clear="null"
+                               :disabled="form.tra_sau || !form.tu_nap_so_tien"
+                               controls-position="right" style="width: 100%" />
+              <span class="text-xs text-gray-400">Để trống = bot tự học từ HSD thật.</span>
+            </el-form-item>
+          </el-col>
+          <el-col :xs="24" :sm="8">
+            <el-form-item label="SIM trả sau">
+              <el-switch v-model="form.tra_sau" active-text="Trả sau — không có hạn, không nhắc" />
+            </el-form-item>
+          </el-col>
+
           <el-col :xs="24" :sm="12">
             <el-form-item label="Lắp ở máy nào">
               <el-select v-model="mayDuocChon" filterable clearable style="width: 100%"
@@ -411,6 +446,9 @@ const trang = ref(1)
 const moiTrang = ref(10)
 const hienPuk = reactive<Record<string, boolean>>({})
 
+// MỤC 706 — 20000 -> "20k"
+const tienK = (v: any) => (Number(v) % 1000 === 0 ? `${Number(v) / 1000}k` : `${v}đ`)
+
 const soNgayConLai = (d: any) => {
   if (!d) return null
   return Math.floor((new Date(d).getTime() - Date.now()) / 86400000)
@@ -427,7 +465,7 @@ const daLoc = computed(() => {
   return dsSim.value.filter((s) => {
     if (locHan.value) {
       const n = soNgayConLai(s.expiry_date)
-      if (locHan.value === 'trong' && s.expiry_date) return false
+      if (locHan.value === 'trong' && (s.expiry_date || s.tra_sau)) return false   // MỤC 706
       if (locHan.value === 'het' && !(n !== null && n < 0)) return false
       if (locHan.value === 'sap' && !(n !== null && n >= 0 && n < 30)) return false
     }
@@ -485,6 +523,7 @@ const formRong = () => ({
   activation_date: null as any, monthly_fee: 0, notes: '',
   registered_owner: '',   // MỤC 520 — thiếu dòng này thì ô nhập không xoá được giữa hai lần mở form
   sim_manager: '',        // MỤC 524 — cùng lý do
+  tra_sau: false, tu_nap_so_tien: 0, tu_nap_so_ngay: null as any,   // MỤC 706
 })
 
 const form = reactive<any>(formRong())

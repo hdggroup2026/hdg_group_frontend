@@ -519,7 +519,8 @@
               </el-col>
               <el-col :span="12">
                 <el-form-item label="Mật khẩu tài khoản" prop="account_password">
-                  <el-input v-model="form.account_password" type="password" show-password placeholder="Nhập mật khẩu..." />
+                  <!-- MỤC 705 (15/10/2026) — new-password: chặn Chrome tự điền MẬT KHẨU WEB vào ô này (xem SimTab.vue) -->
+                  <el-input v-model="form.account_password" type="password" autocomplete="new-password" show-password placeholder="Nhập mật khẩu..." />
                 </el-form-item>
               </el-col>
             </el-row>
@@ -527,7 +528,8 @@
             <el-row :gutter="20">
               <el-col :span="12">
                 <el-form-item label="Mật khẩu thiết bị" prop="device_password">
-                  <el-input v-model="form.device_password" type="password" show-password placeholder="Mã mở màn hình..." />
+                  <!-- MỤC 705 (15/10/2026) — new-password: chặn Chrome tự điền MẬT KHẨU WEB vào ô này (xem SimTab.vue) -->
+                  <el-input v-model="form.device_password" type="password" autocomplete="new-password" show-password placeholder="Mã mở màn hình..." />
                 </el-form-item>
               </el-col>
             </el-row>

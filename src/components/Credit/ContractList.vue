@@ -944,7 +944,8 @@
 
         <el-form label-position="top">
           <el-form-item label="Mã xác nhận">
-            <el-input v-model="maXacNhan" type="password" show-password
+            <!-- MỤC 705 (15/10/2026) — new-password: chặn Chrome tự điền MẬT KHẨU WEB vào ô này (xem SimTab.vue) -->
+            <el-input v-model="maXacNhan" type="password" autocomplete="new-password" show-password
                       placeholder="Nhập mã xác nhận" />
           </el-form-item>
           <el-form-item label="Lý do (không bắt buộc)">
