@@ -93,9 +93,9 @@
         <template #default="{ row }">
           <!-- MỤC 706 (15/10/2026) — SIM trả sau không có hạn; SIM MoMo tự nạp ghi số tiền. -->
           <span v-if="row.tra_sau" class="text-xs text-gray-500">Trả sau</span>
-          <div v-else-if="row.expiry_date" class="font-mono text-xs" :class="lopHan(row.expiry_date)">
+          <div v-else-if="row.expiry_date" class="font-mono text-xs" :class="lopHanSim(row)">
             {{ ngayDayDu(row.expiry_date) }}
-            <div class="text-[10px] font-normal">{{ chuConLai(row.expiry_date) }}</div>
+            <div v-if="!tuNap(row)" class="text-[10px] font-normal">{{ chuConLai(row.expiry_date) }}</div>
           </div>
           <span v-else class="text-xs text-amber-600 dark:text-amber-400">Chưa khai</span>
           <div v-if="!row.tra_sau && row.tu_nap_so_tien" class="text-[10px] text-blue-600 dark:text-blue-400">
@@ -171,10 +171,10 @@
         <div class="flex flex-col gap-2 text-sm">
           <div class="flex justify-between gap-3">
             <span class="text-gray-400 dark:text-gray-500 font-medium shrink-0">Hạn sử dụng:</span>
-            <span class="text-right break-words min-w-0 font-mono text-xs" :class="lopHan(row.expiry_date)">
+            <span class="text-right break-words min-w-0 font-mono text-xs" :class="lopHanSim(row)">
               <template v-if="row.tra_sau">Trả sau — không có hạn</template>
               <template v-else-if="row.expiry_date">
-                {{ ngayDayDu(row.expiry_date) }} — {{ chuConLai(row.expiry_date) }}
+                {{ ngayDayDu(row.expiry_date) }}<template v-if="!tuNap(row)"> — {{ chuConLai(row.expiry_date) }}</template>
                 <template v-if="row.tu_nap_so_tien"> · MoMo {{ tienK(row.tu_nap_so_tien) }}</template>
               </template>
               <span v-else class="text-amber-600 dark:text-amber-400">Chưa khai</span>
@@ -454,11 +454,19 @@ const soNgayConLai = (d: any) => {
   return Math.floor((new Date(d).getTime() - Date.now()) / 86400000)
 }
 
+// ══════════════════════════════════════════════════════════════════════
+// MỤC 714 (25/10/2026) — SIM MoMo TỰ NẠP / TRẢ SAU KHÔNG BÁO HẾT HẠN, QUÁ HẠN
+// s68 25/10: *"bỏ hết hạn và quá hạn luôn. momo auto nạp vào rồi thì thôi. cứ báo + ngày
+// sử dụng sau nạp như cũ"*. Ô "N sắp hết" từng đếm VIE001 (còn 10 ngày) dù MoMo nạp ngày 1.
+// ⚠️ CHỈ miễn SIM tự nạp / trả sau: SIM nạp tay (nếu sau này có) vẫn cần cảnh báo — quên là mất số.
+// ══════════════════════════════════════════════════════════════════════
+const tuNap = (s: any) => !!s?.tra_sau || (Number(s?.tu_nap_so_tien) > 0 && s?.status !== 'cancelled')
+
 const soHetHan = computed(() =>
-  dsSim.value.filter((s) => { const n = soNgayConLai(s.expiry_date); return n !== null && n < 0 }).length)
+  dsSim.value.filter((s) => { const n = soNgayConLai(s.expiry_date); return !tuNap(s) && n !== null && n < 0 }).length)
 
 const soSapHet = computed(() =>
-  dsSim.value.filter((s) => { const n = soNgayConLai(s.expiry_date); return n !== null && n >= 0 && n < 30 }).length)
+  dsSim.value.filter((s) => { const n = soNgayConLai(s.expiry_date); return !tuNap(s) && n !== null && n >= 0 && n < 30 }).length)
 
 const daLoc = computed(() => {
   const k = tuKhoa.value.trim().toLowerCase()
@@ -466,8 +474,8 @@ const daLoc = computed(() => {
     if (locHan.value) {
       const n = soNgayConLai(s.expiry_date)
       if (locHan.value === 'trong' && (s.expiry_date || s.tra_sau)) return false   // MỤC 706
-      if (locHan.value === 'het' && !(n !== null && n < 0)) return false
-      if (locHan.value === 'sap' && !(n !== null && n >= 0 && n < 30)) return false
+      if (locHan.value === 'het' && (tuNap(s) || !(n !== null && n < 0))) return false   // MỤC 714
+      if (locHan.value === 'sap' && (tuNap(s) || !(n !== null && n >= 0 && n < 30))) return false
     }
     if (!k) return true
     // MỤC 520, 524 — tìm được cả theo TÊN người. Thêm cột mà quên chỗ
@@ -603,6 +611,9 @@ const lopHan = (d: any) => {
   if (n < 30) return 'text-amber-600 dark:text-amber-400 font-bold'
   return ''
 }
+
+// MỤC 714 — SIM tự nạp / trả sau: không tô màu cảnh báo.
+const lopHanSim = (s: any) => (tuNap(s) ? '' : lopHan(s?.expiry_date))
 
 const chuConLai = (d: any) => {
   const n = soNgayConLai(d)
