@@ -239,6 +239,20 @@ export const vehicleService = {
       { method: 'DELETE' });
   },
 
+  // ── MỤC 715 — người nhận thêm tin của xe (nhân viên GGO, tối đa 3) ──
+  async getNhanVienGgo(): Promise<any[]> {
+    return await this._goi('/vehicle/get-nhan-vien-ggo', { method: 'GET' });
+  },
+
+  async getNguoiNhanXe(vehicleId: string): Promise<any[]> {
+    return await this._goi(`/vehicle/get-nguoi-nhan-xe?vehicle_id=${encodeURIComponent(vehicleId)}`, { method: 'GET' });
+  },
+
+  async setNguoiNhanXe(vehicleId: string, employeeIds: string[]): Promise<any> {
+    return await this._goi('/vehicle/set-nguoi-nhan-xe',
+      { method: 'POST', body: JSON.stringify({ vehicle_id: vehicleId, employee_ids: employeeIds }) });
+  },
+
   // ── MỤC 531 — hợp đồng bảo hiểm ──────────────────────────────────
   async getBaoHiemXe(vehicleId?: string): Promise<any[]> {
     const duoi = vehicleId ? `?vehicle_id=${encodeURIComponent(vehicleId)}` : '';
