@@ -11,6 +11,12 @@ importers:
       '@element-plus/icons-vue':
         specifier: ^2.3.2
         version: 2.3.2(vue@3.5.34(typescript@6.0.3))
+      '@fontsource/be-vietnam-pro':
+        specifier: 5.2.5
+        version: 5.2.5
+      '@fontsource/source-serif-4':
+        specifier: 5.2.6
+        version: 5.2.6
       '@vueuse/core':
         specifier: ^14.3.0
         version: 14.3.0(vue@3.5.34(typescript@6.0.3))
@@ -245,6 +251,12 @@ packages:
 
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
+
+  '@fontsource/be-vietnam-pro@5.2.5':
+    resolution: {integrity: sha512-spcbpapmKlfKjNz2jW7y2Vkb3SE0N61b2duYm/lTZZk7bg9btJ3ZVFcyZrgHWUYf5bESspmPy2XEdDa8J+cs4Q==}
+
+  '@fontsource/source-serif-4@5.2.6':
+    resolution: {integrity: sha512-cDdgLlxmYYL+h0CYthYB+Qjc71yrzvPi54XZsseIfq8qzoxEUh3uWWdC1tLBo01tg4KXrJYixflTCcc+VNxgZQ==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1693,6 +1705,10 @@ snapshots:
       '@floating-ui/utils': 0.2.11
 
   '@floating-ui/utils@0.2.11': {}
+
+  '@fontsource/be-vietnam-pro@5.2.5': {}
+
+  '@fontsource/source-serif-4@5.2.6': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:

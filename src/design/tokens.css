@@ -1,0 +1,200 @@
+/* ══════════════════════════════════════════════════════════════════════
+   MỤC 718 (29/10/2026) — HỆ THỐNG THIẾT KẾ HDG · GÓI G1 (TOKEN)
+
+   Nguồn: PROMPT_01 mục 4.2 + ảnh `00_He_thong_thiet_ke` (xanh lá lấy từ
+   logo, vàng nhấn, 4 màu trạng thái).
+
+   🔴 CHƯA ÁP CHO TRANG NÀO. Biến `--hdg-*` khai ở :root chỉ là "kho màu",
+   không tự đổi gì. Element Plus và phông chữ chỉ đổi BÊN TRONG phần tử có
+   lớp `.hdg-theme` (hiện chỉ trang /dev/design-system dùng).
+   VÌ SAO không ghi đè `--el-color-primary` ở :root ngay: làm vậy là đổi màu
+   nút của cả 127 file .vue một lúc, trước khi s68 duyệt bộ màu (G1 phải
+   dừng chờ duyệt). Trang nào chuyển sang thiết kế mới (G4, G5…) thì bọc
+   `.hdg-theme` — đổi từng trang, lùi lại từng trang được.
+   VÌ SAO không dùng !important: lớp `.hdg-theme .el-button` đã mạnh hơn
+   `.el-button` của main.css (MỤC 349), không cần ép.
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* Xanh thương hiệu */
+  --hdg-green-900: #143823;
+  --hdg-green-800: #1f5130;
+  --hdg-green-700: #2f6f43; /* chính */
+  --hdg-green-500: #4f9a69;
+  --hdg-green-200: #cfe3d6;
+  --hdg-green-100: #e7f1ea;
+  --hdg-green-50: #f3f8f4;
+  --hdg-primary: var(--hdg-green-700);
+  --hdg-primary-hover: var(--hdg-green-800);
+  --hdg-primary-soft: var(--hdg-green-100);
+
+  /* Vàng nhấn */
+  --hdg-gold: #c9a24a;
+  --hdg-gold-text: #7e5f1a; /* ảnh ghi #8f6c1f = 4.4 trên nền vàng nhạt, dưới AA */
+  --hdg-gold-soft: #f7f0dc;
+
+  /* Nền / thẻ / viền / chữ */
+  --hdg-bg: #f4f3ee;
+  --hdg-card: #ffffff;
+  --hdg-border: #e4e1d6;
+  --hdg-row-alt: #fafaf6;
+  --hdg-text: #1b2a20;
+
+  /* Trạng thái — CHỈ 4 MÀU, luôn đi kèm chấm + chữ */
+  --hdg-success: #2f8f5b;
+  --hdg-success-soft: #e4f3ea;
+  --hdg-warning: #b57a10;
+  --hdg-warning-soft: #fbf0d9;
+  --hdg-danger: #b9382b;
+  --hdg-danger-soft: #fbe7e4;
+  --hdg-info: #2c6fb7;
+  --hdg-info-soft: #e6eff9;
+  /* Màu CHỮ trạng thái (trên nền nhạt / nền trang). Đo 29/10: màu khối của ảnh
+     mẫu làm chữ thì thành công 3.5 và cảnh báo 3.2 — DƯỚI chuẩn AA 4.5, chữ
+     13–15px khó đọc. Giữ màu khối cho chấm/viền, chữ dùng bản đậm hơn (≥ 5.1). */
+  --hdg-success-text: #23704a;
+  --hdg-warning-text: #8a5c08;
+  --hdg-danger-text: #9e2f24;
+  --hdg-info-text: #245d99;
+  --hdg-text-muted: #5f6961; /* ảnh ghi #68726a = 4.5 trên nền trang, sát mép — đậm thêm một nấc */
+
+  /* Hình khối */
+  --hdg-radius-control: 9px;
+  --hdg-radius-card: 14px;
+  --hdg-radius-pill: 999px;
+  --hdg-shadow-card: 0 1px 2px rgba(20, 40, 25, .06), 0 4px 14px rgba(20, 40, 25, .05);
+
+  /* Chữ */
+  --hdg-font-sans: "Be Vietnam Pro", system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+  --hdg-font-serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --hdg-font-mono: ui-monospace, "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+  --hdg-fs-page-title: 31px;
+  --hdg-fs-block-title: 19px;
+  --hdg-fs-body: 15px;
+  --hdg-fs-table: 14.5px;
+  --hdg-fs-caption: 13px; /* ảnh ghi 12.5 nhưng quy tắc ⑤ "không chữ nhỏ hơn 13" thắng */
+  --hdg-fs-label: 12px;   /* nhãn IN HOA — ngoại lệ duy nhất dưới 13 */
+
+  /* Bố cục */
+  --hdg-topbar-h: 62px;
+  --hdg-sidebar-w: 268px;
+  --hdg-drawer-w: 420px;
+  --hdg-row-h: 46px;
+}
+
+/* Giao diện tối — web đang bật bằng lớp `dark` trên <html> (useDark ở các Index.vue).
+   Màu trạng thái tối tự suy ra. Đo tương phản 29/10 (WCAG AA cần ≥ 4.5):
+   chữ phụ 6.3 · thành công 8.3 · cảnh báo 8.0 · lỗi 6.4 · thông tin 6.8 trên
+   nền thẻ; chữ trên nền nhạt của pill 5.9–6.9. */
+html.dark {
+  --hdg-primary: #6fd093;
+  --hdg-primary-hover: #8fdcab;
+  --hdg-primary-soft: #1d3326;
+  --hdg-green-700: #4aa86c;
+  --hdg-gold: #e0bb62;
+  --hdg-gold-text: #e0bb62;
+  --hdg-gold-soft: #2e2716;
+  --hdg-bg: #0e1612;
+  --hdg-card: #15201a;
+  --hdg-border: #243229;
+  --hdg-row-alt: #18241d;
+  --hdg-text: #e6eee8;
+  --hdg-text-muted: #92a398;
+  --hdg-success: #5ccb8a;
+  --hdg-success-soft: #173323;
+  --hdg-warning: #e3a93c;
+  --hdg-warning-soft: #33280f;
+  --hdg-danger: #f08072;
+  --hdg-danger-soft: #3a1c18;
+  --hdg-info: #72a9e8;
+  --hdg-info-soft: #16263a;
+  --hdg-success-text: #5ccb8a;
+  --hdg-warning-text: #e3a93c;
+  --hdg-danger-text: #f08072;
+  --hdg-info-text: #72a9e8;
+  --hdg-shadow-card: 0 1px 2px rgba(0, 0, 0, .35), 0 4px 14px rgba(0, 0, 0, .25);
+}
+
+/* ── Phạm vi áp thiết kế mới ── */
+.hdg-theme {
+  --el-color-primary: var(--hdg-primary);
+  --el-color-primary-light-3: var(--hdg-green-500);
+  --el-color-primary-light-5: var(--hdg-green-200);
+  --el-color-primary-light-7: var(--hdg-green-200);
+  --el-color-primary-light-8: var(--hdg-green-100);
+  --el-color-primary-light-9: var(--hdg-primary-soft);
+  --el-color-primary-dark-2: var(--hdg-primary-hover);
+  --el-color-success: var(--hdg-success);
+  --el-color-warning: var(--hdg-warning);
+  --el-color-danger: var(--hdg-danger);
+  --el-color-error: var(--hdg-danger);
+  --el-color-info: var(--hdg-text-muted);
+  --el-bg-color: var(--hdg-card);
+  --el-bg-color-overlay: var(--hdg-card);
+  --el-bg-color-page: var(--hdg-bg);
+  --el-fill-color-blank: var(--hdg-card);
+  --el-fill-color-light: var(--hdg-row-alt);
+  --el-fill-color-lighter: var(--hdg-row-alt);
+  --el-border-color: var(--hdg-border);
+  --el-border-color-light: var(--hdg-border);
+  --el-border-color-lighter: var(--hdg-border);
+  --el-text-color-primary: var(--hdg-text);
+  --el-text-color-regular: var(--hdg-text);
+  --el-text-color-secondary: var(--hdg-text-muted);
+  --el-text-color-placeholder: var(--hdg-text-muted);
+  --el-border-radius-base: var(--hdg-radius-control);
+  --el-border-radius-small: var(--hdg-radius-control);
+  --el-border-radius-round: var(--hdg-radius-pill);
+  --el-font-size-base: var(--hdg-fs-body);
+  --el-component-size: 40px;
+  --el-font-family: var(--hdg-font-sans);
+
+  font-family: var(--hdg-font-sans);
+  font-size: var(--hdg-fs-body);
+  font-weight: 400;
+  color: var(--hdg-text);
+  background: var(--hdg-bg);
+}
+
+/* main.css (MỤC 349) ép Times New Roman lên từng lớp Element Plus — trong
+   phạm vi thiết kế mới thì trả về phông của hệ thống thiết kế. */
+.hdg-theme .el-button,
+.hdg-theme .el-input__inner,
+.hdg-theme .el-table,
+.hdg-theme .el-dropdown-menu,
+.hdg-theme .el-dialog,
+.hdg-theme .el-tabs__item,
+.hdg-theme .el-select,
+.hdg-theme .el-form-item__label {
+  font-family: var(--hdg-font-sans);
+}
+.hdg-theme .el-table { font-size: var(--hdg-fs-table); }
+.hdg-theme .tabular-nums,
+.hdg-theme .hdg-num {
+  font-family: var(--hdg-font-sans);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+.hdg-theme h1, .hdg-theme h2, .hdg-theme h3 { font-family: var(--hdg-font-serif); }
+.hdg-theme .hdg-label {
+  font-size: var(--hdg-fs-label);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--hdg-text-muted);
+}
+.hdg-theme .hdg-card {
+  background: var(--hdg-card);
+  border: 1px solid var(--hdg-border);
+  border-radius: var(--hdg-radius-card);
+  box-shadow: var(--hdg-shadow-card);
+}
+.hdg-theme .el-button { border-radius: var(--hdg-radius-control); font-weight: 600; }
+/* Tối: nút chính nền xanh sáng #6fd093 — chữ trắng trên đó chỉ 1.9 (không đọc nổi),
+   chữ màu nền tối đạt 9.7. */
+html.dark .hdg-theme .el-button--primary:not(.is-link):not(.is-text):not(.is-plain),
+html.dark .hdg-theme.el-dialog .el-button--primary:not(.is-link):not(.is-text):not(.is-plain) {
+  --el-button-text-color: var(--hdg-bg);
+  --el-button-hover-text-color: var(--hdg-bg);
+  --el-button-active-text-color: var(--hdg-bg);
+}

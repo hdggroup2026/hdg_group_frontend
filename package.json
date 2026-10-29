@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.2",
+    "@fontsource/be-vietnam-pro": "5.2.5",
+    "@fontsource/source-serif-4": "5.2.6",
     "@vueuse/core": "^14.3.0",
     "apexcharts": "^5.11.0",
     "element-plus": "^2.14.0",

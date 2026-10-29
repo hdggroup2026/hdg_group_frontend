@@ -9,6 +9,21 @@ import DoiDangNhapLanDau from "@/components/auth/DoiDangNhapLanDau.vue";
 // MỤC 255 (23/08/2026) — bảng dự án dùng chung, xem src/constants/duAn.ts
 import { layQuyen, duocVao, danhSachDuocVao, timTheoDuong } from "@/constants/duAn";
 
+// MỤC 718 (29/10/2026) — G1. Trang /dev/design-system CHỈ có khi chạy thử (vite dev).
+// `import.meta.env.DEV` là hằng lúc build: bản lên Cloudflare bỏ hẳn nhánh này và không
+// đóng gói trang lẫn phông chữ của nó. VÌ SAO không chặn bằng quyền Admin: trang này
+// không có dữ liệu thật, chỉ để s68 và người làm đối chiếu ảnh thiết kế — không cần có
+// trên web thật chút nào. Không cần đăng nhập để chụp ảnh ở 3 cỡ màn hình cho nhanh.
+function routesChayThu(): RouteRecordRaw[] {
+    if (!import.meta.env.DEV) return []
+    return [{
+        path: '/dev/design-system',
+        name: 'dev-design-system',
+        component: () => import('@/views/dev/DesignSystem.vue'),
+        meta: { requiresAuth: false }
+    }]
+}
+
 const routes: RouteRecordRaw[] = [
     {
         path: '/login',
@@ -139,6 +154,8 @@ const routes: RouteRecordRaw[] = [
         path: '/overview',
         redirect: '/trang-chu'
     },
+    // MỤC 718 (29/10/2026) — G1: trang nội bộ hệ thống thiết kế (xem routesChayThu bên dưới).
+    ...routesChayThu(),
     {
         path: '/:pathMatch(.*)*',
         name: 'not-found',
