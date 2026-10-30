@@ -90,6 +90,14 @@ export const DU_AN: DuAn[] = [
     duongMacDinh: '/nhat-ky',
   },
   {
+    // MỤC 721 (30/10/2026) — Danh sách lệnh bot (PROMPT_01 phần A). Khoá riêng
+    // `danh_sach_lenh` (backend MỤC 720); admin luôn thấy. `danh_sach_lenh:xem` = chỉ xem.
+    ten: 'Danh sách lệnh',
+    khoaQuyen: 'danh_sach_lenh',
+    duong: '/danh-sach-lenh',
+    duongMacDinh: '/danh-sach-lenh',
+  },
+  {
     ten: 'Phân quyền',
     khoaQuyen: null,
     chiAdmin: true,
@@ -186,7 +194,12 @@ export function duocVao(duAn: DuAn, quyen: string[]): boolean {
   if (quyen.includes('admin')) return true
   if (duAn.chiAdmin) return false
   if (duAn.khoaQuyen === null) return true
-  return quyen.includes(duAn.khoaQuyen)
+  // MỤC 721 — nhận cả quyền có hậu tố mức (MỤC 632: `danh_sach_lenh:xem`). Trước đây
+  // `includes` đòi đúng tên trần nên người chỉ được cấp mức xem bị chặn khỏi menu,
+  // trong khi máy chủ (deps._tach_quyen) cho họ đọc. Hiện chỉ khoá này có hậu tố trong
+  // danh sách quyền hợp lệ (auth.py), nên các dự án cũ không đổi gì.
+  const k = duAn.khoaQuyen
+  return quyen.some((q) => q === k || q.startsWith(k + ':'))
 }
 
 /**

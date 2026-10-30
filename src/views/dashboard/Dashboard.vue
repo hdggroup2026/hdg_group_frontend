@@ -43,6 +43,9 @@
          <!-- === Hụi === -->
          <RoscaDashboard v-else-if="currentProject === 'Hụi'" />
 
+         <!-- MỤC 721 — Danh sách lệnh (nạp khi mở: kéo theo phông + token thiết kế mới) -->
+         <DanhSachLenhView v-else-if="currentProject === 'Danh sách lệnh'" />
+
          <!-- === Phân quyền === -->
          <AuthorizationDashboard v-else-if="currentProject === 'Phân quyền'" />
 
@@ -82,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, defineAsyncComponent } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWindowSize, useDark } from '@vueuse/core'
 import Navigation from '@/layouts/Navigation.vue'
@@ -102,6 +105,9 @@ import NhatKyView from '@/views/nhat_ky/NhatKyView.vue'
 // MỤC 339 (27/08/2026) — màn Hồ sơ người dùng
 import HoSoView from '@/views/ho_so/HoSoView.vue'
 import { timTheoDuong, timTheoTen } from '@/constants/duAn'
+// MỤC 721 (30/10/2026) — nạp muộn: trang dùng phông Be Vietnam Pro + tokens.css (G1);
+// nạp sẵn thì mọi người mở web đều phải tải phông dù không vào trang này.
+const DanhSachLenhView = defineAsyncComponent(() => import('@/views/danh_sach_lenh/DanhSachLenhView.vue'))
 
 const route = useRoute()
 const router = useRouter()

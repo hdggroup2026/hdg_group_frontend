@@ -13,6 +13,8 @@
 .hdg-filter { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; padding: 14px 16px; margin-bottom: 16px; }
 .hdg-filter__fields { display: flex; flex-wrap: wrap; gap: 12px; flex: 1 1 auto; }
 .hdg-filter__fields > :deep(*) { flex: 0 1 220px; min-width: 180px; }
+/* Nút chọn chế độ (SegmentedControl) giữ đúng bề ngang của nó, không bị bóp xuống 2 dòng. */
+.hdg-filter__fields > :deep(.hdg-seg) { flex: none; min-width: 0; }
 .hdg-filter__actions { display: flex; gap: 8px; }
 @media (max-width: 767px) {
   .hdg-filter__fields { flex-direction: column; width: 100%; }

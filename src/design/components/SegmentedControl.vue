@@ -19,5 +19,5 @@ const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 .hdg-seg { display: inline-flex; flex-wrap: wrap; max-width: 100%; padding: 3px; gap: 2px; background: var(--hdg-row-alt); border: 1px solid var(--hdg-border); border-radius: var(--hdg-radius-control); }
 .hdg-seg__btn { min-height: 34px; padding: 0 16px; border: 0; border-radius: 7px; background: transparent; color: var(--hdg-text-muted); font: inherit; font-weight: 600; cursor: pointer; }
 .hdg-seg__btn.is-active { background: var(--hdg-card); color: var(--hdg-primary); box-shadow: var(--hdg-shadow-card); }
-@media (max-width: 767px) { .hdg-seg__btn { min-height: 40px; } }
+@media (max-width: 767px) { .hdg-seg__btn { min-height: 40px; padding: 0 12px; } }
 </style>

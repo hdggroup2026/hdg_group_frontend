@@ -124,6 +124,13 @@ const routes: RouteRecordRaw[] = [
         component: Dashboard,
         meta: { requiresAuth: true, requiresAdmin: true }
     },
+    // MỤC 721 (30/10/2026) — Danh sách lệnh. Chặn quyền qua bảng DU_AN (khoá danh_sach_lenh).
+    {
+        path: '/danh-sach-lenh',
+        name: 'danh-sach-lenh',
+        component: Dashboard,
+        meta: { requiresAuth: true }
+    },
     {
         path: '/authorization',
         name: 'authorization',

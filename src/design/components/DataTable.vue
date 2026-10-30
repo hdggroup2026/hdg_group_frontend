@@ -36,9 +36,9 @@
         class="hdg-table__card" @click="clickable && emit('row-click', r)"
       >
         <div class="hdg-table__card-title">
-          <slot :name="`cell-${visible[0]?.prop}`" :row="r">{{ visible[0] ? r[visible[0].prop] : '' }}</slot>
+          <slot :name="`cell-${cotTieuDe?.prop}`" :row="r">{{ cotTieuDe ? r[cotTieuDe.prop] : '' }}</slot>
         </div>
-        <div v-for="c in visible.slice(1)" :key="c.prop" class="hdg-table__card-line">
+        <div v-for="c in visible.filter((x) => x !== cotTieuDe)" :key="c.prop" class="hdg-table__card-line">
           <span class="hdg-table__card-label">{{ c.label }}</span>
           <span class="hdg-table__card-val">
             <slot :name="`cell-${c.prop}`" :row="r">
@@ -76,7 +76,9 @@ const props = withDefaults(defineProps<{
   loading?: boolean
   clickable?: boolean
   emptyText?: string
-}>(), { rowKey: undefined, loading: false, clickable: false, emptyText: 'Chưa có dữ liệu' })
+  /** Cột làm tiêu đề thẻ trên điện thoại (mặc định cột đầu). MỤC 721: bảng lệnh có cột ✓ đứng đầu. */
+  cardTitle?: string
+}>(), { rowKey: undefined, loading: false, clickable: false, emptyText: 'Chưa có dữ liệu', cardTitle: undefined })
 const emit = defineEmits<{ 'row-click': [row: any] }>()
 
 const { width } = useWindowSize()
@@ -88,6 +90,7 @@ const visible = computed(() => {
   }
   return props.columns.slice(0, TOI_DA_COT)
 })
+const cotTieuDe = computed(() => visible.value.find((c) => c.prop === props.cardTitle) || visible.value[0])
 </script>
 
 <style scoped>

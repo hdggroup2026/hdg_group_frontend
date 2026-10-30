@@ -577,7 +577,10 @@ const availablePermissions = [
   { key: 'document', label: 'Document' },
   { key: 'attendance', label: 'Attendance' },
   { key: 'other', label: 'Other' },
-  { key: 'rosca', label: 'Hụi' }
+  { key: 'rosca', label: 'Hụi' },
+  // MỤC 721 (30/10/2026) — trang Danh sách lệnh bot (backend MỤC 720 cho phép 2 khoá này)
+  { key: 'danh_sach_lenh', label: 'Danh sách lệnh' },
+  { key: 'danh_sach_lenh:xem', label: 'Danh sách lệnh (chỉ xem)' }
 ]
 
 // Direct Inline Toggles Async Map Loading
