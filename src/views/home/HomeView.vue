@@ -556,29 +556,44 @@
                       <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300">
                         {{ k.nhan }}
                       </span>
-                      <span v-if="k.khoi.tong_lai_da_thu"
-                            class="text-[11px] tabular-nums text-emerald-600 dark:text-emerald-400">
-                        đã thu {{ tien(k.khoi.tong_lai_da_thu) }}
-                      </span>
+                      <!-- MỤC 725 — số "đã thu" của nhánh chuyển xuống dòng Tổng 2 cột dưới danh sách. -->
+                    </div>
+                    <!-- MỤC 725 (30/10/2026) — s68: "Phân tách lại làm 2 cột. 1 cột đã thu,
+                         1 cột chưa thu. Bỏ chữ (dự kiến) nhìn cho chuẩn kế toán."
+                         Trước: một cột tiền, mã chưa thu ghi "(dự kiến x)" màu cam lẫn với số
+                         đã thu. Nay: Mã | Đã thu | Chưa thu — mỗi mã chỉ có số ở MỘT cột, cột
+                         kia để trống. VÌ SAO không gộp "chưa thu" vào cột đã thu kèm màu: kế
+                         toán đọc theo cột, cộng dọc; số chưa thu nằm chung cột là cộng nhầm.
+                         Số chưa thu vẫn lấy `tien_du_kien` (tiền lãi/thuê tháng của hợp đồng). -->
+                    <div class="grid gap-x-3 text-[11px] text-gray-500 dark:text-gray-400 mb-0.5" :style="LUOI_THU">
+                      <span>Mã</span><span class="text-right">Đã thu</span><span class="text-right">Chưa thu</span>
                     </div>
                     <ul class="space-y-1">
                       <li v-for="m in k.khoi.danh_sach.slice(0, 8)" :key="m.ma"
-                          class="flex justify-between gap-2 text-xs">
+                          class="grid gap-x-3 text-xs" :style="LUOI_THU">
                         <!-- MỤC 694 — rê chuột / bấm vào mã hiện thông tin hợp đồng. -->
-                        <span class="text-gray-700 dark:text-gray-200 min-w-0"><ThongTinHopDong :ma="m.ma" :tt="m.thong_tin" /></span>
-                        <span class="shrink-0 tabular-nums"
-                              :class="m.trang_thai === 'da_thu'
-                                ? 'text-emerald-600 dark:text-emerald-400'
-                                : 'text-amber-600 dark:text-amber-400'">
-                          {{ m.trang_thai === 'da_thu'
-                              ? tien(m.tien)
-                              : '(dự kiến ' + tien(m.tien_du_kien) + ')' }}
+                        <span class="text-gray-700 dark:text-gray-200 min-w-0 whitespace-nowrap"><ThongTinHopDong :ma="m.ma" :tt="m.thong_tin" /></span>
+                        <span class="text-right tabular-nums text-emerald-600 dark:text-emerald-400">
+                          {{ m.trang_thai === 'da_thu' ? tien(m.tien) : '' }}
+                        </span>
+                        <span class="text-right tabular-nums text-amber-600 dark:text-amber-400">
+                          {{ m.trang_thai === 'da_thu' ? '' : tien(m.tien_du_kien) }}
                         </span>
                       </li>
                     </ul>
                     <div v-if="k.khoi.so_dong > 8"
                          class="mt-1 text-[11px] text-gray-400">
                       …còn {{ k.khoi.so_dong - 8 }} mã nữa
+                    </div>
+                    <!-- MỤC 725 — s68: "Dự án credit cũng vậy luôn nhé. Chia 2 cột". Tổng của nhánh. -->
+                    <div class="mt-1 pt-1 border-t border-gray-100 dark:border-gray-700 grid gap-x-3 text-xs" :style="LUOI_THU">
+                      <span class="font-semibold text-gray-700 dark:text-gray-200">Tổng</span>
+                      <span class="text-right tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
+                        {{ k.khoi.tong_lai_da_thu ? tien(k.khoi.tong_lai_da_thu) : '' }}
+                      </span>
+                      <span class="text-right tabular-nums font-semibold text-amber-600 dark:text-amber-400">
+                        {{ tongChuaThu(k.khoi.danh_sach) ? tien(tongChuaThu(k.khoi.danh_sach)) : '' }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -601,21 +616,25 @@
               </div>
               <div v-if="bang.rental.so_dong === 0"
                    class="text-xs text-gray-500">{{ bang.rental.chu_khi_rong }}</div>
-              <ul v-else class="space-y-1">
-                <li v-for="m in bang.rental.danh_sach.slice(0, 8)" :key="m.ma"
-                    class="flex justify-between gap-2 text-xs">
-                  <!-- MỤC 694 — rê chuột / bấm vào mã hiện thông tin hợp đồng. -->
-                  <span class="text-gray-700 dark:text-gray-200 min-w-0"><ThongTinHopDong :ma="m.ma" :tt="m.thong_tin" /></span>
-                  <span class="shrink-0 tabular-nums"
-                        :class="m.trang_thai === 'da_thu'
-                          ? 'text-emerald-600 dark:text-emerald-400'
-                          : 'text-amber-600 dark:text-amber-400'">
-                    {{ m.trang_thai === 'da_thu'
-                        ? tien(m.tien)
-                        : '(dự kiến ' + tien(m.tien_du_kien) + ')' }}
-                  </span>
-                </li>
-              </ul>
+              <!-- MỤC 725 (30/10/2026) — 2 cột Đã thu / Chưa thu, bỏ chữ "(dự kiến)". Xem lời ghi ở khối Credit phía trên. -->
+              <template v-else>
+                <div class="grid gap-x-3 text-[11px] text-gray-500 dark:text-gray-400 mb-0.5" :style="LUOI_THU">
+                  <span>Mã</span><span class="text-right">Đã thu</span><span class="text-right">Chưa thu</span>
+                </div>
+                <ul class="space-y-1">
+                  <li v-for="m in bang.rental.danh_sach.slice(0, 8)" :key="m.ma"
+                      class="grid gap-x-3 text-xs" :style="LUOI_THU">
+                    <!-- MỤC 694 — rê chuột / bấm vào mã hiện thông tin hợp đồng. -->
+                    <span class="text-gray-700 dark:text-gray-200 min-w-0 whitespace-nowrap"><ThongTinHopDong :ma="m.ma" :tt="m.thong_tin" /></span>
+                    <span class="text-right tabular-nums text-emerald-600 dark:text-emerald-400">
+                      {{ m.trang_thai === 'da_thu' ? tien(m.tien) : '' }}
+                    </span>
+                    <span class="text-right tabular-nums text-amber-600 dark:text-amber-400">
+                      {{ m.trang_thai === 'da_thu' ? '' : tien(m.tien_du_kien) }}
+                    </span>
+                  </li>
+                </ul>
+              </template>
               <div v-if="bang.rental.so_dong > 8"
                    class="mt-1.5 text-[11px] text-gray-400">
                 …còn {{ bang.rental.so_dong - 8 }} mã nữa
@@ -627,12 +646,18 @@
                    KHÔNG nằm trong tổng — cộng lẫn hai loại là ra một con
                    số không có thật. Vì thế dòng này ghi rõ chữ "đã thu"
                    và để cùng màu xanh với các mã đã thu. -->
-              <div v-if="bang.rental.tong_da_thu"
+              <!-- MỤC 725 — dòng tổng theo 2 cột: đã thu (backend tính `tong_da_thu`) và chưa thu
+                   (cộng `tien_du_kien` của CẢ danh sách, kể cả mã bị ẩn sau "…còn x mã") — hai số
+                   nằm hai cột riêng nên vẫn giữ luật MỤC 603: không cộng lẫn hai loại. -->
+              <div v-if="bang.rental.so_dong > 0"
                    class="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700
-                          flex justify-between gap-2 text-xs">
-                <span class="font-semibold text-gray-700 dark:text-gray-200">Tổng đã thu</span>
-                <span class="shrink-0 tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
-                  {{ tien(bang.rental.tong_da_thu) }}
+                          grid gap-x-3 text-xs" :style="LUOI_THU">
+                <span class="font-semibold text-gray-700 dark:text-gray-200">Tổng</span>
+                <span class="text-right tabular-nums font-semibold text-emerald-600 dark:text-emerald-400">
+                  {{ bang.rental.tong_da_thu ? tien(bang.rental.tong_da_thu) : '' }}
+                </span>
+                <span class="text-right tabular-nums font-semibold text-amber-600 dark:text-amber-400">
+                  {{ tongChuaThu(bang.rental.danh_sach) ? tien(tongChuaThu(bang.rental.danh_sach)) : '' }}
                 </span>
               </div>
             </div>
@@ -1464,6 +1489,14 @@ const tien = (x: number | null | undefined): string => {
   if (x === null || x === undefined) return '—'
   return new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(x)
 }
+
+/**
+ * MỤC 725 (30/10/2026) — bảng 2 cột Đã thu / Chưa thu ở ô Credit và Rental.
+ * Cột tiền rộng cố định để số các dòng thẳng hàng; cột mã co giãn phần còn lại.
+ */
+const LUOI_THU = { gridTemplateColumns: 'minmax(0, 1fr) minmax(3.5rem, auto) minmax(3.5rem, auto)' }
+const tongChuaThu = (ds: any[] | undefined): number =>
+  (ds || []).reduce((s, m) => s + (m.trang_thai === 'da_thu' ? 0 : Number(m.tien_du_kien) || 0), 0)
 
 /**
  * MỤC 603 (09/09/2026) — BA KHỐI CREDIT, ĐÚNG THỨ TỰ s68 NÊU.
