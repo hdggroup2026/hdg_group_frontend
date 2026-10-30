@@ -131,6 +131,13 @@ const routes: RouteRecordRaw[] = [
         component: Dashboard,
         meta: { requiresAuth: true }
     },
+    // MỤC 723 (30/10/2026) — Sơ đồ vận hành. Chặn quyền qua bảng DU_AN.
+    {
+        path: '/so-do-van-hanh',
+        name: 'so-do-van-hanh',
+        component: Dashboard,
+        meta: { requiresAuth: true }
+    },
     {
         path: '/authorization',
         name: 'authorization',

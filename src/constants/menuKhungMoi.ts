@@ -58,6 +58,7 @@ export const QUAN_TRI: Record<string, string> = {
   'Nhật ký': 'Nhật ký hệ thống',
   'Phân quyền': 'Phân quyền',
   'Danh sách lệnh': 'Danh sách lệnh',
+  'Sơ đồ vận hành': 'Sơ đồ vận hành',
 }
 
 /** Khoá localStorage của công tắc "giao diện mới". Mặc định TẮT cho tới khi s68 duyệt G4. */

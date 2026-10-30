@@ -98,6 +98,14 @@ export const DU_AN: DuAn[] = [
     duongMacDinh: '/danh-sach-lenh',
   },
   {
+    // MỤC 723 (30/10/2026) — Sơ đồ vận hành (map liên kết + giải thích). Cùng khoá với Danh sách
+    // lệnh vì map đọc lệnh từ API đó.
+    ten: 'Sơ đồ vận hành',
+    khoaQuyen: 'danh_sach_lenh',
+    duong: '/so-do-van-hanh',
+    duongMacDinh: '/so-do-van-hanh',
+  },
+  {
     ten: 'Phân quyền',
     khoaQuyen: null,
     chiAdmin: true,

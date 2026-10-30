@@ -52,6 +52,9 @@
          <!-- MỤC 721 — Danh sách lệnh (nạp khi mở: kéo theo phông + token thiết kế mới) -->
          <DanhSachLenhView v-else-if="currentProject === 'Danh sách lệnh'" />
 
+         <!-- MỤC 723 — Sơ đồ vận hành -->
+         <SoDoVanHanhView v-else-if="currentProject === 'Sơ đồ vận hành'" />
+
          <!-- === Phân quyền === -->
          <AuthorizationDashboard v-else-if="currentProject === 'Phân quyền'" />
 
@@ -118,6 +121,8 @@ const KhungMoi = defineAsyncComponent(() => import('@/layouts/KhungMoi.vue'))
 // MỤC 721 (30/10/2026) — nạp muộn: trang dùng phông Be Vietnam Pro + tokens.css (G1);
 // nạp sẵn thì mọi người mở web đều phải tải phông dù không vào trang này.
 const DanhSachLenhView = defineAsyncComponent(() => import('@/views/danh_sach_lenh/DanhSachLenhView.vue'))
+// MỤC 723 — Sơ đồ vận hành, nạp muộn như trên.
+const SoDoVanHanhView = defineAsyncComponent(() => import('@/views/so_do/SoDoVanHanhView.vue'))
 
 const route = useRoute()
 const router = useRouter()
@@ -176,6 +181,7 @@ const MAN_HINH: Record<string, any> = {
   'Dự án Telegram': TelegramProjects,
   'Hụi': RoscaDashboard,
   'Danh sách lệnh': DanhSachLenhView,
+  'Sơ đồ vận hành': SoDoVanHanhView,
   'Phân quyền': AuthorizationDashboard,
 }
 const khungMoi = useStorage(KHOA_KHUNG_MOI, '0')
