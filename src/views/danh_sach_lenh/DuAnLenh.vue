@@ -149,9 +149,11 @@ onMounted(async () => {
 const cot = computed<CotMaTran[]>(() => {
   const ra: CotMaTran[] = []
   d.value?.loai_nhom.forEach((l, i) => {
-    let c = ra.find((x) => x.khoa === l.cot)
+    // Máy chủ bản trước 148f9b5 chưa trả `cot` / `ten_cot` ⇒ dùng nhãn (mỗi loại một cột).
+    const khoa = l.cot ?? l.nhan + '|' + i
+    let c = ra.find((x) => x.khoa === khoa)
     if (!c) {
-      c = { khoa: l.cot, ten: l.ten_cot, nhan: l.nhan, duPhong: l.du_phong, chiSo: [], soNhom: 0, nhom: [] }
+      c = { khoa, ten: l.ten_cot ?? l.nhan, nhan: l.nhan, duPhong: l.du_phong, chiSo: [], soNhom: 0, nhom: [] }
       ra.push(c)
     }
     c.chiSo.push(i)

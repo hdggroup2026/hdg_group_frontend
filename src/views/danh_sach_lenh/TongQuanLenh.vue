@@ -18,7 +18,7 @@
     <div class="tq-kpi">
       <KpiCard label="Dự án" :value="tq.so_du_an" hint="có bộ lệnh riêng" />
       <KpiCard label="Lệnh khác nhau" :value="tq.so_lenh" hint="toàn hệ thống" />
-      <KpiCard label="Loại nhóm" :value="tq.so_cot" hint="được gợi ý lệnh riêng" />
+      <KpiCard label="Loại nhóm" :value="tq.so_cot ?? tq.so_loai_nhom" hint="được gợi ý lệnh riêng" />
       <KpiCard label="Cần rà soát" :value="tq.so_can_ra_soat" tone="gold" hint="lệnh khác nhau chưa rõ khoá quyền" clickable @click="emit('chon', 'can-ra-soat')" />
     </div>
 
@@ -26,7 +26,7 @@
     <div class="tq-luoi">
       <button v-for="d in tq.du_an" :key="d.du_an" type="button" class="hdg-card tq-the" :style="{ '--mau': mauDuAn(d.du_an) }" @click="emit('chon', d.du_an)">
         <div class="tq-the__ten">{{ tenHien(d.du_an) }}</div>
-        <div class="tq-the__so"><b class="hdg-num">{{ d.so_lenh }}</b> lệnh · {{ d.so_cot }} loại nhóm · {{ d.so_nhom }} nhóm thật</div>
+        <div class="tq-the__so"><b class="hdg-num">{{ d.so_lenh }}</b> lệnh · {{ d.so_cot ?? d.so_loai_nhom }} loại nhóm · {{ d.so_nhom }} nhóm thật</div>
         <div class="tq-thanh" aria-hidden="true">
           <span :style="{ flex: d.menu, background: 'var(--hdg-green-700)' }" />
           <span :style="{ flex: d.reply, background: 'var(--hdg-gold)' }" />
