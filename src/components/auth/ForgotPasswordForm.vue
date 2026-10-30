@@ -22,7 +22,7 @@
   được hiện "không tìm thấy tài khoản" trong bất kỳ trường hợp nào.
 -->
 <template>
-    <div class="bg-white/3 backdrop-blur-lg border border-white/40 p-10 rounded-[40px] shadow-2xl w-[400px] text-center">
+    <div :class="kieuMoi ? 'dn-the-moi' : 'bg-white/3 backdrop-blur-lg border border-white/40 p-10 rounded-[40px] shadow-2xl w-[400px] text-center'">
         <div class="flex justify-center mb-2">
             <div class="bg-[#004274] p-3 rounded-full text-white">
                 <el-icon :size="40"><Lock /></el-icon>
@@ -80,6 +80,9 @@
 </template>
 
 <script setup>
+import { inject } from 'vue'
+// MỤC 724 — khung thẻ kiểu mới khi LoginView bật giao diện mới (sau công tắc).
+const kieuMoi = inject('kieuMoiDangNhap', false)
 import { reactive, ref } from 'vue'
 import { Lock } from '@element-plus/icons-vue'
 import FormInput from './FormInput.vue'

@@ -1,0 +1,68 @@
+/* ══════════════════════════════════════════════════════════════════════
+   MỤC 724 (30/10/2026) — G5 LỚP 1: LỚP PHỦ CHO TRANG CŨ TRONG KHUNG MỚI
+
+   s68 30/10: "Làm tiếp G4, G5 luôn". 6 dự án (trừ Tiến Nga) ≈ 45.000 dòng .vue — viết lại từng
+   trang một lượt là rủi ro. Lớp 1 = đổi HÌNH THỨC hàng loạt, không đụng một dòng logic nào:
+     · Element Plus nhận biến `.hdg-theme` (nút xanh lá, viền, bo góc, phông Be Vietnam Pro);
+     · các lớp màu Tailwind dùng nhiều nhất (đếm 30/10: text-gray-400 ×1143, text-blue-600 ×204…)
+       trỏ sang token HDG — xám cũ ➜ chữ chính/phụ, xanh dương ➜ xanh thương hiệu, đỏ/vàng/xanh
+       lục ➜ 4 màu trạng thái (bản chữ đạt AA).
+   Lớp 2 (gọn bảng nhiều cột, ngăn chi tiết…) làm riêng từng dự án.
+
+   🔴 CHỈ CÓ HIỆU LỰC khi `<body>` mang lớp `hdg-phu` — KhungMoi.vue gắn lúc mở, gỡ lúc đóng.
+   Khung cũ (mọi người chưa bật công tắc, và Tiến Nga) KHÔNG đổi gì.
+   VÌ SAO gắn ở <body>, không ở vùng nội dung: hộp thoại / ngăn trượt của Element Plus gắn thẳng vào
+   <body> (append-to-body) — bọc vùng nội dung thì hộp thoại vẫn xanh dương, nửa cũ nửa mới.
+   VÌ SAO không có !important: tiền tố `body.hdg-phu` (1 phần tử + 1 lớp) đã mạnh hơn lớp Tailwind
+   (1 lớp); bản `dark:` của Tailwind là `.dark .dark\:x` (2 lớp) nên viết `html.dark body.hdg-phu`.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── Chữ ── */
+body.hdg-phu .text-gray-800, body.hdg-phu .text-gray-850, body.hdg-phu .text-gray-750,
+body.hdg-phu .text-gray-700, body.hdg-phu .text-gray-900 { color: var(--hdg-text); }
+body.hdg-phu .text-gray-600, body.hdg-phu .text-gray-500,
+body.hdg-phu .text-gray-400 { color: var(--hdg-text-muted); }
+body.hdg-phu .text-gray-300 { color: var(--hdg-border); }
+body.hdg-phu .text-blue-400, body.hdg-phu .text-blue-500, body.hdg-phu .text-blue-600,
+body.hdg-phu .text-blue-700, body.hdg-phu .text-indigo-600, body.hdg-phu .text-sky-600 { color: var(--hdg-primary); }
+body.hdg-phu .hover\:text-blue-600:hover, body.hdg-phu .hover\:text-blue-800:hover { color: var(--hdg-primary-hover); }
+body.hdg-phu .text-emerald-500, body.hdg-phu .text-emerald-600, body.hdg-phu .text-emerald-650,
+body.hdg-phu .text-green-500, body.hdg-phu .text-green-600 { color: var(--hdg-success-text); }
+body.hdg-phu .text-red-500, body.hdg-phu .text-red-600, body.hdg-phu .text-red-700 { color: var(--hdg-danger-text); }
+body.hdg-phu .text-amber-500, body.hdg-phu .text-amber-600, body.hdg-phu .text-amber-700,
+body.hdg-phu .text-orange-500 { color: var(--hdg-warning-text); }
+
+/* ── Nền ── */
+body.hdg-phu .bg-white { background-color: var(--hdg-card); }
+body.hdg-phu .bg-gray-50, body.hdg-phu .hover\:bg-gray-50:hover { background-color: var(--hdg-row-alt); }
+body.hdg-phu .bg-blue-500, body.hdg-phu .bg-blue-600 { background-color: var(--hdg-primary); }
+body.hdg-phu .bg-blue-50 { background-color: var(--hdg-primary-soft); }
+body.hdg-phu .bg-emerald-500, body.hdg-phu .bg-green-500 { background-color: var(--hdg-success); }
+body.hdg-phu .bg-amber-50 { background-color: var(--hdg-warning-soft); }
+body.hdg-phu .bg-red-50 { background-color: var(--hdg-danger-soft); }
+
+/* ── Viền ── */
+body.hdg-phu .border-gray-100, body.hdg-phu .border-gray-150, body.hdg-phu .border-gray-200,
+body.hdg-phu .border-gray-700 { border-color: var(--hdg-border); }
+body.hdg-phu .border-amber-200 { border-color: var(--hdg-gold); }
+
+/* ── Bản tối: lớp dark: của Tailwind ── */
+html.dark body.hdg-phu .dark\:text-gray-100, html.dark body.hdg-phu .dark\:text-gray-200,
+html.dark body.hdg-phu .dark\:text-gray-250 { color: var(--hdg-text); }
+html.dark body.hdg-phu .dark\:text-gray-300, html.dark body.hdg-phu .dark\:text-gray-400,
+html.dark body.hdg-phu .dark\:text-gray-500, html.dark body.hdg-phu .dark\:text-gray-600 { color: var(--hdg-text-muted); }
+html.dark body.hdg-phu .dark\:text-blue-400, html.dark body.hdg-phu .dark\:text-indigo-400 { color: var(--hdg-primary); }
+html.dark body.hdg-phu .dark\:text-emerald-400, html.dark body.hdg-phu .dark\:text-green-400 { color: var(--hdg-success-text); }
+html.dark body.hdg-phu .dark\:text-red-400 { color: var(--hdg-danger-text); }
+html.dark body.hdg-phu .dark\:text-amber-300, html.dark body.hdg-phu .dark\:text-amber-400 { color: var(--hdg-warning-text); }
+html.dark body.hdg-phu .dark\:bg-gray-800, html.dark body.hdg-phu .dark\:bg-gray-900,
+html.dark body.hdg-phu .dark\:bg-gray-900\/50 { background-color: var(--hdg-card); }
+html.dark body.hdg-phu .dark\:bg-blue-600 { background-color: var(--hdg-primary); }
+html.dark body.hdg-phu .dark\:bg-amber-900\/20 { background-color: var(--hdg-warning-soft); }
+html.dark body.hdg-phu .dark\:border-gray-700, html.dark body.hdg-phu .dark\:border-gray-800,
+html.dark body.hdg-phu .dark\:border-gray-700\/60, html.dark body.hdg-phu .dark\:border-gray-700\/80 { border-color: var(--hdg-border); }
+
+/* ── Element Plus ngoài vùng nội dung (hộp thoại, ngăn trượt, menu thả, thông báo) ── */
+body.hdg-phu .el-dialog, body.hdg-phu .el-drawer, body.hdg-phu .el-message-box { border-radius: var(--hdg-radius-card); }
+body.hdg-phu .el-dialog__title, body.hdg-phu .el-drawer__title { font-family: var(--hdg-font-serif); font-weight: 700; }
+body.hdg-phu .el-table th.el-table__cell { color: var(--hdg-text-muted); font-weight: 700; }

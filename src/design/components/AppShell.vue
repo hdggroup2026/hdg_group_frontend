@@ -10,7 +10,9 @@
 <template>
   <!-- MỤC 722 — `.hdg-theme` chỉ bọc thanh trên/trái/dưới; vùng nội dung chỉ nhận khi `flush` tắt.
        VÌ SAO: trang dự án cũ nằm trong khung (flush) chưa được chuyển giao diện (gói G5) — để biến
-       Element Plus đổi màu nút của chúng giữa chừng là nửa cũ nửa mới. -->
+       Element Plus đổi màu nút của chúng giữa chừng là nửa cũ nửa mới.
+       MỤC 724 (G5 lớp 1): KhungMoi.vue nay gắn `.hdg-theme.hdg-phu` lên <body> — trang cũ trong khung
+       mới nhận giao diện mới qua design/lop-phu-cu.css; AppShell đứng riêng (trang /dev) vẫn như trên. -->
   <div class="hdg-shell" :class="[`hdg-shell--${mode}`, { 'hdg-shell--flush': flush }]">
     <header class="hdg-theme hdg-shell__top">
       <div class="hdg-shell__brand">

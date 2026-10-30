@@ -5,12 +5,15 @@
       @update:model-value="$emit('update:modelValue', $event)"
       :type="type"
       :placeholder="placeholder"
-      class="custom-login-input"
+:class="kieuMoi ? 'dn-o-moi' : 'custom-login-input'"
     />
   </div>
 </template>
 
 <script setup>
+import { inject } from 'vue'
+// MỤC 724 — trong màn đăng nhập kiểu mới (LoginView, sau công tắc) bỏ kiểu bo tròn cũ.
+const kieuMoi = inject('kieuMoiDangNhap', false)
 defineProps({
   modelValue: String,
   placeholder: String,

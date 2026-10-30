@@ -46,7 +46,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useStorage, useWindowSize } from '@vueuse/core'
 import '@fontsource/be-vietnam-pro/400.css'
@@ -54,6 +54,8 @@ import '@fontsource/be-vietnam-pro/600.css'
 import '@fontsource/be-vietnam-pro/700.css'
 import '@fontsource/source-serif-4/700.css'
 import '@/design/tokens.css'
+// MỤC 724 — G5 lớp 1: trang cũ trong khung mới mặc màu / chữ / nút HDG (xem chú thích trong file)
+import '@/design/lop-phu-cu.css'
 import AppShell, { type KhoiMenu, type MucMenu } from '@/design/components/AppShell.vue'
 import { authService } from '@/api/auth'
 import { layQuyen, danhSachDuocVao, timTheoTen, xoaBoNhoQuyen, type DuAn } from '@/constants/duAn'
@@ -64,6 +66,11 @@ const route = useRoute()
 const router = useRouter()
 const { width } = useWindowSize()
 const khungMoi = useStorage(KHOA_KHUNG_MOI, '0')
+
+// MỤC 724 — gắn giao diện mới lên <body> khi khung mới đang mở (để cả hộp thoại append-to-body
+// cũng nhận), gỡ ngay khi rời khung (vào Tiến Nga / tắt công tắc) ⇒ khung cũ nguyên vẹn.
+onMounted(() => document.body.classList.add('hdg-theme', 'hdg-phu'))
+onUnmounted(() => document.body.classList.remove('hdg-theme', 'hdg-phu'))
 
 const duocVao = ref<DuAn[]>([])
 onMounted(async () => {

@@ -15,10 +15,12 @@
       <span><i class="dg dg--nen" /> Tự chạy / hạ tầng</span>
       <span class="map-goi-y">Bấm vào một khối để xem nó nối với đâu · bấm lệnh để mở Danh sách lệnh</span>
       <button v-if="chon" type="button" class="map-bo" @click="chon = ''">Bỏ chọn</button>
+      <!-- MỤC 724 — s68 xem trên điện thoại 30/10: map khổ 1440px phải vuốt nhiều ⇒ nút thu vừa màn. -->
+      <button type="button" class="map-bo" @click="vua = !vua">{{ vua ? 'Phóng to' : 'Vừa màn hình' }}</button>
     </div>
     <div v-if="loi" class="map-loi">{{ loi }}</div>
     <div class="map-cuon">
-      <svg :viewBox="`0 0 ${W} ${H}`" :width="W" :height="H" class="map-svg" role="img" aria-label="Map liên kết hệ thống HDG">
+      <svg :viewBox="`0 0 ${W} ${H}`" :width="vua ? '100%' : W" :height="vua ? undefined : H" class="map-svg" role="img" aria-label="Map liên kết hệ thống HDG">
         <defs>
           <marker id="mui" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M0,0 L10,5 L0,10 z" class="mui" />
@@ -55,13 +57,15 @@ import { useRouter } from 'vue-router'
 import { danhSachLenhService, type DuAnLenh, type TongQuan } from '@/api/danhSachLenhService'
 
 interface Khoi { id: string; ten: string; phu?: string; x: number; y: number; w: number; h: number; loai: 'web' | 'tg' | 'nen' | 'lenh'; lenh?: string; duAn?: string }
-interface Day { tu: string; den: string; nhan?: string; loai: 'web' | 'tg' | 'nen'; hai?: boolean }
+interface Day { tu: string; den: string; nhan?: string; loai: 'web' | 'tg' | 'nen'; hai?: boolean; vongTrai?: boolean }
 
 const router = useRouter()
 const tq = ref<TongQuan | null>(null)
 const duAn = ref<Record<string, DuAnLenh>>({})
 const loi = ref('')
 const chon = ref('')
+// Màn hẹp (điện thoại, máy tính bảng) mở sẵn ở chế độ vừa màn; máy tính 1920 vẫn đủ khổ.
+const vua = ref(typeof window !== 'undefined' && window.innerWidth < 1280)
 
 onMounted(async () => {
   try {
@@ -74,7 +78,7 @@ onMounted(async () => {
 })
 
 // ── Toạ độ cột ──
-const C_NGUOI = 24, C_MAY = 300, C_TG = 760, C_LENH = 1110
+const C_NGUOI = 44, C_MAY = 300, C_TG = 760, C_LENH = 1110
 const W = 1440
 
 // Khối cố định (hạ tầng) — đối chiếu mã 30/10/2026, xem thẻ "Giải thích".
@@ -111,7 +115,8 @@ const DAY_CO_DINH: Day[] = [
   { tu: 'bot', den: 'excel', nhan: 'file', loai: 'nen' },
   { tu: 'api', den: 'doctin', nhan: 'tin chưa đọc', loai: 'tg' },
   { tu: 'sua', den: 'gh', nhan: 'đẩy code', loai: 'nen' },
-  { tu: 'gh', den: 'cf', nhan: 'web tự dựng', loai: 'nen' },
+  // vòng ra mép trái — đi thẳng lên là đè qua khối ngrok và Máy sửa (s68 thấy 30/10)
+  { tu: 'gh', den: 'cf', loai: 'nen', vongTrai: true },   // nhãn bỏ: mép trái không đủ chỗ; thẻ Giải thích có ghi
   { tu: 'gh', den: 'api', nhan: 'bấm 10', loai: 'nen' },
 ]
 
@@ -153,7 +158,7 @@ const day = computed(() => [...DAY_CO_DINH, ...dong.value.day])
 const H = computed(() => Math.max(660, dong.value.cao + 30))
 
 const VUNG = computed(() => [
-  { ten: 'NGƯỜI DÙNG · WEB · CODE', x: C_NGUOI - 12, y: 30, w: 244, h: 510 },
+  { ten: 'NGƯỜI DÙNG · WEB · CODE', x: C_NGUOI - 32, y: 30, w: 264, h: 510 },
   { ten: 'MÁY CHỦ WINDOWS (một chương trình)', x: C_MAY, y: 30, w: 440, h: 600 },
   { ten: 'NHÓM TELEGRAM THEO DỰ ÁN', x: C_TG - 12, y: 30, w: 274, h: H.value - 50 },
   { ten: 'LỆNH MENU CỦA DỰ ÁN', x: C_LENH - 12, y: 30, w: 324, h: H.value - 50 },
@@ -165,6 +170,7 @@ const theoId = computed(() => Object.fromEntries(khoi.value.map((k) => [k.id, k]
 function diem(d: Day) {
   const a = theoId.value[d.tu], b = theoId.value[d.den]
   if (!a || !b) return null
+  if (d.vongTrai) return { x1: a.x, y1: a.y + a.h / 2, x2: b.x, y2: b.y + b.h / 2, doc: false, trai: true }
   const cungCot = Math.abs(a.x - b.x) < 60 || (b.x < a.x + a.w && a.x < b.x + b.w)
   if (cungCot) {
     const xuong = b.y > a.y
@@ -176,6 +182,7 @@ function diem(d: Day) {
 function duong(d: Day) {
   const p = diem(d)
   if (!p) return ''
+  if ((p as any).trai) return `M${p.x1},${p.y1} C${p.x1 - 26},${p.y1} ${p.x2 - 26},${p.y2} ${p.x2},${p.y2}`
   if (p.doc) {
     const m = (p.y1 + p.y2) / 2
     return `M${p.x1},${p.y1} C${p.x1},${m} ${p.x2},${m} ${p.x2},${p.y2}`
@@ -185,6 +192,7 @@ function duong(d: Day) {
 }
 function giua(d: Day) {
   const p = diem(d)
+  if (p && (p as any).trai) return { x: p.x1 - 2, y: (p.y1 + p.y2) / 2 }
   return p ? { x: (p.x1 + p.x2) / 2, y: (p.y1 + p.y2) / 2 } : { x: 0, y: 0 }
 }
 
