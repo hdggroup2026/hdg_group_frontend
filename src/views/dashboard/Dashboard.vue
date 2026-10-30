@@ -1,5 +1,11 @@
 <template>
-  <div class="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
+  <!-- MỤC 722 (30/10/2026) — G4: khung chung mới, chỉ khi bật công tắc và KHÔNG phải Tiến Nga.
+       Cùng danh sách màn hình (MAN_HINH) với khung cũ bên dưới — không chép hai lần. -->
+  <KhungMoi v-if="dungKhungMoi" :du-an="currentProject">
+    <component :is="MAN_HINH[currentProject]" v-if="MAN_HINH[currentProject]" khung-moi />
+  </KhungMoi>
+
+  <div v-else class="h-screen flex flex-col bg-gray-50 dark:bg-gray-900 transition-colors duration-300">
     <!-- Thanh điều hướng (sticky, luôn ở trên) -->
     <Navigation v-model:project="currentProject" />
     
@@ -105,6 +111,10 @@ import NhatKyView from '@/views/nhat_ky/NhatKyView.vue'
 // MỤC 339 (27/08/2026) — màn Hồ sơ người dùng
 import HoSoView from '@/views/ho_so/HoSoView.vue'
 import { timTheoDuong, timTheoTen } from '@/constants/duAn'
+// MỤC 722 (30/10/2026) — G4: khung chung mới (sau công tắc, trừ Tiến Nga)
+import { useStorage } from '@vueuse/core'
+import { KHOA_KHUNG_MOI } from '@/constants/menuKhungMoi'
+const KhungMoi = defineAsyncComponent(() => import('@/layouts/KhungMoi.vue'))
 // MỤC 721 (30/10/2026) — nạp muộn: trang dùng phông Be Vietnam Pro + tokens.css (G1);
 // nạp sẵn thì mọi người mở web đều phải tải phông dù không vào trang này.
 const DanhSachLenhView = defineAsyncComponent(() => import('@/views/danh_sach_lenh/DanhSachLenhView.vue'))
@@ -150,4 +160,24 @@ const isDark = useDark({
 })
 
 const isDesktop = computed(() => windowWidth.value >= 1024)
+
+// MỤC 722 — tên màn ➜ thành phần, cho khung mới. Khung cũ vẫn giữ chuỗi v-if ở trên (không
+// đụng: Tiến Nga đi khung cũ và mọi người chưa bật công tắc cũng vậy).
+// Các trang dự án nhận `khung-moi` thì bỏ thanh menu riêng; trang khác bỏ qua thuộc tính lạ.
+const MAN_HINH: Record<string, any> = {
+  'Trang Chủ': HomeView,
+  'Nhật ký': NhatKyView,
+  'Hồ sơ': HoSoView,
+  Ggomoosin: GgomoosinDashboard,
+  Rental: RentalDashboard,
+  Credit: CreditDashboard,
+  'Thu hoạch': HarvestDashboard,
+  Other: OtherDashboard,
+  'Dự án Telegram': TelegramProjects,
+  'Hụi': RoscaDashboard,
+  'Danh sách lệnh': DanhSachLenhView,
+  'Phân quyền': AuthorizationDashboard,
+}
+const khungMoi = useStorage(KHOA_KHUNG_MOI, '0')
+const dungKhungMoi = computed(() => khungMoi.value === '1' && currentProject.value !== 'Tiến Nga')
 </script>

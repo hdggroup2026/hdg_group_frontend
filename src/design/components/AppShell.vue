@@ -8,8 +8,11 @@
   Điện thoại (<768): thanh trái ẩn, thay bằng thanh dưới đáy `bottomNav` (tối đa 4 mục).
 -->
 <template>
-  <div class="hdg-theme hdg-shell" :class="`hdg-shell--${mode}`">
-    <header class="hdg-shell__top">
+  <!-- MỤC 722 — `.hdg-theme` chỉ bọc thanh trên/trái/dưới; vùng nội dung chỉ nhận khi `flush` tắt.
+       VÌ SAO: trang dự án cũ nằm trong khung (flush) chưa được chuyển giao diện (gói G5) — để biến
+       Element Plus đổi màu nút của chúng giữa chừng là nửa cũ nửa mới. -->
+  <div class="hdg-shell" :class="[`hdg-shell--${mode}`, { 'hdg-shell--flush': flush }]">
+    <header class="hdg-theme hdg-shell__top">
       <div class="hdg-shell__brand">
         <img src="/logo-hdg.png" alt="" class="hdg-shell__logo" />
         <span v-if="mode !== 'mobile'" class="hdg-shell__name">HDG Group</span>
@@ -32,25 +35,35 @@
       </div>
     </header>
 
-    <aside v-if="mode !== 'mobile'" class="hdg-shell__side">
+    <aside v-if="mode !== 'mobile'" class="hdg-theme hdg-shell__side">
       <template v-for="(sec, si) in nav" :key="si">
         <div v-if="sec.title && mode === 'desktop'" class="hdg-label hdg-shell__sec">{{ sec.title }}</div>
-        <button
-          v-for="it in sec.items" :key="it.key" type="button"
-          class="hdg-shell__item" :class="{ 'is-active': it.key === activeKey }"
-          :title="it.label" @click="emit('navigate', it)"
-        >
-          <span v-if="it.color" class="hdg-shell__dot" :style="{ background: it.color }" />
-          <span v-if="mode === 'desktop'" class="hdg-shell__label">{{ it.label }}</span>
-          <span v-else class="hdg-shell__short">{{ it.label.slice(0, 2) }}</span>
-          <span v-if="mode === 'desktop' && it.hasChildren" class="hdg-shell__caret">▸</span>
-        </button>
+        <template v-for="it in sec.items" :key="it.key">
+          <button
+            type="button"
+            class="hdg-shell__item" :class="{ 'is-active': it.key === activeKey || (it.key === openKey && !it.children?.length) }"
+            :title="it.label" @click="emit('navigate', it)"
+          >
+            <span v-if="it.color" class="hdg-shell__dot" :style="{ background: it.color }" />
+            <span v-if="mode === 'desktop'" class="hdg-shell__label">{{ it.label }}</span>
+            <span v-else class="hdg-shell__short">{{ it.label.slice(0, 2) }}</span>
+            <span v-if="mode === 'desktop' && (it.hasChildren || it.children?.length)" class="hdg-shell__caret">{{ it.key === openKey ? '▾' : '▸' }}</span>
+          </button>
+          <!-- MỤC 722 — mục con của dự án đang mở (chỉ máy tính; máy tính bảng dùng hàng chip trên nội dung) -->
+          <template v-if="mode === 'desktop' && it.key === openKey">
+            <button
+              v-for="c in it.children || []" :key="c.key" type="button"
+              class="hdg-shell__item hdg-shell__item--con" :class="{ 'is-active': c.key === activeKey }"
+              @click="emit('navigate', c)"
+            >{{ c.label }}</button>
+          </template>
+        </template>
       </template>
     </aside>
 
-    <main class="hdg-shell__main"><slot /></main>
+    <main class="hdg-shell__main" :class="{ 'hdg-theme': !flush }"><slot /></main>
 
-    <nav v-if="mode === 'mobile'" class="hdg-shell__bottom">
+    <nav v-if="mode === 'mobile'" class="hdg-theme hdg-shell__bottom">
       <button
         v-for="it in bottomNav.slice(0, 4)" :key="it.key" type="button"
         class="hdg-shell__bottom-item" :class="{ 'is-active': it.key === activeKey }"
@@ -73,6 +86,9 @@ export interface MucMenu {
   color?: string
   icon?: string
   hasChildren?: boolean
+  /** MỤC 722 — đường dẫn khi bấm, và các mục con (bung ra khi dự án đang mở). */
+  to?: string
+  children?: MucMenu[]
 }
 export interface KhoiMenu { title?: string; items: MucMenu[] }
 
@@ -80,9 +96,12 @@ withDefaults(defineProps<{
   nav: KhoiMenu[]
   bottomNav?: MucMenu[]
   activeKey?: string
+  /** Mục cha đang bung mục con (dự án đang mở). */
+  openKey?: string
   breadcrumb?: string[]
   alerts?: number
-}>(), { bottomNav: () => [], activeKey: '', breadcrumb: () => [], alerts: 0 })
+  flush?: boolean
+}>(), { bottomNav: () => [], activeKey: '', openKey: '', breadcrumb: () => [], alerts: 0 })
 const emit = defineEmits<{ navigate: [item: MucMenu]; bell: [] }>()
 
 // Cùng cấu hình useDark với các Index.vue đang chạy (lớp `dark` trên <html>) —
@@ -94,7 +113,7 @@ const mode = computed(() => (width.value < 768 ? 'mobile' : width.value < 1280 ?
 </script>
 
 <style scoped>
-.hdg-shell { min-height: 100vh; display: grid; grid-template-rows: var(--hdg-topbar-h) 1fr; grid-template-columns: var(--hdg-sidebar-w) minmax(0, 1fr); }
+.hdg-shell { background: var(--hdg-bg); min-height: 100vh; display: grid; grid-template-rows: var(--hdg-topbar-h) 1fr; grid-template-columns: var(--hdg-sidebar-w) minmax(0, 1fr); }
 .hdg-shell--tablet { grid-template-columns: 64px minmax(0, 1fr); }
 .hdg-shell--mobile { grid-template-columns: minmax(0, 1fr); grid-template-rows: 56px 1fr 64px; }
 .hdg-shell__top { grid-column: 1 / -1; display: flex; align-items: center; gap: 20px; padding: 0 20px; background: var(--hdg-card); border-bottom: 1px solid var(--hdg-border); position: sticky; top: 0; z-index: 20; }
@@ -113,6 +132,8 @@ html.dark .hdg-shell__name { color: var(--hdg-primary); }
 .hdg-shell__item { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 40px; padding: 0 10px; border: 0; border-radius: var(--hdg-radius-control); background: transparent; color: var(--hdg-text); font: inherit; text-align: left; cursor: pointer; }
 .hdg-shell__item:hover { background: var(--hdg-row-alt); }
 .hdg-shell__item.is-active { background: var(--hdg-primary-soft); color: var(--hdg-primary); font-weight: 700; }
+.hdg-shell__item--con { min-height: 36px; padding-left: 38px; font-size: var(--hdg-fs-table); color: var(--hdg-text-muted); }
+.hdg-shell__item--con.is-active { color: var(--hdg-primary); }
 .hdg-shell__dot { width: 9px; height: 9px; border-radius: 2px; flex: none; }
 .hdg-shell__label { flex: 1; }
 .hdg-shell__caret { color: var(--hdg-text-muted); font-size: 12px; }
@@ -120,6 +141,9 @@ html.dark .hdg-shell__name { color: var(--hdg-primary); }
 .hdg-shell--tablet .hdg-shell__side { padding: 12px 8px; }
 .hdg-shell--tablet .hdg-shell__item { justify-content: center; padding: 0; }
 .hdg-shell__main { padding: 26px 32px 40px; min-width: 0; }
+/* MỤC 722 — `flush`: trang tự lo lề + cuộn (trang dự án cũ dùng h-full, el-splitter...). */
+.hdg-shell.hdg-shell--flush .hdg-shell__main { padding: 0; height: calc(100vh - var(--hdg-topbar-h)); overflow: hidden; }
+.hdg-shell--flush.hdg-shell--mobile .hdg-shell__main { height: calc(100vh - 56px - 64px); }
 .hdg-shell--mobile .hdg-shell__main { padding: 16px 14px 24px; }
 .hdg-shell__bottom { position: sticky; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--hdg-card); border-top: 1px solid var(--hdg-border); z-index: 20; }
 .hdg-shell__bottom-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 56px; border: 0; background: transparent; color: var(--hdg-text-muted); font: inherit; font-size: var(--hdg-fs-caption); cursor: pointer; }

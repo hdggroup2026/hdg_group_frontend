@@ -1,6 +1,9 @@
 <template>
   <!-- ============ DESKTOP (≥ 1024px): el-splitter giữ nguyên ============ -->
-  <el-splitter v-if="isDesktop" class="h-full">
+  <!-- MỤC 722 (30/10/2026) — G4: trong KHUNG MỚI (thanh trái chung đã có mục con của
+       dự án) thì bỏ thanh menu riêng, chỉ còn một ô nội dung. Khung cũ giữ nguyên y hệt. -->
+  <div v-if="khungMoi" id="hdg-noi-dung-credit-khung-moi" class="h-full overflow-auto" v-loading="loading"></div>
+  <el-splitter v-else-if="isDesktop" class="h-full">
     <el-splitter-panel size="15%">
       <Sidebar v-model:activeMenu="activeMenu" />
     </el-splitter-panel>
@@ -162,6 +165,8 @@
 </template>
  
 <script setup lang="ts">
+// MỤC 722 (30/10/2026) — G4: `khungMoi` = đang nằm trong khung chung mới (layouts/KhungMoi.vue).
+const props = defineProps<{ khungMoi?: boolean }>()
 import { ref, computed, onMounted, onUnmounted, watch, provide, h, type Component } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWindowSize, useDark } from '@vueuse/core'
@@ -228,7 +233,7 @@ const isDesktop = computed(() => windowWidth.value >= 1024)
 const isTablet = computed(() => windowWidth.value >= 768 && windowWidth.value < 1024)
 const isMobile = computed(() => windowWidth.value < 768)
 // MỤC 676 — hậu tố id ô chứa nội dung của nhánh đang hiện. Xem lời ghi ở <Teleport>.
-const cheDoBoCuc = computed(() => isDesktop.value ? 'may-tinh' : isMobile.value ? 'dien-thoai' : 'may-tinh-bang')
+const cheDoBoCuc = computed(() => props.khungMoi ? 'khung-moi' : isDesktop.value ? 'may-tinh' : isMobile.value ? 'dien-thoai' : 'may-tinh-bang')
  
 const CreditNotifications = { render: () => h(ScheduledNotificationTabWrapper, { moduleKey: 'credit' }) }
 const viewMap: Record<string, Component> = {

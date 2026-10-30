@@ -65,6 +65,9 @@
                 khi thật ra nó chưa từng tồn tại.
               -->
               <el-dropdown-item :icon="User" @click="handleXemHoSo">Hồ sơ người dùng</el-dropdown-item>
+              <!-- MỤC 722 (30/10/2026) — G4: công tắc thử khung mới, CHỈ admin thấy (kế toán không
+                   bấm nhầm). Không đổi gì ở Tiến Nga: vào Tiến Nga vẫn là khung này. -->
+              <el-dropdown-item v-if="laAdmin" @click="khungMoi = '1'">Thử giao diện mới</el-dropdown-item>
               <el-dropdown-item :icon="SwitchButton" divided @click="handleLogout">Đăng xuất</el-dropdown-item>
             </el-dropdown-menu>
           </template>
@@ -162,7 +165,8 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { useDark } from '@vueuse/core'
+import { useDark, useStorage } from '@vueuse/core'
+import { KHOA_KHUNG_MOI } from '@/constants/menuKhungMoi'
 import { Moon, Sunny, User, SwitchButton } from '@element-plus/icons-vue'
 import { authService } from '@/api/auth'
 // MỤC 255 (23/08/2026) — bảng dự án dùng chung, xem src/constants/duAn.ts
@@ -212,6 +216,9 @@ const selectedProject = defineModel('project', { type: String, default: 'Trang C
  * vào bị đá ra.
  */
 const menuItems = ref<string[]>([])
+// MỤC 722 — công tắc khung mới (constants/menuKhungMoi.ts)
+const laAdmin = ref(false)
+const khungMoi = useStorage(KHOA_KHUNG_MOI, '0')
 
 // Trạng thái Darkmode
 const isDark = useDark({
@@ -274,6 +281,7 @@ onMounted(async () => {
   const kq = await layQuyen()
   if (kq.trangThai === 'xong') {
     menuItems.value = danhSachDuocVao(kq.quyen).map((d) => d.ten)
+    laAdmin.value = kq.quyen.includes('admin')
   }
   // Đọc lỗi thì để menu rỗng. Router sẽ đưa người dùng sang trang báo lỗi
   // có nút Thử lại — không cần Navigation tự xử lý.
