@@ -137,9 +137,19 @@
              làm mà nằm dưới bốn khối số thì trên điện thoại phải cuộn
              qua ba màn mới thấy.
              ═══════════════════════════════════════════════════════════ -->
+        <!-- ══ MỤC 726 (01/11/2026) — "VIỆC CẦN XỬ LÝ HÔM NAY" ══
+             s68 01/11 chọn đề xuất số 3. Trước: một danh sách phẳng, người đọc
+             tự dò chữ "quá hạn" từng dòng. Nay:
+               · hàng ô đếm trên cùng (Quá hạn · Hôm nay · Trong 7 ngày · Chưa rõ
+                 ngày) — bấm một ô để chỉ xem nhóm đó, bấm lại để xem hết;
+               · hàng "Chưa thu tháng này" lấy từ ô Rental/Credit, bấm là mở dự án;
+               · danh sách gom theo mức độ, mỗi nhóm hiện 5 dòng đầu + "Xem thêm".
+             Mức độ do BACKEND gắn (`muc_do`), web không tự trừ ngày (lý do MỤC 389).
+             VÌ SAO không bỏ khối cũ làm trang mới: các khối dưới (cân đối, ô dự án)
+             vẫn cần; chỉ khối việc tồn được nâng lên thành bảng điều phối. -->
         <section v-if="vieccanLam" class="mb-8">
           <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-            Việc cần làm
+            Việc cần xử lý hôm nay
             <span v-if="vieccanLam.so_dong"
                   class="ml-1 tabular-nums text-gray-400 dark:text-gray-500">
               ({{ vieccanLam.so_dong }})
@@ -147,6 +157,33 @@
           </h2>
 
           <div class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+            <div v-if="vieccanLam.dem_theo_muc_do || chuaThuThangNay.length"
+                 class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+              <button v-for="o in O_MUC_DO" :key="o.khoa" type="button"
+                      class="rounded-lg border px-3 py-2 text-left transition"
+                      :class="[o.vien, locMucDo === o.khoa ? 'ring-2 ring-offset-1 ' + o.vong : '',
+                               soMucDo(o.khoa) ? '' : 'opacity-50']"
+                      :disabled="!soMucDo(o.khoa)"
+                      @click="locMucDo = locMucDo === o.khoa ? '' : o.khoa">
+                <div class="text-xl font-semibold tabular-nums" :class="o.chu">{{ soMucDo(o.khoa) }}</div>
+                <div class="text-[11px] text-gray-500 dark:text-gray-400">{{ o.nhan }}</div>
+              </button>
+            </div>
+
+            <!-- Chưa thu tháng này: đếm sẵn ở ô Rental/Credit (bang_dieu_khien),
+                 KHÔNG đếm lại. Chỉ lấy từ lần tải THÁNG NÀY — xem tháng khác ở
+                 dưới không làm dòng này đổi. -->
+            <div v-if="chuaThuThangNay.length"
+                 class="flex flex-wrap gap-2 mb-3 text-xs">
+              <span class="text-gray-500 dark:text-gray-400 self-center">Chưa thu tháng này:</span>
+              <button v-for="c in chuaThuThangNay" :key="c.ten" type="button"
+                      class="rounded-full border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 px-3 py-1 text-amber-700 dark:text-amber-300 hover:underline"
+                      @click="router.push(c.duong)">
+                {{ c.ten }} · <b class="tabular-nums">{{ c.so }}</b> mã
+                <span v-if="c.tien" class="tabular-nums">· {{ tien(c.tien) }}</span>
+              </button>
+            </div>
+
             <!-- 🔴 Không có việc tồn thì NÓI THẲNG. Để trống làm người
                  xem tưởng trang lỗi, và họ sẽ bấm tải lại mãi. Câu chữ
                  lấy từ backend (`chu_khi_rong`), không tự viết lại. -->
@@ -155,8 +192,13 @@
               {{ vieccanLam.chu_khi_rong || 'Hôm nay không có việc tồn.' }}
             </div>
 
-            <ul v-else class="divide-y divide-gray-100 dark:divide-gray-700">
-              <li v-for="(v, i) in vieccanLam.danh_sach" :key="i">
+            <template v-else>
+            <div v-for="nhom in nhomViec" :key="nhom.khoa" class="mt-2 first:mt-0">
+            <div class="text-[11px] font-semibold uppercase tracking-wide mb-0.5" :class="nhom.chu">
+              {{ nhom.nhan }} ({{ nhom.ds.length }})
+            </div>
+            <ul class="divide-y divide-gray-100 dark:divide-gray-700">
+              <li v-for="(v, i) in (moHet[nhom.khoa] ? nhom.ds : nhom.ds.slice(0, 5))" :key="i">
                 <!-- ⚠️ Dòng KHÔNG có `duong_dan` thì KHÔNG cho bấm.
                      Mảng Giấy tờ chưa có màn web nên backend trả `null`
                      (MỤC 395). Cho bấm rồi rơi vào trang 404 tệ hơn hẳn
@@ -181,6 +223,13 @@
                 </button>
               </li>
             </ul>
+            <button v-if="nhom.ds.length > 5" type="button"
+                    class="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    @click="moHet[nhom.khoa] = !moHet[nhom.khoa]">
+              {{ moHet[nhom.khoa] ? 'Thu gọn' : 'Xem thêm ' + (nhom.ds.length - 5) + ' việc' }}
+            </button>
+            </div>
+            </template>
 
             <!-- Backend nuốt lỗi từng nguồn một để một bảng hỏng không
                  làm trắng cả khối. Nhưng nuốt rồi phải NÓI RA, nếu không
@@ -499,9 +548,34 @@
         <!-- ═══════════════════════════════════════════════════════════
              KHỐI 2 — CÁC Ô DỰ ÁN. s68 chốt: đẩy xuống DƯỚI bảng cân đối.
              ═══════════════════════════════════════════════════════════ -->
-        <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-3">
-          Dự án của bạn
-        </h2>
+        <!-- MỤC 726 (01/11/2026) — Ô CHỌN THÁNG cho các ô dự án.
+             s68 01/11 chọn đề xuất số 3 ("chọn tháng trên Trang Chủ"). Chỉ đổi các
+             ô theo tháng; Việc cần xử lý + Cân đối ở trên vẫn là số hôm nay.
+             Không cho chọn tháng tương lai (máy chủ cũng chặn, trả 400). -->
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h2 class="text-sm font-medium text-gray-600 dark:text-gray-400">
+            Dự án của bạn
+          </h2>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-gray-500 dark:text-gray-400">Xem tháng</span>
+            <el-config-provider :locale="viVN">
+              <el-date-picker v-model="thangXem" type="month" value-format="YYYY-MM" format="MM/YYYY"
+                              :clearable="false" :disabled-date="laThangSau" size="small"
+                              style="width: 120px" @change="doiThang" />
+            </el-config-provider>
+            <button v-if="thangXem !== thangNay" type="button"
+                    class="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                    @click="thangXem = thangNay; doiThang()">
+              Về tháng này
+            </button>
+          </div>
+        </div>
+        <div v-if="dangDoiThang" class="text-xs text-gray-500 dark:text-gray-400 mb-2">Đang tải số tháng {{ thangXem }}…</div>
+        <div v-if="thangXem !== thangNay"
+             class="mb-3 rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-800 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
+          Đang xem số của tháng {{ thangXem.slice(5) }}/{{ thangXem.slice(0, 4) }}. Danh sách mã là các hợp đồng
+          <b>đang chạy hiện nay</b> — hợp đồng đã đóng trước đó không hiện.
+        </div>
 
         <div v-if="duAnCuaToi.length === 0"
              class="text-sm text-gray-500 dark:text-gray-400">
@@ -1403,6 +1477,9 @@ import { ref, computed, onMounted } from 'vue'   // MỤC 526 — thêm computed
 import { mauSo } from '@/utils/mauSo'
 import ChiTietO from './ChiTietO.vue'   // MỤC 674
 import ThongTinHopDong from './ThongTinHopDong.vue'   // MỤC 694
+// MỤC 726 — tên tháng tiếng Việt CHỈ cho ô chọn tháng Trang Chủ. Không đặt cho cả web:
+// đổi chung là đổi luôn ô ngày bên Tiến Nga (s68 29/10: không đụng Tiến Nga).
+import viVN from 'element-plus/es/locale/lang/vi'
 import { useRouter } from 'vue-router'
 import { layQuyen, danhSachDuocVao, type DuAn } from '@/constants/duAn'
 import { trangChuService } from '@/api/trangChu'
@@ -1494,6 +1571,58 @@ const tien = (x: number | null | undefined): string => {
  * MỤC 725 (30/10/2026) — bảng 2 cột Đã thu / Chưa thu ở ô Credit và Rental.
  * Cột tiền rộng cố định để số các dòng thẳng hàng; cột mã co giãn phần còn lại.
  */
+/**
+ * MỤC 726 (01/11/2026) — Việc cần xử lý hôm nay + ô chọn tháng.
+ * Bốn mức độ khớp khoá `muc_do` / `dem_theo_muc_do` backend gắn ở
+ * `bot/utils/trang_chu.py::tinh_viec_can_lam`. Thứ tự mảng = thứ tự hiện.
+ */
+const O_MUC_DO = [
+  { khoa: 'qua_han', nhan: 'Quá hạn', chu: 'text-red-600 dark:text-red-400',
+    vien: 'border-red-200 bg-red-50 dark:border-red-900 dark:bg-red-900/20', vong: 'ring-red-400' },
+  { khoa: 'hom_nay', nhan: 'Đến hạn hôm nay', chu: 'text-amber-700 dark:text-amber-300',
+    vien: 'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20', vong: 'ring-amber-400' },
+  { khoa: 'trong_7_ngay', nhan: 'Trong 7 ngày tới', chu: 'text-gray-800 dark:text-gray-100',
+    vien: 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800', vong: 'ring-gray-400' },
+  { khoa: 'chua_ro', nhan: 'Chưa rõ ngày', chu: 'text-gray-500 dark:text-gray-400',
+    vien: 'border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800', vong: 'ring-gray-400' },
+]
+const locMucDo = ref('')
+const moHet = ref<Record<string, boolean>>({})
+const soMucDo = (k: string): number => vieccanLam.value?.dem_theo_muc_do?.[k] ?? 0
+const nhomViec = computed(() => {
+  const ds: any[] = vieccanLam.value?.danh_sach || []
+  // Máy chủ chưa cài MỤC 726 thì dòng không có `muc_do` ➜ gom hết vào một nhóm
+  // "Việc tồn" như cũ, không đoán mức độ ở web.
+  if (!ds.some((v) => v.muc_do)) return [{ khoa: 'tat_ca', nhan: 'Việc tồn', chu: 'text-gray-500', ds }]
+  return O_MUC_DO
+    .filter((o) => !locMucDo.value || locMucDo.value === o.khoa)
+    .map((o) => ({ ...o, ds: ds.filter((v) => (v.muc_do || 'chua_ro') === o.khoa) }))
+    .filter((n) => n.ds.length)
+})
+
+const homNay = new Date()
+const thangNay = `${homNay.getFullYear()}-${String(homNay.getMonth() + 1).padStart(2, '0')}`
+const thangXem = ref(thangNay)
+const dangDoiThang = ref(false)
+// Bản số liệu THÁNG NÀY — giữ riêng để hàng "Chưa thu tháng này" không đổi
+// khi người xem lật sang tháng khác ở ô dự án.
+const bangThangNay = ref<any>(null)
+const laThangSau = (d: Date) =>
+  d.getFullYear() * 12 + d.getMonth() > homNay.getFullYear() * 12 + homNay.getMonth()
+const doiThang = async () => {
+  dangDoiThang.value = true
+  try { await taiSoLieu() } finally { dangDoiThang.value = false }
+}
+const chuaThuThangNay = computed(() => {
+  const b = bangThangNay.value
+  const ra: { ten: string; so: number; tien: number; duong: string }[] = []
+  if (b?.rental?.so_chua_thu)
+    ra.push({ ten: 'Rental', so: b.rental.so_chua_thu, tien: tongChuaThu(b.rental.danh_sach), duong: '/rental/rental-contract' })
+  if (b?.credit?.so_chua_thu)
+    ra.push({ ten: 'Credit', so: b.credit.so_chua_thu, tien: tongChuaThu(b.credit.danh_sach), duong: '/credit/contract-management' })
+  return ra
+})
+
 const LUOI_THU = { gridTemplateColumns: 'minmax(0, 1fr) minmax(3.5rem, auto) minmax(3.5rem, auto)' }
 const tongChuaThu = (ds: any[] | undefined): number =>
   (ds || []).reduce((s, m) => s + (m.trang_thai === 'da_thu' ? 0 : Number(m.tien_du_kien) || 0), 0)
@@ -1594,8 +1723,11 @@ onMounted(async () => {
  */
 const taiSoLieu = async () => {
   try {
-    const tt = await trangChuService.laySoLieu()
+    // MỤC 726 — tháng đang chạy thì KHÔNG gửi `thang` (máy chủ cũ chưa có
+    // MỤC 726 vẫn trả đúng như trước).
+    const tt = await trangChuService.laySoLieu(thangXem.value === thangNay ? null : thangXem.value)
     bang.value = tt?.bang_dieu_khien || null
+    if (thangXem.value === thangNay) bangThangNay.value = bang.value
     canDoi.value = bang.value?.can_doi || null
     baBang.value = bang.value?.ba_bang || null
 

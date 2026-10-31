@@ -25,9 +25,12 @@ export const trangChuService = {
    * ⚠️ `bang_dieu_khien` có thể là `null` nếu backend chưa cài MỤC 340.
    * Nơi gọi phải chịu được điều đó — xem HomeView.vue.
    */
-  async laySoLieu(): Promise<any> {
+  async laySoLieu(thang?: string | null): Promise<any> {
     const baseUrl = await getApiUrl()
-    const response = await fetch(`${baseUrl}/home/summary`, {
+    // MỤC 726 (01/11/2026) — `thang` dạng "YYYY-MM": các ô dự án theo tháng
+    // đổi sang tháng đó. Bỏ trống = tháng đang chạy (như cũ).
+    const hoi = thang ? `?thang=${encodeURIComponent(thang)}` : ''
+    const response = await fetch(`${baseUrl}/home/summary${hoi}`, {
       method: 'GET',
       headers: getApiHeaders(),
     })
