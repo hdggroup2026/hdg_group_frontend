@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, defineAsyncComponent } from 'vue'
+import { ref, computed, watch, defineAsyncComponent, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useWindowSize, useDark } from '@vueuse/core'
 import Navigation from '@/layouts/Navigation.vue'
@@ -113,10 +113,10 @@ import HomeView from '@/views/home/HomeView.vue'
 import NhatKyView from '@/views/nhat_ky/NhatKyView.vue'
 // MỤC 339 (27/08/2026) — màn Hồ sơ người dùng
 import HoSoView from '@/views/ho_so/HoSoView.vue'
-import { timTheoDuong, timTheoTen } from '@/constants/duAn'
+import { timTheoDuong, timTheoTen, layQuyen, danhSachDuocVao } from '@/constants/duAn'
 // MỤC 722 (30/10/2026) — G4: khung chung mới (sau công tắc, trừ Tiến Nga)
 import { useStorage } from '@vueuse/core'
-import { KHOA_KHUNG_MOI } from '@/constants/menuKhungMoi'
+import { KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI, chiDungTienNga } from '@/constants/menuKhungMoi'
 const KhungMoi = defineAsyncComponent(() => import('@/layouts/KhungMoi.vue'))
 // MỤC 721 (30/10/2026) — nạp muộn: trang dùng phông Be Vietnam Pro + tokens.css (G1);
 // nạp sẵn thì mọi người mở web đều phải tải phông dù không vào trang này.
@@ -184,6 +184,25 @@ const MAN_HINH: Record<string, any> = {
   'Sơ đồ vận hành': SoDoVanHanhView,
   'Phân quyền': AuthorizationDashboard,
 }
-const khungMoi = useStorage(KHOA_KHUNG_MOI, '0')
-const dungKhungMoi = computed(() => khungMoi.value === '1' && currentProject.value !== 'Tiến Nga')
+const khungMoi = useStorage(KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI)
+
+// MỤC 727 (01/11/2026) — bật mặc định cho mọi người, TRỪ tài khoản chỉ làm Tiến Nga (xem
+// constants/menuKhungMoi.ts). Đọc quyền ĐÃ LƯU ngay lúc dựng trang (đồng bộ) để không chớp
+// khung cũ ➜ khung mới mỗi lần mở; chưa có thì hỏi máy chủ, trong lúc chờ để khung CŨ
+// (an toàn cho kế toán Tiến Nga: thà người khác thấy khung cũ thoáng qua lần đầu).
+const docQuyenDaLuu = (): string[] | null => {
+  try {
+    const ds = JSON.parse(localStorage.getItem('user_permissions') || 'null')
+    return Array.isArray(ds) ? ds : null
+  } catch { return null }
+}
+const xetChiTienNga = (quyen: string[]) => chiDungTienNga(danhSachDuocVao(quyen).map((d) => d.ten))
+const quyenDaLuu = docQuyenDaLuu()
+const chiTienNga = ref<boolean | null>(quyenDaLuu ? xetChiTienNga(quyenDaLuu) : null)
+onMounted(async () => {
+  const kq = await layQuyen()
+  chiTienNga.value = kq.trangThai === 'xong' ? xetChiTienNga(kq.quyen) : null
+})
+const dungKhungMoi = computed(() =>
+  khungMoi.value === '1' && currentProject.value !== 'Tiến Nga' && chiTienNga.value === false)
 </script>

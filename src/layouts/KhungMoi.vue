@@ -4,6 +4,9 @@
   Thay cho Navigation.vue + thanh menu riêng của từng dự án, NHƯNG:
     · chỉ bật khi công tắc `hdg_khung_moi` = '1' (mặc định tắt — chờ s68 duyệt qua ảnh);
     · KHÔNG dùng cho Tiến Nga (s68 29/10: kế toán đã quen) — Dashboard.vue tự quay về khung cũ.
+  MỤC 727 (01/11/2026) — s68 duyệt: khung này thành MẶC ĐỊNH cho mọi người (khoá mới
+  `hdg_khung_moi_2`, mặc định '1'). Tài khoản chỉ làm Tiến Nga vẫn ở khung cũ (Dashboard.vue).
+  Ai muốn quay lại: "Về giao diện cũ" (menu ảnh đại diện) / "Giao diện cũ" (thanh dưới điện thoại).
   Menu dựng từ CÙNG bảng quyền với khung cũ (`layQuyen` + `danhSachDuocVao`) — không có
   danh sách dự án thứ hai để lệch.
   Chuông: chưa có nguồn số "nhóm cần xử lý" sạch ⇒ KHÔNG hiện con số (không bịa), bấm vào mở
@@ -59,13 +62,13 @@ import '@/design/lop-phu-cu.css'
 import AppShell, { type KhoiMenu, type MucMenu } from '@/design/components/AppShell.vue'
 import { authService } from '@/api/auth'
 import { layQuyen, danhSachDuocVao, timTheoTen, xoaBoNhoQuyen, type DuAn } from '@/constants/duAn'
-import { KHOA_KHUNG_MOI, MAU_DU_AN, MUC_CON, QUAN_TRI } from '@/constants/menuKhungMoi'
+import { KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI, MAU_DU_AN, MUC_CON, QUAN_TRI } from '@/constants/menuKhungMoi'
 
 const props = defineProps<{ duAn: string }>()
 const route = useRoute()
 const router = useRouter()
 const { width } = useWindowSize()
-const khungMoi = useStorage(KHOA_KHUNG_MOI, '0')
+const khungMoi = useStorage(KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI)
 
 // MỤC 724 — gắn giao diện mới lên <body> khi khung mới đang mở (để cả hộp thoại append-to-body
 // cũng nhận), gỡ ngay khi rời khung (vào Tiến Nga / tắt công tắc) ⇒ khung cũ nguyên vẹn.

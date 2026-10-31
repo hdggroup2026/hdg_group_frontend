@@ -10,6 +10,10 @@
        · Nền dự phòng giữ màu trời xanh cũ: ảnh chưa tải xong vẫn có nền. -->
   <!-- ══ MỤC 724 (30/10/2026) — G4b: MÀN ĐĂNG NHẬP KIỂU MỚI (ảnh `01_Dang_nhap`), SAU CÔNG TẮC ══
        Chỉ hiện khi trình duyệt này đã bật "giao diện mới" (hdg_khung_moi = '1'); còn lại y như cũ.
+       MỤC 727 (01/11/2026) — giao diện mới thành mặc định (khoá `hdg_khung_moi_2` = '1') ⇒ màn
+       đăng nhập kiểu mới hiện cho MỌI người, kể cả kế toán Tiến Nga (lúc đăng nhập chưa biết là ai).
+       Ô nhập, nút, cách báo lỗi giữ nguyên — chỉ đổi hình thức. Ai bấm "Giao diện cũ" thì màn này
+       cũng về kiểu cũ trên máy đó.
        Giữ ẢNH NỀN s68 chọn (MỤC 683) ở nửa trái — phủ xanh HDG cho chữ đọc được — thay vì nền xanh
        trơn của ảnh mẫu: ảnh là lựa chọn của s68, ảnh mẫu chỉ là minh hoạ.
        Câu giới thiệu bên trái: ảnh mẫu ghi là "chữ tạm" (PROMPT_01 mục 4.7.5) ⇒ chỉ ghi tên các mảng thật.
@@ -53,7 +57,7 @@
 <script setup>
 import { computed, provide } from 'vue'
 import { useStorage } from '@vueuse/core'
-import { KHOA_KHUNG_MOI } from '@/constants/menuKhungMoi'
+import { KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI } from '@/constants/menuKhungMoi'
 import '@fontsource/be-vietnam-pro/400.css'
 import '@fontsource/be-vietnam-pro/600.css'
 import '@fontsource/source-serif-4/700.css'
@@ -66,7 +70,7 @@ import ForgotPasswordForm from './ForgotPasswordForm.vue'
 
 // MỤC 724 — công tắc giao diện mới (cùng khoá với khung chung, constants/menuKhungMoi.ts)
 const kieuMoi = computed(() => khungMoi.value === '1')
-const khungMoi = useStorage(KHOA_KHUNG_MOI, '0')
+const khungMoi = useStorage(KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI)
 provide('kieuMoiDangNhap', kieuMoi)
 
 const route = useRoute()

@@ -61,5 +61,30 @@ export const QUAN_TRI: Record<string, string> = {
   'Sơ đồ vận hành': 'Sơ đồ vận hành',
 }
 
-/** Khoá localStorage của công tắc "giao diện mới". Mặc định TẮT cho tới khi s68 duyệt G4. */
-export const KHOA_KHUNG_MOI = 'hdg_khung_moi'
+/**
+ * Khoá localStorage của công tắc "giao diện mới".
+ *
+ * MỤC 727 (01/11/2026) — s68: "làm tiếp luôn số 2" = bật giao diện mới cho MỌI NGƯỜI (trừ Tiến Nga).
+ *   · Mặc định nay là BẬT ('1').
+ *   · Đổi tên khoá 'hdg_khung_moi' ➜ 'hdg_khung_moi_2'. VÌ SAO: ai từng bấm "Giao diện cũ" lúc
+ *     thử (MỤC 722–724, chủ yếu admin) đã lưu '0' dưới tên cũ; giữ tên cũ thì máy đó vẫn kẹt ở
+ *     giao diện cũ và tưởng chưa đổi. Tên mới = ai cũng bắt đầu lại ở giao diện mới, vẫn tự
+ *     chọn quay về được (nút "Giao diện cũ").
+ *   · Không chọn cách "xoá khoá cũ lúc mở web": phải viết thêm mã chạy mỗi lần mở, đổi tên gọn hơn.
+ */
+export const KHOA_KHUNG_MOI = 'hdg_khung_moi_2'
+export const MAC_DINH_KHUNG_MOI = '1'
+
+/**
+ * MỤC 727 — tài khoản CHỈ làm việc trong Tiến Nga (vd. kế toán Tiến Nga) giữ NGUYÊN giao diện cũ,
+ * kể cả Trang Chủ. s68 29/10: "khoan đụng Tiến Nga, kế toán đã dùng quen".
+ * "Dự án Telegram" tính chung nhóm Tiến Nga vì màn đó nằm trong components/TienNga.
+ * Trang Chủ / Hồ sơ không tính (ai cũng có).
+ * VÌ SAO xét theo QUYỀN chứ không theo tên tài khoản: thêm kế toán mới không phải sửa mã.
+ */
+const NHOM_TIEN_NGA = ['Tiến Nga', 'Dự án Telegram']
+const AI_CUNG_CO = ['Trang Chủ', 'Hồ sơ']
+export function chiDungTienNga(tenDuAnDuocVao: string[]): boolean {
+  const lam = tenDuAnDuocVao.filter((t) => !AI_CUNG_CO.includes(t))
+  return lam.length > 0 && lam.every((t) => NHOM_TIEN_NGA.includes(t))
+}
