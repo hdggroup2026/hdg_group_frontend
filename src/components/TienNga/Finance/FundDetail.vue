@@ -1303,6 +1303,7 @@ const submitForm = async () => {
         loai: formModel.type,
         soTien: Number(formModel.amount) || 0,
         tenQuy: props.fund.subFunds.find((s: any) => s.id === formModel.subFundId)?.name,
+        ngay: formModel.date,   // MỤC 730 — tháng đã khoá sổ thì dừng ngay
       })
       if (!dongY) return
       submitting.value = true

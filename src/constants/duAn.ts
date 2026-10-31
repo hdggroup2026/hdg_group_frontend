@@ -106,6 +106,15 @@ export const DU_AN: DuAn[] = [
     duongMacDinh: '/so-do-van-hanh',
   },
   {
+    // MỤC 730 (01/11/2026) — Khoá sổ tháng (Tiến Nga). Chỉ admin: khoá để chặn chính người nhập
+    // phiếu sửa số tháng cũ; máy chủ cũng chỉ cho admin khoá / mở.
+    ten: 'Khoá sổ',
+    khoaQuyen: null,
+    chiAdmin: true,
+    duong: '/khoa-so',
+    duongMacDinh: '/khoa-so',
+  },
+  {
     ten: 'Phân quyền',
     khoaQuyen: null,
     chiAdmin: true,

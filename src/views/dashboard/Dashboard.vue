@@ -55,6 +55,9 @@
          <!-- MỤC 723 — Sơ đồ vận hành -->
          <SoDoVanHanhView v-else-if="currentProject === 'Sơ đồ vận hành'" />
 
+         <!-- MỤC 730 — Khoá sổ tháng -->
+         <KhoaSoView v-else-if="currentProject === 'Khoá sổ'" />
+
          <!-- === Phân quyền === -->
          <AuthorizationDashboard v-else-if="currentProject === 'Phân quyền'" />
 
@@ -123,6 +126,8 @@ const KhungMoi = defineAsyncComponent(() => import('@/layouts/KhungMoi.vue'))
 const DanhSachLenhView = defineAsyncComponent(() => import('@/views/danh_sach_lenh/DanhSachLenhView.vue'))
 // MỤC 723 — Sơ đồ vận hành, nạp muộn như trên.
 const SoDoVanHanhView = defineAsyncComponent(() => import('@/views/so_do/SoDoVanHanhView.vue'))
+// MỤC 730 — Khoá sổ tháng, nạp muộn (chỉ admin mở).
+const KhoaSoView = defineAsyncComponent(() => import('@/views/khoa_so/KhoaSoView.vue'))
 
 const route = useRoute()
 const router = useRouter()
@@ -182,6 +187,7 @@ const MAN_HINH: Record<string, any> = {
   'Hụi': RoscaDashboard,
   'Danh sách lệnh': DanhSachLenhView,
   'Sơ đồ vận hành': SoDoVanHanhView,
+  'Khoá sổ': KhoaSoView,
   'Phân quyền': AuthorizationDashboard,
 }
 const khungMoi = useStorage(KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI)

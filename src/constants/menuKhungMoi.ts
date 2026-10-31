@@ -59,6 +59,7 @@ export const QUAN_TRI: Record<string, string> = {
   'Phân quyền': 'Phân quyền',
   'Danh sách lệnh': 'Danh sách lệnh',
   'Sơ đồ vận hành': 'Sơ đồ vận hành',
+  'Khoá sổ': 'Khoá sổ tháng',   // MỤC 730
 }
 
 /**

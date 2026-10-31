@@ -1277,6 +1277,7 @@ const submitPayDebtForm = async () => {
         doiTuong: row.name,
         congNoCu: row.totalDebt || 0,
         congNoMoi: computedNewTotalDebt.value,
+        ngay: payDebtForm.date,   // MỤC 730 — kiểm khoá sổ TRƯỚC khi ghi công nợ
       })
       if (!dongY) return
 

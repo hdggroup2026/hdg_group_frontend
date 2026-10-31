@@ -16,6 +16,7 @@
  */
 import { h } from 'vue'
 import { ElMessageBox } from 'element-plus'
+import { khoaSoService } from '@/api/khoaSoService'
 
 export interface ThongTinThuChi {
   loai: 'thu' | 'chi'
@@ -24,6 +25,8 @@ export interface ThongTinThuChi {
   doiTuong?: string
   congNoCu?: number | null
   congNoMoi?: number | null
+  /** MỤC 730 — ngày của phiếu ("YYYY-MM-DD"); có thì hỏi máy chủ tháng đó đã khoá sổ chưa. */
+  ngay?: string
 }
 
 const so = (x: number) => new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 }).format(x || 0)
@@ -36,6 +39,20 @@ export function noXaHon(cu: number | null | undefined, moi: number | null | unde
 
 /** Hiện hộp hỏi lại. Trả `true` khi người dùng bấm lưu, `false` khi bấm "Sửa lại" / đóng. */
 export async function xacNhanThuChi(t: ThongTinThuChi): Promise<boolean> {
+  // ══ MỤC 730 (01/11/2026) — KHOÁ SỔ: hỏi TRƯỚC mọi bước ghi ══
+  // Trả nợ đối tác / hộ dân ghi CÔNG NỢ trước rồi mới ghi PHIẾU. Để máy chủ chặn ở bước phiếu thì
+  // công nợ đã đổi mà phiếu không có ⇒ lệch. Nên hỏi ngay đây, trước cả hộp xác nhận.
+  // Máy chủ chưa có MỤC 730 / lỗi mạng ⇒ đi tiếp (máy chủ vẫn là chỗ chặn cuối cùng).
+  if (t.ngay) {
+    try {
+      const k = await khoaSoService.kiem(t.ngay)
+      if (k.khoa) {
+        await ElMessageBox.alert(k.thong_bao || 'Tháng này đã khoá sổ.', '🔒 Tháng đã khoá sổ',
+          { confirmButtonText: 'Đã hiểu', type: 'error' }).catch(() => {})
+        return false
+      }
+    } catch { /* bỏ qua, xem lời ghi trên */ }
+  }
   const laThu = t.loai === 'thu'
   const mau = laThu ? '#15803d' : '#b91c1c'
   const ngo = noXaHon(t.congNoCu, t.congNoMoi)

@@ -138,6 +138,13 @@ const routes: RouteRecordRaw[] = [
         component: Dashboard,
         meta: { requiresAuth: true }
     },
+    // MỤC 730 (01/11/2026) — Khoá sổ tháng (chỉ admin).
+    {
+        path: '/khoa-so',
+        name: 'khoa-so',
+        component: Dashboard,
+        meta: { requiresAuth: true, requiresAdmin: true }
+    },
     {
         path: '/authorization',
         name: 'authorization',
