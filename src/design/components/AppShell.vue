@@ -5,6 +5,7 @@
   này vào web thật (thay các thanh menu riêng của từng dự án) là gói G4.
   Khung chỉ trình bày: nhận `nav` (đã lọc theo quyền từ bên ngoài) và phát `navigate`.
   Máy tính bảng (768–1279): thanh trái thu thành cột biểu tượng chữ cái đầu.
+  MỤC 731 (01/11/2026): bề rộng thanh trái nay do người dùng KÉO (design/rongMenu.ts); hẹp ⇒ chỉ biểu tượng.
   Điện thoại (<768): thanh trái ẩn, thay bằng thanh dưới đáy `bottomNav` (tối đa 4 mục).
 -->
 <template>
@@ -13,7 +14,7 @@
        Element Plus đổi màu nút của chúng giữa chừng là nửa cũ nửa mới.
        MỤC 724 (G5 lớp 1): KhungMoi.vue nay gắn `.hdg-theme.hdg-phu` lên <body> — trang cũ trong khung
        mới nhận giao diện mới qua design/lop-phu-cu.css; AppShell đứng riêng (trang /dev) vẫn như trên. -->
-  <div class="hdg-shell" :class="[`hdg-shell--${mode}`, { 'hdg-shell--flush': flush }]">
+  <div class="hdg-shell" :class="[`hdg-shell--${mode}`, { 'hdg-shell--flush': flush }]" :style="mode !== 'mobile' ? { gridTemplateColumns: rong + 'px minmax(0, 1fr)' } : undefined">
     <header class="hdg-theme hdg-shell__top">
       <div class="hdg-shell__brand">
         <img src="/logo-hdg.png" alt="" class="hdg-shell__logo" />
@@ -37,22 +38,30 @@
       </div>
     </header>
 
-    <aside v-if="mode !== 'mobile'" class="hdg-theme hdg-shell__side">
+    <!-- MỤC 731 (01/11/2026) — thanh trái KÉO GIÃN được (src/design/rongMenu.ts). Hẹp hơn 160px ⇒ "thu gọn":
+         chỉ còn BIỂU TƯỢNG (thay ô màu + 2 chữ cái đầu cũ), rê chuột hiện tên (el-tooltip, không chờ 1 giây như
+         `title` của trình duyệt). Biểu tượng tô màu dự án — giữ nhận diện màu của ô màu cũ. -->
+    <aside v-if="mode !== 'mobile'" class="hdg-theme hdg-shell__side" :class="{ 'is-thu-gon': thuGon }">
       <template v-for="(sec, si) in nav" :key="si">
-        <div v-if="sec.title && mode === 'desktop'" class="hdg-label hdg-shell__sec">{{ sec.title }}</div>
+        <div v-if="sec.title && !thuGon" class="hdg-label hdg-shell__sec">{{ sec.title }}</div>
+        <div v-else-if="si && thuGon" class="hdg-shell__vach" />
         <template v-for="it in sec.items" :key="it.key">
-          <button
-            type="button"
-            class="hdg-shell__item" :class="{ 'is-active': it.key === activeKey || (it.key === openKey && !it.children?.length) }"
-            :title="it.label" @click="emit('navigate', it)"
-          >
-            <span v-if="it.color" class="hdg-shell__dot" :style="{ background: it.color }" />
-            <span v-if="mode === 'desktop'" class="hdg-shell__label">{{ it.label }}</span>
-            <span v-else class="hdg-shell__short">{{ it.label.slice(0, 2) }}</span>
-            <span v-if="mode === 'desktop' && (it.hasChildren || it.children?.length)" class="hdg-shell__caret">{{ it.key === openKey ? '▾' : '▸' }}</span>
-          </button>
-          <!-- MỤC 722 — mục con của dự án đang mở (chỉ máy tính; máy tính bảng dùng hàng chip trên nội dung) -->
-          <template v-if="mode === 'desktop' && it.key === openKey">
+          <el-tooltip :content="it.label" placement="right" :disabled="!thuGon" :show-after="80" :hide-after="0">
+            <button
+              type="button"
+              class="hdg-shell__item" :class="{ 'is-active': it.key === activeKey || (it.key === openKey && !it.children?.length) }"
+              :aria-label="it.label" @click="emit('navigate', it)"
+            >
+              <el-icon v-if="it.bieuTuong" class="hdg-shell__bt" :style="it.color ? { color: it.color } : undefined">
+                <component :is="it.bieuTuong" />
+              </el-icon>
+              <span v-else class="hdg-shell__bt hdg-shell__bt--chu" :style="it.color ? { background: it.color } : undefined">{{ it.label.slice(0, 1) }}</span>
+              <span v-if="!thuGon" class="hdg-shell__label">{{ it.label }}</span>
+              <span v-if="!thuGon && (it.hasChildren || it.children?.length)" class="hdg-shell__caret">{{ it.key === openKey ? '▾' : '▸' }}</span>
+            </button>
+          </el-tooltip>
+          <!-- MỤC 722 — mục con của dự án đang mở (khi thanh đủ rộng; thu gọn thì KhungMoi hiện hàng chip trên nội dung) -->
+          <template v-if="!thuGon && it.key === openKey">
             <button
               v-for="c in it.children || []" :key="c.key" type="button"
               class="hdg-shell__item hdg-shell__item--con" :class="{ 'is-active': c.key === activeKey }"
@@ -61,7 +70,19 @@
           </template>
         </template>
       </template>
+      <el-tooltip :content="thuGon ? 'Mở rộng thanh menu' : 'Thu gọn thanh menu'" placement="right" :show-after="80" :hide-after="0">
+        <button type="button" class="hdg-shell__item hdg-shell__thu" :aria-label="thuGon ? 'Mở rộng thanh menu' : 'Thu gọn thanh menu'" @click="doiThuGon">
+          <el-icon class="hdg-shell__bt"><component :is="thuGon ? Expand : Fold" /></el-icon>
+          <span v-if="!thuGon" class="hdg-shell__label">Thu gọn</span>
+        </button>
+      </el-tooltip>
     </aside>
+    <!-- Tay kéo: mép phải thanh trái. Kéo để đổi bề rộng; bấm đúp = thu gọn / mở rộng. -->
+    <div
+      v-if="mode !== 'mobile'" class="hdg-shell__keo" :class="{ 'is-keo': dangKeo }"
+      :style="{ left: rong - 3 + 'px' }" title="Kéo để đổi bề rộng · bấm đúp để thu gọn / mở rộng"
+      @pointerdown="batDauKeo" @dblclick="doiThuGon"
+    />
 
     <main class="hdg-shell__main" :class="{ 'hdg-theme': !flush }"><slot /></main>
 
@@ -79,14 +100,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref, type Component } from 'vue'
 import { useDark, useWindowSize } from '@vueuse/core'
+import { Expand, Fold } from '@element-plus/icons-vue'
+import { dungRongMenu } from '@/design/rongMenu'
 
 export interface MucMenu {
   key: string
   label: string
   color?: string
   icon?: string
+  /** MỤC 731 — biểu tượng ở thanh trái (Element Plus icon). Không có thì hiện chữ cái đầu trong ô màu. */
+  bieuTuong?: Component
   hasChildren?: boolean
   /** MỤC 722 — đường dẫn khi bấm, và các mục con (bung ra khi dự án đang mở). */
   to?: string
@@ -112,11 +137,32 @@ const isDark = useDark({ selector: 'html', attribute: 'class', valueDark: 'dark'
 
 const { width } = useWindowSize()
 const mode = computed(() => (width.value < 768 ? 'mobile' : width.value < 1280 ? 'tablet' : 'desktop'))
+
+// MỤC 731 — bề rộng thanh trái do người dùng kéo (rongMenu.ts). `mode` vẫn quyết điện thoại hay không.
+const { rong, thuGon, datRong, doiThuGon } = dungRongMenu()
+const dangKeo = ref(false)
+function batDauKeo(e: PointerEvent) {
+  if (e.button !== 0) return
+  e.preventDefault()
+  dangKeo.value = true
+  document.body.style.userSelect = 'none'
+  document.body.style.cursor = 'col-resize'
+  const keo = (ev: PointerEvent) => datRong(ev.clientX)
+  const tha = () => {
+    dangKeo.value = false
+    document.body.style.userSelect = ''
+    document.body.style.cursor = ''
+    window.removeEventListener('pointermove', keo)
+    window.removeEventListener('pointerup', tha)
+  }
+  window.addEventListener('pointermove', keo)
+  window.addEventListener('pointerup', tha)
+}
 </script>
 
 <style scoped>
 .hdg-shell { background: var(--hdg-bg); min-height: 100vh; display: grid; grid-template-rows: var(--hdg-topbar-h) 1fr; grid-template-columns: var(--hdg-sidebar-w) minmax(0, 1fr); }
-.hdg-shell--tablet { grid-template-columns: 64px minmax(0, 1fr); }
+/* MỤC 731 — bề rộng cột trái nay đặt bằng style (rongMenu.ts); lớp tablet chỉ còn ý nghĩa lề. */
 .hdg-shell--mobile { grid-template-columns: minmax(0, 1fr); grid-template-rows: 56px 1fr 64px; }
 .hdg-shell__top { grid-column: 1 / -1; display: flex; align-items: center; gap: 20px; padding: 0 20px; background: var(--hdg-card); border-bottom: 1px solid var(--hdg-border); position: sticky; top: 0; z-index: 20; }
 .hdg-shell__brand { display: flex; align-items: center; gap: 10px; }
@@ -137,11 +183,20 @@ html.dark .hdg-shell__name { color: var(--hdg-primary); }
 .hdg-shell__item--con { min-height: 36px; padding-left: 38px; font-size: var(--hdg-fs-table); color: var(--hdg-text-muted); }
 .hdg-shell__item--con.is-active { color: var(--hdg-primary); }
 .hdg-shell__dot { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+/* MỤC 731 — biểu tượng thay ô màu; thu gọn thì canh giữa, chỉ còn biểu tượng. */
+.hdg-shell__bt { flex: none; width: 20px; height: 20px; font-size: 18px; display: inline-flex; align-items: center; justify-content: center; color: var(--hdg-text-muted); }
+.hdg-shell__bt--chu { border-radius: 6px; background: var(--hdg-text-muted); color: #fff; font-size: 12px; font-weight: 700; }
+.hdg-shell__item.is-active .hdg-shell__bt:not(.hdg-shell__bt--chu) { filter: saturate(1.3); }
+.hdg-shell__side.is-thu-gon { padding: 12px 8px; overflow-x: hidden; }
+.hdg-shell__side.is-thu-gon .hdg-shell__item { justify-content: center; padding: 0; }
+.hdg-shell__vach { height: 1px; margin: 10px 6px; background: var(--hdg-border); }
+.hdg-shell__thu { margin-top: 14px; border-top: 1px solid var(--hdg-border); border-radius: 0; color: var(--hdg-text-muted); }
+.hdg-shell__label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hdg-shell__keo { position: fixed; top: var(--hdg-topbar-h); bottom: 0; width: 6px; z-index: 25; cursor: col-resize; touch-action: none; }
+.hdg-shell__keo:hover, .hdg-shell__keo.is-keo { background: var(--hdg-primary); opacity: .45; }
 .hdg-shell__label { flex: 1; }
 .hdg-shell__caret { color: var(--hdg-text-muted); font-size: 12px; }
 .hdg-shell__short { font-weight: 700; }
-.hdg-shell--tablet .hdg-shell__side { padding: 12px 8px; }
-.hdg-shell--tablet .hdg-shell__item { justify-content: center; padding: 0; }
 .hdg-shell__main { padding: 26px 32px 40px; min-width: 0; }
 /* MỤC 722 — `flush`: trang tự lo lề + cuộn (trang dự án cũ dùng h-full, el-splitter...). */
 .hdg-shell.hdg-shell--flush .hdg-shell__main { padding: 0; height: calc(100vh - var(--hdg-topbar-h)); overflow: hidden; }

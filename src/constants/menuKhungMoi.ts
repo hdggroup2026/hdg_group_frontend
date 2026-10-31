@@ -8,6 +8,11 @@
  * Tiến Nga KHÔNG có ở đây: s68 29/10 "khoan đụng Tiến Nga, kế toán đã dùng quen" ⇒ vào Tiến
  * Nga là quay về khung cũ nguyên vẹn (Dashboard.vue).
  */
+import type { Component } from 'vue'
+import {
+  Box, ChatDotRound, Coin, CreditCard, Grape, House, Key, List, Lock, Notebook, OfficeBuilding, Share, Shop, User,
+} from '@element-plus/icons-vue'
+
 export interface MucCon {
   label: string
   duong: string
@@ -39,6 +44,28 @@ export const MUC_CON: Record<string, MucCon[]> = {
     { label: 'Quản lý Hình ảnh, Giấy tờ', duong: '/other/documents' },
     { label: 'Quản lý App', duong: '/other/apps' },
   ],
+}
+
+/**
+ * MỤC 731 (01/11/2026) — BIỂU TƯỢNG Ở THANH TRÁI (thay ô màu; thu gọn thì chỉ còn biểu tượng, rê chuột hiện tên).
+ * Khoá = tên trong DU_AN (constants/duAn.ts). Mục chưa có ở đây hiện chữ cái đầu trong ô màu — thêm mục mới
+ * vào DU_AN thì thêm biểu tượng ở đây (có ca kiểm đối chiếu: tests/test_muc_731_thanh_trai.py).
+ */
+export const BIEU_TUONG: Record<string, Component> = {
+  'Trang Chủ': House,
+  'Tiến Nga': Shop,
+  Ggomoosin: User,
+  Rental: OfficeBuilding,
+  Credit: CreditCard,
+  'Thu hoạch': Grape,
+  'Hụi': Coin,
+  Other: Box,
+  'Dự án Telegram': ChatDotRound,
+  'Nhật ký': Notebook,
+  'Danh sách lệnh': List,
+  'Sơ đồ vận hành': Share,
+  'Khoá sổ': Lock,
+  'Phân quyền': Key,
 }
 
 /** Màu chấm cạnh tên dự án — cùng bảng màu trang Danh sách lệnh. */

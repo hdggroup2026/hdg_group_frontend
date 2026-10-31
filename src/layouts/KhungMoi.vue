@@ -36,7 +36,8 @@
 
     <div class="km-noi-dung">
       <!-- Máy tính bảng / điện thoại: mục con của dự án thành hàng chip (thanh trái không bung được) -->
-      <nav v-if="width < 1280 && conDuAn.length" class="hdg-theme km-chip">
+      <!-- MỤC 731 — hiện chip khi thanh trái THU GỌN (người dùng kéo hẹp) hoặc điện thoại, thay vì theo bề rộng màn. -->
+      <nav v-if="(width < 768 || thuGon) && conDuAn.length" class="hdg-theme km-chip">
         <button
           v-for="c in conDuAn" :key="c.duong" type="button"
           class="km-chip__nut" :class="{ 'is-active': route.path.startsWith(c.duong) }"
@@ -62,12 +63,14 @@ import '@/design/lop-phu-cu.css'
 import AppShell, { type KhoiMenu, type MucMenu } from '@/design/components/AppShell.vue'
 import { authService } from '@/api/auth'
 import { layQuyen, danhSachDuocVao, timTheoTen, xoaBoNhoQuyen, type DuAn } from '@/constants/duAn'
-import { KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI, MAU_DU_AN, MUC_CON, QUAN_TRI } from '@/constants/menuKhungMoi'
+import { BIEU_TUONG, KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI, MAU_DU_AN, MUC_CON, QUAN_TRI } from '@/constants/menuKhungMoi'
+import { dungRongMenu } from '@/design/rongMenu'   // MỤC 731
 
 const props = defineProps<{ duAn: string }>()
 const route = useRoute()
 const router = useRouter()
 const { width } = useWindowSize()
+const { thuGon } = dungRongMenu()
 const khungMoi = useStorage(KHOA_KHUNG_MOI, MAC_DINH_KHUNG_MOI)
 
 // MỤC 724 — gắn giao diện mới lên <body> khi khung mới đang mở (để cả hộp thoại append-to-body
@@ -86,10 +89,11 @@ const nav = computed<KhoiMenu[]>(() => {
   const quanTri: MucMenu[] = []
   let trangChu: MucMenu | null = null
   for (const d of duocVao.value) {
-    if (d.ten === 'Trang Chủ') { trangChu = { key: d.ten, label: 'Trang chủ', to: d.duongMacDinh }; continue }
-    if (d.ten in QUAN_TRI) { quanTri.push({ key: d.ten, label: QUAN_TRI[d.ten] || d.ten, to: d.duongMacDinh }); continue }
+    // MỤC 731 — `bieuTuong`: biểu tượng ở thanh trái (thu gọn thì chỉ còn biểu tượng).
+    if (d.ten === 'Trang Chủ') { trangChu = { key: d.ten, label: 'Trang chủ', to: d.duongMacDinh, bieuTuong: BIEU_TUONG[d.ten] }; continue }
+    if (d.ten in QUAN_TRI) { quanTri.push({ key: d.ten, label: QUAN_TRI[d.ten] || d.ten, to: d.duongMacDinh, bieuTuong: BIEU_TUONG[d.ten] }); continue }
     duAn.push({
-      key: d.ten, label: d.ten, color: MAU_DU_AN[d.ten], to: d.duongMacDinh,
+      key: d.ten, label: d.ten, color: MAU_DU_AN[d.ten], to: d.duongMacDinh, bieuTuong: BIEU_TUONG[d.ten],
       hasChildren: d.ten === 'Tiến Nga',
       children: (MUC_CON[d.ten] || []).map((c) => ({ key: c.duong, label: c.label, to: c.duong })),
     })
