@@ -903,6 +903,8 @@
 import { ref, computed, reactive, onMounted, onBeforeUnmount, watch } from 'vue'
 import { MoreFilled, Search, Refresh } from '@element-plus/icons-vue'
 import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
+// MỤC 729 (01/11/2026) — hỏi lại Thu/Chi trước khi lưu (src/utils/xacNhanThuChi.ts, sự cố MỤC 717).
+import { xacNhanThuChi } from '@/utils/xacNhanThuChi'
 import { tienNgaService } from '@/api/tienNgaService'
 // MỤC 392 — dùng hàm chung, không viết hàm thứ hai cho cùng một việc.
 import { dinhDangSo } from '@/utils/dinhDangSo'
@@ -1401,6 +1403,17 @@ const submitPayDebtForm = async () => {
         ElMessage.warning('Vui lòng nhập số tiền hợp lệ')
         return
       }
+
+      // MỤC 729 — đúng chỗ đã nhầm ở MỤC 717. Hiện "Công nợ A → B"; B xa 0 hơn A thì cảnh báo.
+      const dongY = await xacNhanThuChi({
+        loai: payDebtForm.type as 'thu' | 'chi',
+        soTien: paymentAmount,
+        tenQuy: subFunds.value.find((s: any) => s.id === payDebtForm.subFundId)?.name,
+        doiTuong: row.name,
+        congNoCu: row.debt || 0,
+        congNoMoi: computedNewTotalDebt.value,
+      })
+      if (!dongY) return
 
       loading.value = true
       try {

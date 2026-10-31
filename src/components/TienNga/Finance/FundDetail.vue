@@ -1060,6 +1060,8 @@ import { ref, reactive, computed, watch } from 'vue'
 import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
 import { mauSo } from '@/utils/mauSo'
 import { ElMessageBox, ElMessage } from 'element-plus'
+// MỤC 729 (01/11/2026) — hỏi lại Thu/Chi trước khi lưu (src/utils/xacNhanThuChi.ts, sự cố MỤC 717).
+import { xacNhanThuChi } from '@/utils/xacNhanThuChi'
 import { tienNgaService } from '@/api/tienNgaService'
 import type { FormInstance, FormRules } from 'element-plus'
 import { 
@@ -1296,6 +1298,13 @@ const submitForm = async () => {
   if (!formRef.value) return
   await formRef.value.validate(async (valid: boolean) => {
     if (valid) {
+      // MỤC 729 — hỏi lại: "Quỹ X sẽ TĂNG/GIẢM y". Bấm "Sửa lại" thì không lưu, form giữ nguyên.
+      const dongY = await xacNhanThuChi({
+        loai: formModel.type,
+        soTien: Number(formModel.amount) || 0,
+        tenQuy: props.fund.subFunds.find((s: any) => s.id === formModel.subFundId)?.name,
+      })
+      if (!dongY) return
       submitting.value = true
       try {
         const payload = [{

@@ -1133,6 +1133,8 @@ import { ref, computed, reactive, onMounted, watch } from 'vue'
 import { mauSo } from '@/utils/mauSo'
 import { MoreFilled, Search, Refresh } from '@element-plus/icons-vue'
 import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
+// MỤC 729 (01/11/2026) — hỏi lại Thu/Chi trước khi lưu (src/utils/xacNhanThuChi.ts, sự cố MỤC 717).
+import { xacNhanThuChi } from '@/utils/xacNhanThuChi'
 import { tienNgaService } from '@/api/tienNgaService'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
@@ -1266,6 +1268,17 @@ const submitPayDebtForm = async () => {
         ElMessage.warning('Vui lòng nhập số tiền hợp lệ')
         return
       }
+
+      // MỤC 729 — cùng hộp hỏi lại như trả nợ đối tác.
+      const dongY = await xacNhanThuChi({
+        loai: payDebtForm.type as 'thu' | 'chi',
+        soTien: paymentAmount,
+        tenQuy: subFunds.value.find((s: any) => s.id === payDebtForm.subFundId)?.name,
+        doiTuong: row.name,
+        congNoCu: row.totalDebt || 0,
+        congNoMoi: computedNewTotalDebt.value,
+      })
+      if (!dongY) return
 
       loading.value = true
       try {
