@@ -13,6 +13,12 @@
         Tháng đã khoá thì <b>không ai thêm hay xoá được phiếu thu chi</b> của tháng đó, kể cả qua bot.
         Muốn sửa số tháng cũ: mở khoá ➜ sửa ➜ khoá lại.
       </p>
+      <!-- MỤC 732 (01/11/2026) — s68: "auto khóa số liệu tháng cũ vào ngày 3 hàng tháng". Máy chủ tự khoá
+           (bot/utils/scheduler.py, worker 8h); mở khoá sau ngày 3 thì KHÔNG bị tự khoá lại trong tháng đó. -->
+      <p class="ks-phu">
+        🤖 <b>Tự khoá:</b> 11:00 ngày 3 hằng tháng, máy tự khoá sổ tháng trước và báo vào nhóm Telegram Tiến Nga.
+        Mở khoá sau ngày đó thì máy không tự khoá lại — nhớ tự khoá lại khi sửa xong.
+      </p>
 
       <el-alert v-if="loi" :title="loi" type="error" show-icon :closable="false" class="mb-4" />
       <el-alert v-else-if="!sanSang && !dangTai" type="warning" show-icon :closable="false" class="mb-4"
