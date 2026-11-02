@@ -1303,7 +1303,7 @@ const submitForm = async () => {
     if (response === null) return            // MỤC 735 — bấm "Thôi" ở hộp lý do: giữ nguyên form
     if (laChoXacNhan(response)) {            // MỤC 735 — tháng đã khoá: CHƯA ghi, đang chờ nhóm xác nhận
       baoChoXacNhan(response, (!purchaseForm.saveToBook && paidAmount > 0)
-        ? 'Phiếu chi tiền đi kèm CHƯA tạo (tháng khoá thì phiếu thu chi cũng khoá) — nhờ admin nếu cần.' : '')
+        ? 'Phiếu chi tiền đi kèm CHƯA tạo — nhập ở trang Quỹ (tháng khoá cũng hỏi lý do, vào danh sách chờ).' : '')
       resetForm()
       dialogVisible.value = false
       khungChoXacNhan.value?.tai()

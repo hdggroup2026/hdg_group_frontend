@@ -10,8 +10,9 @@
     <div class="max-w-3xl mx-auto">
       <h1 class="ks-tieu-de">Khoá sổ tháng — Tiến Nga</h1>
       <p class="ks-phu">
-        Tháng đã khoá thì <b>không ai thêm hay xoá được phiếu thu chi</b> của tháng đó, kể cả qua bot.
-        Muốn sửa số tháng cũ: mở khoá ➜ sửa ➜ khoá lại. Phiếu <b>thu mua</b> tháng khoá thì sửa vào danh sách chờ (cuối trang).
+        <!-- MỤC 736 (02/11/2026) — s68: thu chi "giống thu mua", không khoá hẳn. -->
+        Tháng đã khoá thì phiếu <b>thu mua</b> và <b>thu chi</b> của tháng đó sửa trên web phải ghi lý do ➜ vào danh sách
+        chờ (cuối trang) ➜ ai trong nhóm I. TN - Tổng Quản Lý bấm Đồng ý mới ghi. Bot không nhập phiếu tháng khoá.
       </p>
       <!-- MỤC 732 (01/11/2026) — s68: "auto khóa số liệu tháng cũ vào ngày 3 hàng tháng". Máy chủ tự khoá
            (bot/utils/scheduler.py, tu_khoa_so_worker lúc 11:00); mở khoá sau đó thì KHÔNG bị tự khoá lại trong tháng. -->
@@ -57,7 +58,7 @@
       <!-- MỤC 735 (02/11/2026) — phiếu thu mua tháng khoá: sửa ➜ danh sách chờ ➜ nhóm Tổng Quản Lý xác nhận. -->
       <div class="ks-nhan mt-6">Chờ xác nhận — sửa phiếu thu mua tháng đã khoá</div>
       <p class="ks-phu">
-        Kế toán sửa / thêm / xoá / sửa mã hộ phiếu thu mua của tháng đã khoá thì <b>chưa ghi</b>: yêu cầu vào danh sách
+        Kế toán sửa / thêm / xoá / sửa mã hộ phiếu thu mua, thêm / xoá phiếu thu chi của tháng đã khoá thì <b>chưa ghi</b>: yêu cầu vào danh sách
         này và bot gửi nút lên nhóm <b>I. TN - Tổng Quản Lý</b> — ai trong nhóm bấm <b>Đồng ý ghi</b> thì mới ghi thật.
       </p>
       <ChoXacNhanSuaSo />

@@ -63,6 +63,14 @@
         >
           Xóa đã thanh toán
         </el-button>
+        <!-- MỤC 736 (02/11/2026) — nhập lộn hộ (2 khách trùng tên): khoản đã trả chuyển sang hộ đúng, sửa CẢ HAI sổ. -->
+        <el-button
+          type="warning"
+          :disabled="selectedRows.length === 0"
+          @click="moChuyenThanhToan"
+        >
+          Chuyển sang hộ đúng
+        </el-button>
       </div>
     </div>
 
@@ -671,6 +679,10 @@
         </span>
       </template>
     </el-dialog>
+
+    <!-- MỤC 736 -->
+    <ChuyenSangHoDung v-model="hienChuyenTT" loai="thanh_toan" :ids="chuyenTT.ids" :ho-cu="chuyenTT.hoCu"
+                      :ten-cu="chuyenTT.tenCu" :mo-ta="chuyenTT.moTa" @xong="xongChuyenTT" />
   </div>
 </template>
 
@@ -681,6 +693,7 @@ import { mauSo } from '@/utils/mauSo'
 import { Search, Warning } from '@element-plus/icons-vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
+import ChuyenSangHoDung from './ChuyenSangHoDung.vue'   // MỤC 736
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
@@ -989,6 +1002,35 @@ const getWeekNumber = (dateString: string): number => {
   d.setUTCDate(d.getUTCDate() + 4 - dayNum);
   const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
   return Math.ceil((((d.getTime() - yearStart.getTime()) / 86400000) + 1) / 7);
+}
+
+// ══ MỤC 736 (02/11/2026) — NHẬP LỘN HỘ: CHUYỂN KHOẢN ĐÃ TRẢ SANG HỘ ĐÚNG ══
+// s68: "Kế toán trước đã nhập vào A do trùng tên … kế toán điều chỉnh sửa cả 2 sổ … bot sẽ báo lên nhóm Tổng Quản lý
+// và 2 nhóm KH A và A+". Máy chủ sửa cả hai sổ trong MỘT giao dịch (app/services/chuyen_ho_thu_chi.py) — web không
+// tự cộng trừ công nợ (khác "Xoá thanh toán" bên dưới, vốn ghi đè công nợ từ web).
+const hienChuyenTT = ref(false)
+const chuyenTT = reactive({ ids: [] as string[], hoCu: '', tenCu: '', moTa: '' })
+const moChuyenThanhToan = () => {
+  const ho = Array.from(new Set(selectedRows.value.map(r => r.code).filter(Boolean)))
+  if (ho.length !== 1) {
+    ElMessage.warning('Chọn các phiếu của CÙNG MỘT hộ (hộ đang bị ghi nhầm).')
+    return
+  }
+  const coTra = selectedRows.value.filter(r => (r.paidAmount || 0) > 0)
+  if (!coTra.length) {
+    ElMessage.warning('Các phiếu chọn chưa có khoản đã trả nào để chuyển.')
+    return
+  }
+  const tong = coTra.reduce((s, r) => s + (r.paidAmount || 0), 0)
+  chuyenTT.ids = coTra.map(r => r.id)
+  chuyenTT.hoCu = String(ho[0])
+  chuyenTT.tenCu = coTra[0].name || ''
+  chuyenTT.moTa = `${coTra.length} phiếu · đã trả ${dinhDangSo(tong)} đ`
+  hienChuyenTT.value = true
+}
+const xongChuyenTT = () => {
+  selectedRows.value = []
+  fetchDailyPurchases()
 }
 
 const handleDeletePayment = async () => {

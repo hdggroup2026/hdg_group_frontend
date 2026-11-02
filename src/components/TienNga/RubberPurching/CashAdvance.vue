@@ -258,6 +258,8 @@
               <template #dropdown>
                 <el-dropdown-menu>
                   <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                  <!-- MỤC 736 — nhập lộn hộ (2 khách trùng tên) -->
+                  <el-dropdown-item command="chuyen">Chuyển sang hộ đúng</el-dropdown-item>
                   <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
                 </el-dropdown-menu>
               </template>
@@ -298,6 +300,7 @@
                               <template #dropdown>
                                 <el-dropdown-menu>
                                   <el-dropdown-item command="detail">Chi tiết</el-dropdown-item>
+                                  <el-dropdown-item command="chuyen">Chuyển sang hộ đúng</el-dropdown-item>
                                   <el-dropdown-item command="delete" divided class="!text-red-500">Xóa</el-dropdown-item>
                                 </el-dropdown-menu>
                               </template>
@@ -690,6 +693,9 @@
       </template>
     </el-dialog>
 
+    <!-- MỤC 736 -->
+    <ChuyenSangHoDung v-model="hienChuyenUng" loai="ung_tien" :ids="chuyenUng.ids" :ho-cu="chuyenUng.hoCu"
+                      :ten-cu="chuyenUng.tenCu" :mo-ta="chuyenUng.moTa" @xong="refreshAll" />
 </template>
 
 <script setup lang="ts">
@@ -699,6 +705,7 @@ import { Search, Refresh, Download, MoreFilled } from '@element-plus/icons-vue'
 import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
 import * as XLSX from 'xlsx-js-style'
 import { tienNgaService } from '@/api/tienNgaService'
+import ChuyenSangHoDung from './ChuyenSangHoDung.vue'   // MỤC 736
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
@@ -1109,9 +1116,27 @@ const handleCommand = (command: string, row: any) => {
   if (command === 'detail') {
     detailData.value = row
     detailDialogVisible.value = true
+  } else if (command === 'chuyen') {
+    moChuyenUng(row)                     // MỤC 736
   } else if (command === 'delete') {
     deleteLog(row)
   }
+}
+
+// ══ MỤC 736 (02/11/2026) — NHẬP LỘN HỘ: CHUYỂN DÒNG ỨNG / KHẤU TRỪ SANG HỘ ĐÚNG ══
+// s68: "kế toán điều chỉnh sửa cả 2 sổ Dũng A và Dũng A+ … bot sẽ báo lên nhóm Tổng Quản lý và 2 nhóm KH". Dòng
+// chuyển nguyên sang hộ đúng, số dư ứng hai hộ đổi theo (máy chủ: app/services/chuyen_ho_thu_chi.py).
+const hienChuyenUng = ref(false)
+const chuyenUng = ref({ ids: [] as string[], hoCu: '', tenCu: '', moTa: '' })
+const moChuyenUng = (row: any) => {
+  chuyenUng.value = {
+    ids: [row.id],
+    hoCu: row.hoursehold_id || '',
+    tenCu: row.fullname || '',
+    moTa: `${entryTypeLabel(row.entry_type)} ${advanceTypeLabel(row.advance_type).toLowerCase()} `
+      + `${formatCurrency(row.amount || 0)} VNĐ`,
+  }
+  hienChuyenUng.value = true
 }
 
 const handleSizeChange = (val: number) => {

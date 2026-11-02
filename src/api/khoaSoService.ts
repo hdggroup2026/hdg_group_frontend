@@ -55,4 +55,7 @@ export const khoaSoService = {
   // MỤC 735 — danh sách chờ xác nhận sửa phiếu thu mua tháng đã khoá (chỉ xem).
   choXacNhan: (gioiHan = 100): Promise<{ san_sang: boolean; so_dang_cho: number; ds: DongChoXacNhan[] }> =>
     goi(`/cho-xac-nhan?gioi_han=${gioiHan}`),
+  // MỤC 736 — kế toán huỷ một yêu cầu còn chờ; máy chủ sửa tin trên nhóm thành "ĐÃ HUỶ".
+  huy: (id: string): Promise<{ thanh_cong: boolean; da_bao_nhom: boolean }> =>
+    goi(`/cho-xac-nhan/${encodeURIComponent(id)}/huy`, { method: 'POST' }),
 }

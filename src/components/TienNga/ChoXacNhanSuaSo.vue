@@ -21,7 +21,10 @@
           <div v-for="d in ds" :key="d.id" class="cxn-the">
             <div class="cxn-dau">
               <span :class="['cxn-trang', 'cxn-' + d.trang_thai]">{{ d.trang_thai_chu }}</span>
-              <span class="cxn-nho">{{ d.loai_chu }} · tháng {{ d.thang }}</span>
+              <span class="cxn-nho">{{ d.loai_chu }}<template v-if="d.thang"> · tháng {{ d.thang }}</template></span>
+              <!-- MỤC 736 — s68: "huỷ được trên web luôn" -->
+              <el-button v-if="d.trang_thai === 'PENDING'" size="small" type="danger" plain class="cxn-huy"
+                         :loading="dangHuy === d.id" @click="huy(d)">Huỷ yêu cầu</el-button>
             </div>
             <pre class="cxn-mo-ta">{{ d.mo_ta }}</pre>
             <div class="cxn-nho">📝 Lý do: {{ d.ly_do }}</div>
@@ -40,7 +43,9 @@
       <div v-for="d in ds" :key="d.id" class="cxn-the">
         <div class="cxn-dau">
           <span :class="['cxn-trang', 'cxn-' + d.trang_thai]">{{ d.trang_thai_chu }}</span>
-          <span class="cxn-nho">{{ d.loai_chu }} · tháng {{ d.thang }}</span>
+          <span class="cxn-nho">{{ d.loai_chu }}<template v-if="d.thang"> · tháng {{ d.thang }}</template></span>
+          <el-button v-if="d.trang_thai === 'PENDING'" size="small" type="danger" plain class="cxn-huy"
+                     :loading="dangHuy === d.id" @click="huy(d)">Huỷ yêu cầu</el-button>
         </div>
         <pre class="cxn-mo-ta">{{ d.mo_ta }}</pre>
         <div class="cxn-nho">📝 Lý do: {{ d.ly_do }}</div>
@@ -55,6 +60,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { khoaSoService, type DongChoXacNhan } from '@/api/khoaSoService'
 
 const props = defineProps<{ gon?: boolean }>()
@@ -75,6 +81,26 @@ async function tai() {
   } catch {
     // Không đọc được (máy chủ cũ / mất mạng) thì im — khung này chỉ để xem, không được làm hỏng trang Thu mua.
     sanSang.value = false
+  }
+}
+
+// MỤC 736 (02/11/2026) — huỷ yêu cầu còn chờ; máy chủ sửa tin trên nhóm thành "ĐÃ HUỶ" + báo một dòng.
+const dangHuy = ref('')
+async function huy(d: DongChoXacNhan) {
+  try {
+    await ElMessageBox.confirm(
+      `Huỷ yêu cầu "${d.loai_chu}"? Sổ giữ nguyên như cũ, bot báo lên nhóm I. TN - Tổng Quản Lý là đã huỷ.`,
+      'Huỷ yêu cầu', { confirmButtonText: 'Huỷ yêu cầu', cancelButtonText: 'Thôi', type: 'warning' })
+  } catch { return }
+  dangHuy.value = d.id
+  try {
+    const kq = await khoaSoService.huy(d.id)
+    ElMessage.success(kq.da_bao_nhom ? 'Đã huỷ — đã báo lên nhóm.' : 'Đã huỷ (chưa báo được lên nhóm).')
+  } catch (e: any) {
+    ElMessage.error(e?.message || 'Không huỷ được.')
+  } finally {
+    dangHuy.value = ''
+    await tai()
   }
 }
 
@@ -101,4 +127,6 @@ onMounted(tai)
 .cxn-mo-ta { white-space: pre-wrap; word-break: break-word; font-family: inherit; font-size: 13px; margin: 0 0 6px; }
 .cxn-nho { font-size: 12px; color: var(--el-text-color-secondary); }
 .cxn-loi { font-size: 12px; color: var(--el-color-danger); margin-top: 4px; }
+.cxn-huy { margin-left: auto; }
+.cxn-CANCELLED { background: var(--el-fill-color-dark); }
 </style>

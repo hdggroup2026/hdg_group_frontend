@@ -1,9 +1,30 @@
 import { authService } from './auth';
 import { getApiUrl } from './apiConfig';
+// MỤC 736 — thu chi tháng khoá cũng vào danh sách chờ. Phiếu thu chi được tạo ở ~10 chỗ (quỹ, thanh toán, ứng
+// tiền, kho…) nên hỏi lý do NGAY TRONG hàm gọi API, không sửa từng chỗ gọi.
+import { baoChoXacNhan, hoiLyDoKhoaSo, laChoXacNhan, MA_CAN_LY_DO } from '@/utils/khoaSoChoXacNhan';
 
 // MỤC 735 (02/11/2026) — sửa phiếu thu mua tháng đã khoá: lý do gửi kèm `?ly_do=`; lỗi mang theo mã HTTP
 // để web nhận ra 428 (cần lý do) — xem src/utils/khoaSoChoXacNhan.ts.
 const qLyDo = (lyDo?: string) => (lyDo ? `?ly_do=${encodeURIComponent(lyDo)}` : '')
+async function postTienNga(duong: string, than: any): Promise<any> {
+  const BASE_URL = await getApiUrl()
+  const token = authService.getToken()
+  const tokenType = localStorage.getItem('token_type') || 'Bearer'
+  const response = await fetch(`${BASE_URL}/tien-nga${duong}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `${tokenType} ${token}`,
+               'ngrok-skip-browser-warning': 'true' },
+    body: JSON.stringify(than),
+  })
+  const kq = await response.json().catch(() => ({}))
+  if (!response.ok) {
+    if (response.status === 401) authService.handle401()
+    throw loiCoMa(response.status, (typeof kq?.detail === 'string' && kq.detail) || `Lỗi ${response.status}`)
+  }
+  return kq
+}
+
 function loiCoMa(status: number, thongBao: string): Error {
   const loi: any = new Error(thongBao)
   loi.status = status
@@ -1703,13 +1724,13 @@ export const tienNgaService = {
     return await response.json();
   },
 
-  async addDailyPayments(payments: any[]): Promise<any[]> {
+  async addDailyPayments(payments: any[], lyDo?: string): Promise<any[]> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();
     const tokenType = localStorage.getItem('token_type') || 'Bearer';
     const authHeader = `${tokenType} ${token}`;
 
-    const response = await fetch(`${BASE_URL}/tien-nga/add-daily-payments`, {
+    const response = await fetch(`${BASE_URL}/tien-nga/add-daily-payments${qLyDo(lyDo)}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -1737,19 +1758,26 @@ export const tienNgaService = {
         authService.handle401();
       }
       
-      throw new Error(errorData.detail || `Error ${response.status}: Failed to add daily payments`);
+      if (response.status === MA_CAN_LY_DO && !lyDo) {           // MỤC 736 — tháng đã khoá sổ
+        const ly = await hoiLyDoKhoaSo(errorData.detail || '')
+        if (!ly) throw loiCoMa(response.status, 'Đã thôi — chưa lưu phiếu thu chi.')
+        return tienNgaService.addDailyPayments(payments, ly)
+      }
+      throw loiCoMa(response.status, errorData.detail || `Error ${response.status}: Failed to add daily payments`);
     }
 
-    return await response.json();
+    const kqThem = await response.json();
+    if (laChoXacNhan(kqThem)) { baoChoXacNhan(kqThem); return [] }   // MỤC 736 — chưa ghi, đang chờ nhóm
+    return kqThem;
   },
 
-  async deleteDailyPayments(paymentIds: string[]): Promise<any[]> {
+  async deleteDailyPayments(paymentIds: string[], lyDo?: string): Promise<any[]> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();
     const tokenType = localStorage.getItem('token_type') || 'Bearer';
     const authHeader = `${tokenType} ${token}`;
 
-    const response = await fetch(`${BASE_URL}/tien-nga/delete-daily-payments`, {
+    const response = await fetch(`${BASE_URL}/tien-nga/delete-daily-payments${qLyDo(lyDo)}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -1777,10 +1805,17 @@ export const tienNgaService = {
         authService.handle401();
       }
       
-      throw new Error(errorData.detail || `Error ${response.status}: Failed to delete daily payments`);
+      if (response.status === MA_CAN_LY_DO && !lyDo) {           // MỤC 736 — tháng đã khoá sổ
+        const ly = await hoiLyDoKhoaSo(errorData.detail || '')
+        if (!ly) throw loiCoMa(response.status, 'Đã thôi — chưa xoá phiếu thu chi.')
+        return tienNgaService.deleteDailyPayments(paymentIds, ly)
+      }
+      throw loiCoMa(response.status, errorData.detail || `Error ${response.status}: Failed to delete daily payments`);
     }
 
-    return await response.json();
+    const kqXoa = await response.json();
+    if (laChoXacNhan(kqXoa)) { baoChoXacNhan(kqXoa); return [] }     // MỤC 736 — chưa xoá, đang chờ nhóm
+    return kqXoa;
   },
 
   async deleteMaterialPurchases(purchaseIds: string[]): Promise<any[]> {
@@ -2046,6 +2081,15 @@ export const tienNgaService = {
   // công nợ phải chuyển và tự gửi tin xin duyệt — frontend không đụng
   // vào tiền.
   // ══════════════════════════════════════════════════════════════════
+  // MỤC 736 (02/11/2026) — nhập lộn hộ (2 khách trùng tên): chuyển khoản đã trả / dòng ứng sang hộ đúng.
+  async chuyenThanhToanSangHo(purchaseIds: string[], hoMoi: string, lyDo: string): Promise<any> {
+    return postTienNga('/chuyen-thanh-toan-sang-ho', { purchase_ids: purchaseIds, ho_moi: hoMoi, ly_do: lyDo })
+  },
+
+  async chuyenUngTienSangHo(logIds: string[], hoMoi: string, lyDo: string): Promise<any> {
+    return postTienNga('/chuyen-ung-tien-sang-ho', { log_ids: logIds, ho_moi: hoMoi, ly_do: lyDo })
+  },
+
   async suaMaHoDan(purchaseId: string, hoMoi: string, lyDo?: string): Promise<any> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();
