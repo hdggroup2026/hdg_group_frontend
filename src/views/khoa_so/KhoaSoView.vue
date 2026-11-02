@@ -11,7 +11,7 @@
       <h1 class="ks-tieu-de">Khoá sổ tháng — Tiến Nga</h1>
       <p class="ks-phu">
         Tháng đã khoá thì <b>không ai thêm hay xoá được phiếu thu chi</b> của tháng đó, kể cả qua bot.
-        Muốn sửa số tháng cũ: mở khoá ➜ sửa ➜ khoá lại.
+        Muốn sửa số tháng cũ: mở khoá ➜ sửa ➜ khoá lại. Phiếu <b>thu mua</b> tháng khoá thì sửa vào danh sách chờ (cuối trang).
       </p>
       <!-- MỤC 732 (01/11/2026) — s68: "auto khóa số liệu tháng cũ vào ngày 3 hàng tháng". Máy chủ tự khoá
            (bot/utils/scheduler.py, tu_khoa_so_worker lúc 11:00); mở khoá sau đó thì KHÔNG bị tự khoá lại trong tháng. -->
@@ -53,6 +53,14 @@
           <el-button size="small" :loading="dangGhi" @click="mo(t.thang)">Mở khoá</el-button>
         </div>
       </div>
+
+      <!-- MỤC 735 (02/11/2026) — phiếu thu mua tháng khoá: sửa ➜ danh sách chờ ➜ nhóm Tổng Quản Lý xác nhận. -->
+      <div class="ks-nhan mt-6">Chờ xác nhận — sửa phiếu thu mua tháng đã khoá</div>
+      <p class="ks-phu">
+        Kế toán sửa / thêm / xoá / sửa mã hộ phiếu thu mua của tháng đã khoá thì <b>chưa ghi</b>: yêu cầu vào danh sách
+        này và bot gửi nút lên nhóm <b>I. TN - Tổng Quản Lý</b> — ai trong nhóm bấm <b>Đồng ý ghi</b> thì mới ghi thật.
+      </p>
+      <ChoXacNhanSuaSo />
     </div>
   </div>
 </template>
@@ -62,6 +70,7 @@ import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import viVN from 'element-plus/es/locale/lang/vi'
 import { khoaSoService, type ThangKhoa } from '@/api/khoaSoService'
+import ChoXacNhanSuaSo from '@/components/TienNga/ChoXacNhanSuaSo.vue'   // MỤC 735
 
 const ds = ref<ThangKhoa[]>([])
 const sanSang = ref(true)

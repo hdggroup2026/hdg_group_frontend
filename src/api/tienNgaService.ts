@@ -1,6 +1,15 @@
 import { authService } from './auth';
 import { getApiUrl } from './apiConfig';
 
+// MỤC 735 (02/11/2026) — sửa phiếu thu mua tháng đã khoá: lý do gửi kèm `?ly_do=`; lỗi mang theo mã HTTP
+// để web nhận ra 428 (cần lý do) — xem src/utils/khoaSoChoXacNhan.ts.
+const qLyDo = (lyDo?: string) => (lyDo ? `?ly_do=${encodeURIComponent(lyDo)}` : '')
+function loiCoMa(status: number, thongBao: string): Error {
+  const loi: any = new Error(thongBao)
+  loi.status = status
+  return loi
+}
+
 /** Bộ lọc dùng chung cho get/count nhật ký ứng tiền. */
 export interface CashAdvanceLogFilters {
   hoursehold_id?: string;
@@ -341,13 +350,13 @@ export const tienNgaService = {
     return await response.json();
   },
 
-  async addDailyPurchases(purchases: any[]): Promise<any[]> {
+  async addDailyPurchases(purchases: any[], lyDo?: string): Promise<any> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();
     const tokenType = localStorage.getItem('token_type') || 'Bearer';
     const authHeader = `${tokenType} ${token}`;
 
-    const response = await fetch(`${BASE_URL}/tien-nga/add-daily-purchases`, {
+    const response = await fetch(`${BASE_URL}/tien-nga/add-daily-purchases${qLyDo(lyDo)}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -376,19 +385,19 @@ export const tienNgaService = {
         authService.handle401();
       }
       
-      throw new Error(errorData.detail || `Error ${response.status}: Failed to add daily purchases`);
+      throw loiCoMa(response.status, errorData.detail || `Error ${response.status}: Failed to add daily purchases`);
     }
 
     return await response.json();
   },
 
-  async updateDailyPurchases(purchases: any[]): Promise<any[]> {
+  async updateDailyPurchases(purchases: any[], lyDo?: string): Promise<any> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();
     const tokenType = localStorage.getItem('token_type') || 'Bearer';
     const authHeader = `${tokenType} ${token}`;
 
-    const response = await fetch(`${BASE_URL}/tien-nga/update-daily-purchases`, {
+    const response = await fetch(`${BASE_URL}/tien-nga/update-daily-purchases${qLyDo(lyDo)}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -417,19 +426,19 @@ export const tienNgaService = {
         authService.handle401();
       }
       
-      throw new Error(errorData.detail || `Error ${response.status}: Failed to update daily purchases`);
+      throw loiCoMa(response.status, errorData.detail || `Error ${response.status}: Failed to update daily purchases`);
     }
 
     return await response.json();
   },
 
-  async deleteDailyPurchases(purchaseIds: string[]): Promise<any[]> {
+  async deleteDailyPurchases(purchaseIds: string[], lyDo?: string): Promise<any> {
     const BASE_URL = await getApiUrl();
     const token = authService.getToken();
     const tokenType = localStorage.getItem('token_type') || 'Bearer';
     const authHeader = `${tokenType} ${token}`;
 
-    const response = await fetch(`${BASE_URL}/tien-nga/delete-daily-purchases`, {
+    const response = await fetch(`${BASE_URL}/tien-nga/delete-daily-purchases${qLyDo(lyDo)}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
@@ -458,7 +467,7 @@ export const tienNgaService = {
         authService.handle401();
       }
       
-      throw new Error(errorData.detail || `Error ${response.status}: Failed to delete daily purchases`);
+      throw loiCoMa(response.status, errorData.detail || `Error ${response.status}: Failed to delete daily purchases`);
     }
 
     return await response.json();
@@ -2059,7 +2068,7 @@ export const tienNgaService = {
     if (!response.ok) {
       const loi = await response.json().catch(() => ({}));
       if (response.status === 401) authService.handle401();
-      throw new Error(loi.detail || `Error ${response.status}: Không chuyển được`);
+      throw loiCoMa(response.status, loi.detail || `Error ${response.status}: Không chuyển được`);   // MỤC 735
     }
     return await response.json();
   },

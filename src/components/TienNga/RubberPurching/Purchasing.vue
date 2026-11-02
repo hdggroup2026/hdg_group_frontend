@@ -1,5 +1,8 @@
 <template>
   <div class="purchasing-container h-full flex flex-col">
+    <!-- MỤC 735 (02/11/2026) — danh sách chờ xác nhận sửa phiếu tháng đã khoá sổ (s68: "add vào waiting list
+         trên web"). Không có yêu cầu nào thì không hiện gì. -->
+    <ChoXacNhanSuaSo ref="khungChoXacNhan" gon class="shrink-0" />
     <div class="flex flex-wrap justify-between items-center gap-x-4 gap-y-4 mb-4 shrink-0">
       <div class="flex flex-wrap items-center gap-x-4 gap-y-4">
         <div class="flex items-center gap-2">
@@ -1067,7 +1070,10 @@
         <ul class="list-disc pl-5 text-gray-600 dark:text-gray-400 space-y-1">
           <li>Phiếu và phần công nợ sẽ chuyển sang hộ mới <b>ngay lập tức</b>.</li>
           <li>Hộ ghi nhầm sẽ <b>sạch hoàn toàn</b> — không còn dấu vết nào trong sổ của họ.</li>
-          <li>Bot gửi tin xin duyệt lên nhóm main. <b>Không duyệt thì phiếu tự quay về hộ cũ.</b></li>
+          <!-- MỤC 735 (02/11/2026) — nút duyệt về nhóm I. TN - Tổng Quản Lý, ai trong nhóm cũng bấm được. -->
+          <li>Bot gửi tin xin duyệt lên nhóm <b>I. TN - Tổng Quản Lý</b>. <b>Không duyệt thì phiếu tự quay về hộ cũ.</b></li>
+          <li>Phiếu thuộc <b>tháng đã khoá sổ</b>: <b>chưa chuyển gì</b> — vào danh sách chờ, nhóm Tổng Quản Lý bấm
+            Đồng ý thì mới chuyển.</li>
           <li>Chưa ai duyệt thì bot <b>nhắc lại mỗi ngày</b>.</li>
         </ul>
 
@@ -1085,7 +1091,8 @@
               Chọn được hộ ở điểm thu mua khác.
             </span>
           </el-form-item>
-          <el-form-item label="Lý do (không bắt buộc)">
+          <!-- MỤC 735 (02/11/2026) — s68: "sửa phải cần lý do" (máy chủ cũng chặn khi thiếu). -->
+          <el-form-item :label="`Lý do (bắt buộc, ít nhất ${LY_DO_TOI_THIEU} ký tự)`" required>
             <el-input v-model="lyDoSuaMaHo" type="textarea" :rows="2"
                       placeholder="VD: gõ nhầm P031 thay vì P013" />
           </el-form-item>
@@ -1094,7 +1101,8 @@
 
       <template #footer>
         <el-button @click="hienSuaMaHo = false">Hủy</el-button>
-        <el-button type="warning" :loading="dangSuaMaHo" :disabled="!hoMoiChon"
+        <el-button type="warning" :loading="dangSuaMaHo"
+                   :disabled="!hoMoiChon || lyDoSuaMaHo.trim().length < LY_DO_TOI_THIEU"
                    @click="guiSuaMaHo">Chuyển và xin duyệt</el-button>
       </template>
     </el-dialog>
@@ -1108,11 +1116,15 @@ import { mauSo } from '@/utils/mauSo'
 import { MoreFilled, Search, Refresh } from '@element-plus/icons-vue'
 import { ElNotification, ElMessage, ElMessageBox } from 'element-plus'
 import { tienNgaService } from '@/api/tienNgaService'
+// MỤC 735 (02/11/2026) — tháng đã khoá sổ: hỏi lý do (428) ➜ vào danh sách chờ (202), nhóm Tổng Quản Lý xác nhận.
+import ChoXacNhanSuaSo from '@/components/TienNga/ChoXacNhanSuaSo.vue'
+import { baoChoXacNhan, goiCoLyDoKhoaSo, laChoXacNhan, LY_DO_TOI_THIEU } from '@/utils/khoaSoChoXacNhan'
 // MỤC 396 — ngưỡng màn hẹp dùng CHUNG, không chép lại logic
 // resize vào từng file. Xem `src/composables/manHep.ts`.
 import { dungManHep } from '@/composables/manHep'
 
 const { laManHep, hienBang, hienThe } = dungManHep()
+const khungChoXacNhan = ref<any>(null)   // MỤC 735 — tải lại khung chờ sau khi gửi yêu cầu
 
 const formatDate = (date: Date) => {
   const yyyy = date.getFullYear()
@@ -1287,7 +1299,16 @@ const submitForm = async () => {
       saved_amount: parseFloat(parseNumberString(purchaseForm.savedAmount).toFixed(2))
     }
 
-    const response = await tienNgaService.addDailyPurchases([payload])
+    const response: any = await goiCoLyDoKhoaSo((lyDo) => tienNgaService.addDailyPurchases([payload], lyDo))
+    if (response === null) return            // MỤC 735 — bấm "Thôi" ở hộp lý do: giữ nguyên form
+    if (laChoXacNhan(response)) {            // MỤC 735 — tháng đã khoá: CHƯA ghi, đang chờ nhóm xác nhận
+      baoChoXacNhan(response, (!purchaseForm.saveToBook && paidAmount > 0)
+        ? 'Phiếu chi tiền đi kèm CHƯA tạo (tháng khoá thì phiếu thu chi cũng khoá) — nhờ admin nếu cần.' : '')
+      resetForm()
+      dialogVisible.value = false
+      khungChoXacNhan.value?.tai()
+      return
+    }
 
     if (response && response.length > 0) {
       // 2. Ghi nhận Giao dịch tài chính (nếu không lưu sổ)
@@ -1630,14 +1651,19 @@ const guiSuaMaHo = async () => {
   dangSuaMaHo.value = true
   try {
     const kq = await tienNgaService.suaMaHoDan(
-      editingRow.value.id, hoMoiChon.value, lyDoSuaMaHo.value)
-    ElNotification({
-      title: 'Đã chuyển phiếu',
-      message: `Phiếu chuyển từ ${kq.ho_cu} sang ${kq.ho_moi}. `
-        + 'Bot đã gửi tin xin duyệt lên nhóm main.',
-      type: 'success',
-      duration: 6000,
-    })
+      editingRow.value.id, hoMoiChon.value, lyDoSuaMaHo.value.trim())
+    if (laChoXacNhan(kq)) {                  // MỤC 735 — tháng đã khoá: CHƯA chuyển, đang chờ nhóm xác nhận
+      baoChoXacNhan(kq)
+      khungChoXacNhan.value?.tai()
+    } else {
+      ElNotification({
+        title: 'Đã chuyển phiếu',
+        message: `Phiếu chuyển từ ${kq.ho_cu} sang ${kq.ho_moi}. `
+          + 'Bot đã gửi tin xin duyệt lên nhóm I. TN - Tổng Quản Lý.',
+        type: 'success',
+        duration: 6000,
+      })
+    }
     hienSuaMaHo.value = false
     editDialogVisible.value = false
     await fetchDailyPurchases()
@@ -1702,7 +1728,14 @@ const submitEditForm = async () => {
       saved_amount: savedAmount
     }
 
-    const response = await tienNgaService.updateDailyPurchases([payload])
+    const response: any = await goiCoLyDoKhoaSo((lyDo) => tienNgaService.updateDailyPurchases([payload], lyDo))
+    if (response === null) return            // MỤC 735 — bấm "Thôi": giữ hộp sửa để chỉnh tiếp
+    if (laChoXacNhan(response)) {            // MỤC 735 — tháng đã khoá: CHƯA ghi, đang chờ nhóm xác nhận
+      baoChoXacNhan(response)
+      editDialogVisible.value = false
+      khungChoXacNhan.value?.tai()
+      return
+    }
 
     if (response && response.length > 0 && editingRow.value) {
       const updatedPurch = response[0]
@@ -1780,7 +1813,13 @@ const handleCommand = (command: string, row: any) => {
       .then(async () => {
         loading.value = true
         try {
-          await tienNgaService.deleteDailyPurchases([row.id])
+          const kq: any = await goiCoLyDoKhoaSo((lyDo) => tienNgaService.deleteDailyPurchases([row.id], lyDo))
+          if (kq === null) return            // MỤC 735 — bấm "Thôi"
+          if (laChoXacNhan(kq)) {            // MỤC 735 — tháng đã khoá: CHƯA xoá, đang chờ nhóm xác nhận
+            baoChoXacNhan(kq)
+            khungChoXacNhan.value?.tai()
+            return
+          }
           const index = allData.value.findIndex(item => item.id === row.id)
           if (index !== -1) {
             allData.value.splice(index, 1)

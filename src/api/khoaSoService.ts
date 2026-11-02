@@ -27,6 +27,24 @@ async function goi(duong: string, init: RequestInit = {}): Promise<any> {
   return body
 }
 
+// MỤC 735 (02/11/2026) — một dòng danh sách chờ xác nhận (backend khoa_so.py `/cho-xac-nhan`).
+export interface DongChoXacNhan {
+  id: string
+  loai: string
+  loai_chu: string
+  thang: string            // "09/2026"
+  mo_ta: string            // chữ trơn, nhiều dòng
+  ly_do: string
+  trang_thai: string       // PENDING | WRITING | APPLIED | REJECTED | FAILED
+  trang_thai_chu: string
+  nguoi_yeu_cau?: string | null
+  nguoi_xu_ly?: string | null
+  ket_qua?: string | null
+  da_gui_nhom: boolean
+  created_at?: string | null
+  xu_ly_luc?: string | null
+}
+
 export const khoaSoService = {
   danhSach: (): Promise<{ san_sang: boolean; thang: ThangKhoa[] }> => goi('/danh-sach'),
   kiem: (ngay: string): Promise<{ khoa: boolean; thong_bao: string | null }> =>
@@ -34,4 +52,7 @@ export const khoaSoService = {
   khoa: (thang: string, ghi_chu = '') =>
     goi('/khoa', { method: 'POST', body: JSON.stringify({ thang, ghi_chu }) }),
   mo: (thang: string) => goi('/mo', { method: 'POST', body: JSON.stringify({ thang }) }),
+  // MỤC 735 — danh sách chờ xác nhận sửa phiếu thu mua tháng đã khoá (chỉ xem).
+  choXacNhan: (gioiHan = 100): Promise<{ san_sang: boolean; so_dang_cho: number; ds: DongChoXacNhan[] }> =>
+    goi(`/cho-xac-nhan?gioi_han=${gioiHan}`),
 }
