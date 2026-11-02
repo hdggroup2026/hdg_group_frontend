@@ -14,7 +14,7 @@
         Muốn sửa số tháng cũ: mở khoá ➜ sửa ➜ khoá lại.
       </p>
       <!-- MỤC 732 (01/11/2026) — s68: "auto khóa số liệu tháng cũ vào ngày 3 hàng tháng". Máy chủ tự khoá
-           (bot/utils/scheduler.py, worker 8h); mở khoá sau ngày 3 thì KHÔNG bị tự khoá lại trong tháng đó. -->
+           (bot/utils/scheduler.py, tu_khoa_so_worker lúc 11:00); mở khoá sau đó thì KHÔNG bị tự khoá lại trong tháng. -->
       <p class="ks-phu">
         🤖 <b>Tự khoá:</b> 11:00 ngày 3 hằng tháng, máy tự khoá sổ tháng trước và báo vào nhóm Telegram Tiến Nga.
         Mở khoá sau ngày đó thì máy không tự khoá lại — nhớ tự khoá lại khi sửa xong.
