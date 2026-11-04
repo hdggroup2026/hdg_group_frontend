@@ -68,6 +68,18 @@
         <OtherDeviceTab />
       </el-tab-pane>
 
+      <!-- MỤC 738 (04/11/2026) — NAS DS423: tình trạng NAS + bot NAS, chỉ xem. Đứng cạnh "Thiết bị khác"
+           vì cùng là máy móc; s68 chọn giữ bot NAS riêng, web chỉ hiện số đo bot đó tự ghi. -->
+      <el-tab-pane name="nas" lazy>
+        <template #label>
+          <span class="custom-tabs-label">
+            <el-icon><DataBoard /></el-icon>
+            <span>NAS</span>
+          </span>
+        </template>
+        <NasTab />
+      </el-tab-pane>
+
       <!-- ══════════════════════════════════════════════════════════════
            MỤC 441 · 442 (01/09/2026) — HAI TAB MỚI
 
@@ -133,7 +145,8 @@
 
 <script setup lang="ts">
 import { refTabBenVung } from '@/composables/tabBenVung'  // MỤC 423
-import { Cpu, Iphone, Notebook, Monitor, VideoCamera, More, Switch, Headset, Postcard, User } from '@element-plus/icons-vue'   // MỤC 441, 442, 521
+import { Cpu, Iphone, Notebook, Monitor, VideoCamera, More, Switch, Headset, Postcard, User, DataBoard } from '@element-plus/icons-vue'   // MỤC 441, 442, 521, 738
+import NasTab from './NasTab.vue'   // MỤC 738
 import UserTab from './UserTab.vue'   // MỤC 521
 import PhoneTab from './PhoneTab.vue'
 import LaptopTab from './LaptopTab.vue'

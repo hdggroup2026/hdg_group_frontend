@@ -55,6 +55,16 @@ export const otherService = {
   // luật quy đổi hai bộ từ vựng `phone`/`smartphone` sang phía web —
   // hai nơi cùng một luật là có ngày lệch nhau.
   // ══════════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════════════════════
+  // MỤC 738 (04/11/2026) — TÌNH TRẠNG NAS + BOT NAS (CHỈ ĐỌC)
+  //
+  // Backend đọc file số đo bot NAS tự ghi trên máy chủ — web không gọi
+  // NAS. Thiếu file vẫn trả 200 với `co_du_lieu: false` + lý do.
+  // ══════════════════════════════════════════════════════════════════
+  async getNasTrangThai(): Promise<any> {
+    return await this._goi('/other/nas-trang-thai', { method: 'GET' });
+  },
+
   async getNguoiSuDung(username?: string): Promise<any[]> {
     const duoi = username ? `?username=${encodeURIComponent(username)}` : ''
     return await this._goi(`/other/get-nguoi-su-dung${duoi}`, { method: 'GET' });
